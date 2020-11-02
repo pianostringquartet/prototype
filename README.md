@@ -3,6 +3,15 @@
 Prototype.
 
 
+## Stage 3: enable and disable nodes
+
+Double tap to enable or disable a node. 
+
+Every enabled node connects to (shares edge with) every other enabled node. A disabled node connects to no nodes.
+
+![](enable_and_disable_nodes.gif)
+
+
 ## Stage 2: create and remove nodes
 
 Add or remove nodes via simple buttons.

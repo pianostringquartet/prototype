@@ -20,6 +20,7 @@ struct BallPreferenceData: Identifiable {
     let id = UUID()
     let viewIdx: Int
     let center: Anchor<CGPoint>
+    let isEnabled: Bool
 }
 
 // Preference key for preference data
@@ -71,24 +72,32 @@ func updatePosition(value: DragGesture.Value, position: CGSize) -> CGSize {
  struct EdgeBall: View {
     @State private var position = CGSize.zero
     @State private var previousPosition = CGSize.zero
-        
+    
+    @State private var isEnabled: Bool = true
+    
     let idx: Int
     let color: Color
     let radius: CGFloat
     
     var body: some View {
-        coloredCircle(color: color, radius: radius)
+        coloredCircle(color: isEnabled ? color : Color.gray,
+                      radius: radius)
             // Child stores its center in anchor preference data,
             // for parent to later access.
             // NOTE: must come before .offset modifier
             .anchorPreference(key: BallPreferenceKey.self,
                               value: .center, // center for Anchor<CGPoint>
-                              transform: { [BallPreferenceData(viewIdx: self.idx, center: $0)] })
+                              transform: { [BallPreferenceData(viewIdx: self.idx,
+                                                               center: $0,
+                                                               isEnabled: isEnabled )] })
             .offset(x: self.position.width, y: self.position.height)
             .gesture(DragGesture()
                         .onChanged { self.position = updatePosition(value: $0, position: self.previousPosition) }
                         .onEnded { _ in self.previousPosition = self.position })
             .animation(.spring(response: 0.3, dampingFraction: 0.65, blendDuration: 4))
+            .onTapGesture(count: 2, perform: {
+                self.isEnabled.toggle()
+            })
     }
 }
 
@@ -119,11 +128,18 @@ struct ContentView: View {
             
         }.backgroundPreferenceValue(BallPreferenceKey.self) { preferences in
              GeometryReader { geometry in
-                ForEach(preferences, content: { pref in
-                    // must have at least 2 nodes to draw an edge
-                    if preferences.count >= 2 {
-                        line(from: geometry[preferences[0].center],
-                             to: geometry[preferences[pref.viewIdx].center])
+                ForEach(preferences, content: { (pref: BallPreferenceData) in
+                    // Only draw edge if at least two nodes and node is enabled
+                    if preferences.count >= 2 && pref.isEnabled {
+                        let currentPreference = preferences[pref.viewIdx]
+                        ForEach(preferences, content: { (pref2: BallPreferenceData) in
+                            let additionalPreference = preferences[pref2.viewIdx]
+                            // Only draw edge is both nodes enabled
+                            if additionalPreference.isEnabled && currentPreference.isEnabled {
+                                line(from: geometry[currentPreference.center],
+                                     to: geometry[additionalPreference.center])
+                            }
+                        } )
                     }
                 })
             }}
