@@ -2,6 +2,13 @@
 
 Prototype.
 
+
+## Stage 2: create and remove nodes
+
+Add or remove nodes via simple buttons.
+
+![](add_or_remove_nodes.gif)
+
 ## Stage 1: movable nodes with arbitrary edges
 
 Every ball can be moved around and have arbitrary connections with other balls.

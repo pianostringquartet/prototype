@@ -1,18 +1,23 @@
-//
-//  ContentView.swift
-//  prototype
-//
-//  Created by cjc on 11/1/20.
-//
-
 import SwiftUI
+
+/* ----------------------------------------------------------------
+ UTILS
+ ---------------------------------------------------------------- */
+
+// For debug printing from simulator
+func log(_ log: String) -> EmptyView {
+    print("** \(log)")
+    return EmptyView()
+}
+
 
 /* ----------------------------------------------------------------
  PREFERENCE DATA: passing data up from children to parent view
  ---------------------------------------------------------------- */
 
 // Datatype for preference data
-struct BallPreferenceData {
+struct BallPreferenceData: Identifiable {
+    let id = UUID()
     let viewIdx: Int
     let center: Anchor<CGPoint>
 }
@@ -26,7 +31,6 @@ struct BallPreferenceKey: PreferenceKey {
     static func reduce(value: inout [BallPreferenceData], nextValue: () -> [BallPreferenceData]) {
         value.append(contentsOf: nextValue())
     }
-    
 }
 
 
@@ -44,6 +48,11 @@ struct Line: Shape {
     }
 }
 
+func line(from: CGPoint, to: CGPoint) -> some View {
+    Line(from: from, to: to).stroke().animation(.default)
+}
+
+
 func coloredCircle(color: Color, radius: CGFloat) -> some View {
     LinearGradient(gradient: Gradient(colors: [.white, color]),
                    startPoint: .topLeading,
@@ -58,10 +67,11 @@ func updatePosition(value: DragGesture.Value, position: CGSize) -> CGSize {
            height: value.translation.height + position.height)
 }
  
-struct EdgeBall: View {
+
+ struct EdgeBall: View {
     @State private var position = CGSize.zero
     @State private var previousPosition = CGSize.zero
-    
+        
     let idx: Int
     let color: Color
     let radius: CGFloat
@@ -86,38 +96,37 @@ struct EdgeBall: View {
 /* ----------------------------------------------------------------
  CONTENT VIEW
  ---------------------------------------------------------------- */
-
+ 
 struct ContentView: View {
-    let spacing: CGFloat = 100
+    
+    @State private var ballCount = 3
+    
     var body: some View {
-        VStack (spacing: spacing) {
-            EdgeBall(idx: 0, color: .purple, radius: 75)
-            HStack (spacing: spacing) {
-                EdgeBall(idx: 1, color: .pink, radius: 50)
-                EdgeBall(idx: 2, color: .green, radius: 75)
+        VStack (spacing: CGFloat(25)) {
+            ForEach(0 ..< ballCount, id: \.self) { count -> EdgeBall in
+                EdgeBall(idx: count, color: .red, radius: 25)
             }
-            EdgeBall(idx: 3, color: .blue, radius: 50)
-        }
-        
-        // parent uses preference data to know about balls' relative centers
-        .backgroundPreferenceValue(BallPreferenceKey.self) { preferences in
+            Button(action: {
+                self.ballCount += 1
+            }) {
+                Text("Create node")
+            }
+            Button(action: {
+                self.ballCount -= 1
+            }) {
+                Text("Remove node")
+            }
             
-            // use GeometryReader to get absolute center of ball
-            GeometryReader { geometry in
-                // TODO: cleaner, programmatic construction of edges
-                let point0 = geometry[preferences[0].center]
-                let point1 = geometry[preferences[1].center]
-                let point2 = geometry[preferences[2].center]
-                let point3 = geometry[preferences[3].center]
-                
-                // Create any arbitrary connection:
-                Line(from: point0, to: point1).stroke().animation(.default)
-                Line(from: point1, to: point2).stroke().animation(.default)
-                Line(from: point2, to: point3).stroke().animation(.default)
-                Line(from: point0, to: point3).stroke().animation(.default)
-                Line(from: point1, to: point3).stroke().animation(.default)
-            }
-        }
+        }.backgroundPreferenceValue(BallPreferenceKey.self) { preferences in
+             GeometryReader { geometry in
+                ForEach(preferences, content: { pref in
+                    // must have at least 2 nodes to draw an edge
+                    if preferences.count >= 2 {
+                        line(from: geometry[preferences[0].center],
+                             to: geometry[preferences[pref.viewIdx].center])
+                    }
+                })
+            }}
     }
 }
 
