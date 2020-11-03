@@ -2,6 +2,23 @@
 
 Prototype.
 
+## Stage 4: edit mode
+
+#### Enabled (red) and disabled (grey) nodes
+
+A node can be enabled (red: showing edges and available to receive new edges) or disabled (gray: hiding edges and not available to receive new edges).
+
+#### Adding new edges via editing mode (green)
+
+New edges can be created in editing mode.
+
+Double tap any node (enabled or disabled), turning it green. Then single tap any other enabled (ie red) node. An edge will be drawn between the green and red nodes!
+
+Note: 
+- double tapping a node also automatically re-enables it, showing its edges etc.
+- when in editing mode, single tapping a disabled node has no effect (disabled nodes cannot receive new edges)
+
+![](edit_mode.gif)
 
 ## Stage 3: enable and disable nodes
 
