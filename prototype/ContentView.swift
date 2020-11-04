@@ -6,6 +6,8 @@
 //
 
 import SwiftUI
+import AVFoundation
+
 
 /* ----------------------------------------------------------------
  UTILS
@@ -15,6 +17,19 @@ import SwiftUI
 func log(_ log: String) -> EmptyView {
     print("** \(log)")
     return EmptyView()
+}
+
+var audioPlayer: AVAudioPlayer?
+
+func playSound(sound: String, type: String) {
+    if let path = Bundle.main.path(forResource: sound, ofType: type) {
+        do {
+            audioPlayer = try AVAudioPlayer(contentsOf: URL(fileURLWithPath: path))
+            audioPlayer?.play()
+        } catch {
+            log("Unable to play sound.")
+        }
+    }
 }
 
 
@@ -27,7 +42,6 @@ struct BallPreferenceData: Identifiable {
     let id = UUID()
     let viewIdx: Int
     let center: Anchor<CGPoint>
-    let isEnabled: Bool
 }
 
 // Preference key for preference data
@@ -46,10 +60,15 @@ struct BallPreferenceKey: PreferenceKey {
  DOMAIN TYPES: representations of domain concepts
  ---------------------------------------------------------------- */
 
-struct Connection: Identifiable {
+struct Connection: Identifiable, Equatable {
     let id: UUID = UUID()
     let from: Int
     let to: Int
+    
+    static func ==(lhs: Connection, rhs: Connection) -> Bool {
+        // Edgeless connection:
+        return lhs.from == rhs.from && lhs.to == rhs.to || lhs.from == rhs.to && lhs.to == rhs.from
+    }
 }
 
 
@@ -71,88 +90,118 @@ func line(from: CGPoint, to: CGPoint) -> some View {
     Line(from: from, to: to).stroke().animation(.default)
 }
 
-
-func coloredCircle(color: Color, radius: CGFloat) -> some View {
-    LinearGradient(gradient: Gradient(colors: [.white, color]),
-                   startPoint: .topLeading,
-                   endPoint: .bottomTrailing)
-        .frame(width: radius, height: radius)
-        .clipShape(Circle())
-}
-
-
 // ball's new position = old position + displacement from current drag gesture
 func updatePosition(value: DragGesture.Value, position: CGSize) -> CGSize {
     CGSize(width: value.translation.width + position.width,
            height: value.translation.height + position.height)
 }
 
-
-struct EdgeBall: View {
+struct Ball: View {
     @State private var position = CGSize.zero
     @State private var previousPosition = CGSize.zero
-    @State private var isEnabled: Bool = true
     
+    @State private var isAnchored: Bool = true // true just iff ball has NEVER 'been moved enough'
+        
     @Binding public var connections: [Connection]
+    @Binding public var nodeCount: Int
     @Binding public var connectingNode: Int?
     
-    let idx: Int
-    let color: Color
+    let nodeNumber: Int
     let radius: CGFloat
     
-    init(idx: Int, color: Color, radius: CGFloat, connections: Binding<[Connection]>, connectingNode: Binding<Int?>) {
-        self.idx = idx
-        self.color = color
+    init(nodeNumber: Int, radius: CGFloat, connections: Binding<[Connection]>, nodeCount: Binding<Int>, connectingNode: Binding<Int?>) {
+        self.nodeNumber = nodeNumber
         self.radius = radius
         self._connections = connections
+        self._nodeCount = nodeCount
         self._connectingNode = connectingNode
     }
      
+    private func determineColor() -> Color {
+        return connectingNode == nodeNumber ? .pink :
+                !isAnchored ? .blue :
+                    Color.gray.opacity(0 + Double((abs(position.height) + abs(position.width)) / 99))
+    }
+    
     var body: some View {
-        let isEditMode: Bool = self.connectingNode != nil
-        let isConnectingNode: Bool = self.idx == self.connectingNode
-        
-        coloredCircle(color: isConnectingNode ? Color.green : (isEnabled ? Color.red : Color.gray),
-                      radius: radius)
+        LinearGradient(gradient: Gradient(colors: [.white, determineColor()]),
+                       startPoint: .topLeading,
+                       endPoint: .bottomTrailing)
+            .clipShape(Circle())
+            .background(Image(systemName: "plus"))
+            
             // Child stores its center in anchor preference data,
             // for parent to later access.
             // NOTE: must come before .offset modifier
             .anchorPreference(key: BallPreferenceKey.self,
                               value: .center, // center for Anchor<CGPoint>
-                              transform: { [BallPreferenceData(viewIdx: self.idx, center: $0, isEnabled: self.isEnabled)] })
+                              transform: { [BallPreferenceData(viewIdx: self.nodeNumber, center: $0)] })
             .offset(x: self.position.width, y: self.position.height)
             .gesture(DragGesture()
                         .onChanged { self.position = updatePosition(value: $0, position: self.previousPosition) }
-                        .onEnded { _ in self.previousPosition = self.position })
-            .animation(.spring(response: 0.3, dampingFraction: 0.65, blendDuration: 4))
-             // Note: double-tap gesture modifier must come before single-tap gesture modifier
-            .onTapGesture(count: 2,
-                          perform: {
-                            // If I'm the connecting node, turn edit mode off and set me as 'enabled'
-                            if isConnectingNode {
-                                self.connectingNode = nil
-                                self.isEnabled = true
+                        .onEnded { (value: DragGesture.Value) in
+                            if isAnchored {
+                                
+                                let minDistance: CGFloat = CGFloat(90)
+                                
+                                // Did we move the node enough for it to become a free, de-anchored node?
+                                let movedEnough: Bool =
+                                    abs(value.translation.width) > minDistance ||
+                                    abs(value.translation.height) > minDistance
+                                if movedEnough {
+                                    self.isAnchored.toggle()
+                                    self.previousPosition = self.position
+                                    self.nodeCount += 1
+                                    playSound(sound: "positive_ping", type: "mp3")
+                                }
+                                else {
+                                    withAnimation(.spring()) { self.position = .zero }
+                                }
                             }
-                            // If I'm not the connecting node, make me the connecting node and set me as 'enabled'
                             else {
-                                self.connectingNode = self.idx
-                                self.isEnabled = true
-                            }})
-            .onTapGesture(count: 1,
-                          perform: {
-                            // If we're not in edit mode, enable/disable this node
-                            if !isEditMode {
-                                self.isEnabled.toggle()
+                                self.previousPosition = self.position
                             }
-                            // If we're in editing mode and this node is enabled:
-                            else if isEditMode && isEnabled {
-                                let newConnection: Connection = Connection(from: self.connectingNode!, to: self.idx)
-                                self.connections.append(newConnection)
-                            }
-                            // else: if we're in editing mode but this node is disabled, don't create a new connection
+                        })
+            .animation(.spring(response: 0.3, dampingFraction: 0.65, blendDuration: 4))
+            .frame(width: radius, height: radius)
+            .onTapGesture(count: /*@START_MENU_TOKEN@*/1/*@END_MENU_TOKEN@*/, perform: {
+                if !isAnchored {
+                    let existsConnectingNode: Bool = connectingNode != nil
+                    let isConnectingNode: Bool = existsConnectingNode && connectingNode == nodeNumber
+                    
+                    // Note: if no existing connecting node, make this node the connecting node
+                    // ie user is attempting to create or remove a node
+                    if !existsConnectingNode {
+                        self.connectingNode = self.nodeNumber
+                    }
+                    else { // ie there is an connecting node:
+                        let edge: Connection = Connection(from: connectingNode!, to: self.nodeNumber)
+                        let edgeAlreadyExists: Bool = connections.contains(edge)
+                        
+                        // if exist connecting node and I am the connecting node, cancel ie set connecting node=nil
+                        if isConnectingNode {
+                            self.connectingNode = nil
+                        }
+                        // if existing connecting node and I am NOT the connecting node AND there already exists a connxn(connecting node, me),
+                        // remove the connection and set connecting node=nil
+                        else if !isConnectingNode && edgeAlreadyExists {
+                            self.connections = connections.filter { $0 != edge }
+                            self.connectingNode = nil
+                            playSound(sound: "connection_removed", type: "mp3")
+                        }
+                        // if existing connecting node and I am NOT the connecting node AND there DOES NOT exist a connxn(connecting node, me),
+                        // add the connection and set connecting node=nil
+                        else if !isConnectingNode && !edgeAlreadyExists {
+                            self.connections.append(edge)
+                            self.connectingNode = nil
+                            playSound(sound: "connection_added", type: "mp3")
+                        }
+                    }
+                }
             })
     }
 }
+
 
 
 /* ----------------------------------------------------------------
@@ -160,44 +209,39 @@ struct EdgeBall: View {
  ---------------------------------------------------------------- */
 
 struct ContentView: View {
-    
-    @State private var ballCount: Int = 3
-    
-    // the node seeking edges
-    @State public var connectingNode: Int? = nil
+    @State private var nodeCount: Int = 1 // start with one node
     
     // all existings edges
     @State public var connections: [Connection] = []
-    
+
+    // particular node to which we are adding/removing connections
+    @State public var connectingNode: Int? = nil
+
     var body: some View {
-        VStack (spacing: CGFloat(25)) {
-            ForEach(0 ..< ballCount, id: \.self) { count -> EdgeBall in
-                return EdgeBall(idx: count,
-                                color: Color.red,
-                                radius: 25,
-                                connections: $connections,
-                                connectingNode: $connectingNode
-                )
+        VStack { // HACK: bottom right corner alignment
+            Spacer()
+            HStack {
+                Spacer()
+                ZStack {
+                    ForEach(1 ..< nodeCount + 1, id: \.self) { nodeNumber -> Ball in
+                        Ball(nodeNumber: nodeNumber,
+                            radius: 40,
+                            connections: $connections,
+                            nodeCount: $nodeCount,
+                            connectingNode: $connectingNode)
+                    }.padding(.trailing, 30).padding(.bottom, 30)
+                }
             }
-            Button(action: {
-                self.ballCount += 1
-            }) {
-                Image(systemName: "plus")
-                    .frame(width: 25, height: 25)
-                    .background(Color.blue)
-                    .clipShape(/*@START_MENU_TOKEN@*/Circle()/*@END_MENU_TOKEN@*/)
-                    .foregroundColor(.white)
-            }}
+        }
         .backgroundPreferenceValue(BallPreferenceKey.self) { (preferences: [BallPreferenceData]) in
-            if connections.count >= 1 && ballCount >= 2 {
+            if connections.count >= 1 && nodeCount >= 2 {
                 GeometryReader { (geometry: GeometryProxy) in
                     ForEach(connections, content: { (connection: Connection) in
-                        let toPref: BallPreferenceData = preferences[connection.to]
-                        let fromPref: BallPreferenceData = preferences[connection.from]
-                        if toPref.isEnabled && fromPref.isEnabled {
-                            line(from: geometry[toPref.center],
-                                 to: geometry[fromPref.center])
-                        }
+                        // Note: we must convert the node number to an index position
+                        let toPref: BallPreferenceData = preferences[connection.to - 1]
+                        let fromPref: BallPreferenceData = preferences[connection.from - 1]
+                        line(from: geometry[toPref.center], to: geometry[fromPref.center])
+                        
                     })
                 }
             }

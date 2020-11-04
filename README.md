@@ -2,6 +2,27 @@
 
 Prototype.
 
+
+## Stage 5: drag to add node; adding and removing edges
+
+#### Drag to add a new node 
+
+To add a new node, drag the node away from its starting point until it becomes completely opaque and then let go. You now have a new node! (If you don't drag far off, the node will snap back!)
+
+#### Single click to add or remove edges
+
+To add an edge, click a node (turning it red) and then click another node. An edge will
+
+To remove an edge, click a node (turning it red) and then click a node with which it already has a connection. The edge will be removed. 
+
+
+Note: 
+- 'enabling or disabling nodes' functionality has been removed until further iterations.
+- be sure to use the app with sound on! ;-)
+
+![](drag_to_add_node.gif)
+
+
 ## Stage 4: edit mode
 
 #### Enabled (red) and disabled (grey) nodes

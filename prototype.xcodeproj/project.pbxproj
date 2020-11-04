@@ -11,6 +11,9 @@
 		200BD85D254F66EB00692903 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 200BD85C254F66EB00692903 /* ContentView.swift */; };
 		200BD85F254F66EE00692903 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 200BD85E254F66EE00692903 /* Assets.xcassets */; };
 		200BD862254F66EE00692903 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 200BD861254F66EE00692903 /* Preview Assets.xcassets */; };
+		20A71F8625523CD700553F7E /* connection_removed.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 20A71F8325523CD700553F7E /* connection_removed.mp3 */; };
+		20A71F8725523CD700553F7E /* positive_ping.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 20A71F8425523CD700553F7E /* positive_ping.mp3 */; };
+		20A71F8825523CD700553F7E /* connection_added.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 20A71F8525523CD700553F7E /* connection_added.mp3 */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -20,6 +23,9 @@
 		200BD85E254F66EE00692903 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		200BD861254F66EE00692903 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		200BD863254F66EE00692903 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		20A71F8325523CD700553F7E /* connection_removed.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = connection_removed.mp3; path = ../../../../Downloads/connection_removed.mp3; sourceTree = "<group>"; };
+		20A71F8425523CD700553F7E /* positive_ping.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = positive_ping.mp3; path = ../../../../Downloads/positive_ping.mp3; sourceTree = "<group>"; };
+		20A71F8525523CD700553F7E /* connection_added.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; name = connection_added.mp3; path = ../../../../Downloads/connection_added.mp3; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -53,6 +59,7 @@
 			isa = PBXGroup;
 			children = (
 				200BD85A254F66EB00692903 /* prototypeApp.swift */,
+				20A71F8225523CCA00553F7E /* Sounds */,
 				200BD85C254F66EB00692903 /* ContentView.swift */,
 				200BD85E254F66EE00692903 /* Assets.xcassets */,
 				200BD863254F66EE00692903 /* Info.plist */,
@@ -67,6 +74,16 @@
 				200BD861254F66EE00692903 /* Preview Assets.xcassets */,
 			);
 			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		20A71F8225523CCA00553F7E /* Sounds */ = {
+			isa = PBXGroup;
+			children = (
+				20A71F8525523CD700553F7E /* connection_added.mp3 */,
+				20A71F8325523CD700553F7E /* connection_removed.mp3 */,
+				20A71F8425523CD700553F7E /* positive_ping.mp3 */,
+			);
+			path = Sounds;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -126,8 +143,11 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				20A71F8625523CD700553F7E /* connection_removed.mp3 in Resources */,
+				20A71F8825523CD700553F7E /* connection_added.mp3 in Resources */,
 				200BD862254F66EE00692903 /* Preview Assets.xcassets in Resources */,
 				200BD85F254F66EE00692903 /* Assets.xcassets in Resources */,
+				20A71F8725523CD700553F7E /* positive_ping.mp3 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
