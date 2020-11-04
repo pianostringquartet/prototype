@@ -11,7 +11,7 @@ To add a new node, drag the node away from its starting point until it becomes c
 
 #### Single click to add or remove edges
 
-To add an edge, click a node (turning it red) and then click another node. An edge will
+To add an edge, click a node (turning it red) and then click another node. An edge will be created.
 
 To remove an edge, click a node (turning it red) and then click a node with which it already has a connection. The edge will be removed. 
 
