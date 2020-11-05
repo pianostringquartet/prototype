@@ -2,6 +2,14 @@
 
 Prototype.
 
+## Stage 6: node info; improved node commit coloring
+
+Double-click a node to see the information it contains.
+
+Node commit coloring has been improved -- the ball increases in color and opacity as we drag.
+
+![](node_info.gif)
+
 
 ## Stage 5: drag to add node; adding and removing edges
 

@@ -8,7 +8,6 @@
 import SwiftUI
 import AVFoundation
 
-
 /* ----------------------------------------------------------------
  UTILS
  ---------------------------------------------------------------- */
@@ -99,12 +98,15 @@ func updatePosition(value: DragGesture.Value, position: CGSize) -> CGSize {
 struct Ball: View {
     @State private var position = CGSize.zero
     @State private var previousPosition = CGSize.zero
-    
     @State private var isAnchored: Bool = true // true just iff ball has NEVER 'been moved enough'
         
     @Binding public var connections: [Connection]
     @Binding public var nodeCount: Int
     @Binding public var connectingNode: Int?
+    
+    // Node info
+    @State private var info: UUID = UUID()
+    @State private var showPopover: Bool = false
     
     let nodeNumber: Int
     let radius: CGFloat
@@ -118,18 +120,39 @@ struct Ball: View {
     }
      
     private func determineColor() -> Color {
-        return connectingNode == nodeNumber ? .pink :
-                !isAnchored ? .blue :
-                    Color.gray.opacity(0 + Double((abs(position.height) + abs(position.width)) / 99))
+        if connectingNode == nodeNumber {
+            return Color.pink
+        }
+        else if !isAnchored {
+            return Color.blue
+        }
+        else {
+            return
+                position == CGSize.zero ?
+                    Color.white.opacity(0) :
+                    Color.blue.opacity(0 + Double((abs(position.height) + abs(position.width)) / 99))
+        }
     }
     
     var body: some View {
-        LinearGradient(gradient: Gradient(colors: [.white, determineColor()]),
-                       startPoint: .topLeading,
-                       endPoint: .bottomTrailing)
-            .clipShape(Circle())
+        Circle().stroke(Color.black)
+            .popover(isPresented: $showPopover, arrowEdge: .bottom) {
+                VStack (spacing: 20) {
+                    Text("Node Number: \(nodeNumber)")
+                    Text("Node ID: \(info)")
+                }
+                .padding()
+            }
             .background(Image(systemName: "plus"))
-            
+            .overlay(LinearGradient(gradient: Gradient(colors: [
+                                                        // white of opacity 0 means: 'invisible'
+                                                        position == CGSize.zero ? Color.white.opacity(0) : Color.white,
+                                                           determineColor()]),
+                               startPoint: .topLeading,
+                               endPoint: .bottomTrailing
+                ))
+            .clipShape(/*@START_MENU_TOKEN@*/Circle()/*@END_MENU_TOKEN@*/)
+            .frame(width: radius, height: radius)
             // Child stores its center in anchor preference data,
             // for parent to later access.
             // NOTE: must come before .offset modifier
@@ -141,9 +164,7 @@ struct Ball: View {
                         .onChanged { self.position = updatePosition(value: $0, position: self.previousPosition) }
                         .onEnded { (value: DragGesture.Value) in
                             if isAnchored {
-                                
                                 let minDistance: CGFloat = CGFloat(90)
-                                
                                 // Did we move the node enough for it to become a free, de-anchored node?
                                 let movedEnough: Bool =
                                     abs(value.translation.width) > minDistance ||
@@ -162,8 +183,13 @@ struct Ball: View {
                                 self.previousPosition = self.position
                             }
                         })
+        
             .animation(.spring(response: 0.3, dampingFraction: 0.65, blendDuration: 4))
-            .frame(width: radius, height: radius)
+            .onTapGesture(count: 2, perform: {
+                if !isAnchored {
+                    self.showPopover.toggle()
+                }
+            })
             .onTapGesture(count: /*@START_MENU_TOKEN@*/1/*@END_MENU_TOKEN@*/, perform: {
                 if !isAnchored {
                     let existsConnectingNode: Bool = connectingNode != nil
@@ -203,7 +229,6 @@ struct Ball: View {
 }
 
 
-
 /* ----------------------------------------------------------------
  CONTENT VIEW
  ---------------------------------------------------------------- */
@@ -225,10 +250,11 @@ struct ContentView: View {
                 ZStack {
                     ForEach(1 ..< nodeCount + 1, id: \.self) { nodeNumber -> Ball in
                         Ball(nodeNumber: nodeNumber,
-                            radius: 40,
+                            radius: 60,
                             connections: $connections,
                             nodeCount: $nodeCount,
                             connectingNode: $connectingNode)
+                        
                     }.padding(.trailing, 30).padding(.bottom, 30)
                 }
             }
@@ -260,3 +286,4 @@ struct ContentView_Previews: PreviewProvider {
         ContentView()
     }
 }
+
