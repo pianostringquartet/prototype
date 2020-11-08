@@ -25,7 +25,9 @@ func log(_ log: String) -> EmptyView {
 
 struct AppState: StateType, Codable {
 //    var counter: Int = 0
-    var counter: Int = 5
+//    var counter: Int = 5
+    var fun: Fun = Fun(name: "Molly Bloom")
+    var muchFun: [Fun] = [Fun(name: "James Joyce"), Fun(name: "Marcel Proust")]
     
 //    func persist() {
 //    }
@@ -36,25 +38,27 @@ struct CounterActionIncrease: Action {}
 struct CounterActionDecrease: Action {}
 
 
-
 func saveState(state: AppState) -> () {
     log("saveState called")
-    UserDefaults.standard.set(state.counter, forKey: "Tap")
+    
+    if let encoded = try? JSONEncoder().encode(state) {
+        UserDefaults.standard.set(encoded, forKey: "SavedData")
+        log("saved state...")
+    }
+    else {
+        log("wasn't able to save state...")
+    }
 }
 
 func pullState() -> AppState? {
-//    if let data = UserDefaults.standard.data(forKey: "SavedData") {
     log("pullState() called")
-//    if let myCount = UserDefaults.standard.integer(forKey: "Tap") {
-//        return AppState(counter: myCount)
-//    }
-//    return nil
-    
-    // .integer defaults to 0 if val for key not found
-    
-    let foundCount: Int = UserDefaults.standard.integer(forKey: "Tap")
-    log("foundCount: \(foundCount)")
-    return AppState(counter: foundCount)
+    if let data = UserDefaults.standard.data(forKey: "SavedData") {
+        if let decodedState = try? JSONDecoder().decode(AppState.self, from: data) {
+            log("decodedState: \(decodedState)")
+          return decodedState
+        }
+    }
+    return nil
 }
 
 
@@ -82,9 +86,11 @@ func counterReducer(action: Action, state: AppState?) -> AppState {
 
     switch action {
     case _ as CounterActionIncrease:
-        state.counter += 1
+//        state.counter += 1
+        state.fun.count += 1
     case _ as CounterActionDecrease:
-        state.counter -= 1
+//        state.counter -= 1
+        state.fun.count -= 1
     default:
         break
     }
@@ -103,6 +109,14 @@ let mainStore = Store<AppState>(
     state: nil
 )
 
+
+struct MyCountView: View {
+    
+    var body: some View {
+     return EmptyView()
+    }
+}
+
 // MARK: ContentView
 
 struct ContentView: View {
@@ -119,7 +133,8 @@ struct ContentView: View {
         VStack {
             // We just directly grab the data from the state
             // ... can also pass this down later?
-            Text(String(state.current.counter))
+//            Text(String(state.current.counter))
+            Text(String(state.current.fun.count))
             Button(action: state.dispatch(CounterActionIncrease())) {
                 log("redux ContentView: dispatch increment")
                 Text("Increase")
@@ -127,6 +142,9 @@ struct ContentView: View {
             Button(action: state.dispatch(CounterActionDecrease())) {
                 log("redux ContentView: dispatch decrement")
                 Text("Decrease")
+            }
+            ForEach(state.current.muchFun, id: \.id) { (f: Fun) in
+                Text("\(f.name) has \(f.count) books.")
             }
         }
     }
