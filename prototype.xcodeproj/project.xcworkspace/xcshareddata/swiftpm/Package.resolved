@@ -1,0 +1,16 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "ReSwift",
+        "repositoryURL": "https://github.com/ReSwift/ReSwift.git",
+        "state": {
+          "branch": "mjarvis/swiftui",
+          "revision": "7d826e8853178efaf8361d89d3e57aad3134fc51",
+          "version": null
+        }
+      }
+    ]
+  },
+  "version": 1
+}
