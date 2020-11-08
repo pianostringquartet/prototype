@@ -2,6 +2,8 @@
 
 Prototype.
 
+PLEASE SEE SMALLJUMP FOR STAGE 7+: https://github.com/pianostringquartet/smalljump
+
 ## Stage 6: node info; improved node commit coloring
 
 Double-click a node to see the information it contains.
