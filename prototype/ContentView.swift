@@ -24,7 +24,8 @@ func log(_ log: String) -> EmptyView {
 //}
 
 struct AppState: StateType, Codable {
-    var counter: Int = 0
+//    var counter: Int = 0
+    var counter: Int = 5
     
 //    func persist() {
 //    }
@@ -34,8 +35,50 @@ struct AppState: StateType, Codable {
 struct CounterActionIncrease: Action {}
 struct CounterActionDecrease: Action {}
 
+
+
+func saveState(state: AppState) -> () {
+    log("saveState called")
+    UserDefaults.standard.set(state.counter, forKey: "Tap")
+}
+
+func pullState() -> AppState? {
+//    if let data = UserDefaults.standard.data(forKey: "SavedData") {
+    log("pullState() called")
+//    if let myCount = UserDefaults.standard.integer(forKey: "Tap") {
+//        return AppState(counter: myCount)
+//    }
+//    return nil
+    
+    // .integer defaults to 0 if val for key not found
+    
+    let foundCount: Int = UserDefaults.standard.integer(forKey: "Tap")
+    log("foundCount: \(foundCount)")
+    return AppState(counter: foundCount)
+}
+
+
+
+// seems to be called first?
 func counterReducer(action: Action, state: AppState?) -> AppState {
-    var state = state ?? AppState()
+    log("counterReducer called")
+    print("counterReducer printed")
+    
+    var defaultState: AppState = AppState()
+    
+    if let persistedState = pullState() {
+        log("there was persistedState: \(persistedState)")
+        defaultState = persistedState
+    }
+    
+    
+//    var state = state ?? AppState()
+    
+//    var state = state ?? AppState()
+//    var state = state ?? AppState()
+    var state = state ?? defaultState
+    
+    log("state before reducers: \(state)")
 
     switch action {
     case _ as CounterActionIncrease:
@@ -46,9 +89,15 @@ func counterReducer(action: Action, state: AppState?) -> AppState {
         break
     }
 
+    log("about to return state in reducer: state: \(state)")
+    saveState(state: state)
     return state
 }
 
+
+// here is where we declare the store
+// we define it here, outside any view?
+// ... where else to put this?
 let mainStore = Store<AppState>(
     reducer: counterReducer,
     state: nil
@@ -56,8 +105,8 @@ let mainStore = Store<AppState>(
 
 // MARK: ContentView
 
-//struct ContentView: View {
-struct XContentView: View {
+struct ContentView: View {
+//struct XContentView: View {
 
     // MARK: Private Properties
 
@@ -66,14 +115,17 @@ struct XContentView: View {
     // MARK: Body
 
     var body: some View {
+        log("redux ContentView: body")
         VStack {
             // We just directly grab the data from the state
             // ... can also pass this down later?
             Text(String(state.current.counter))
             Button(action: state.dispatch(CounterActionIncrease())) {
+                log("redux ContentView: dispatch increment")
                 Text("Increase")
             }
             Button(action: state.dispatch(CounterActionDecrease())) {
+                log("redux ContentView: dispatch decrement")
                 Text("Decrease")
             }
         }
@@ -88,7 +140,7 @@ struct XContentView: View {
 public class ObservableState<T>: ObservableObject where T: StateType {
 
     // MARK: Public properties
-    
+    // ie access this from the outside like `state.current.counter`
     @Published public var current: T
     
     // MARK: Private properties
@@ -97,7 +149,9 @@ public class ObservableState<T>: ObservableObject where T: StateType {
     
     // MARK: Lifecycle
     
+    // might want to retrieve UD state here?
     public init(store: Store<T>) {
+        log("ObservableState init called")
         self.store = store
         self.current = store.state
         
@@ -106,18 +160,23 @@ public class ObservableState<T>: ObservableObject where T: StateType {
         store.subscribe(self)
     }
     
+    // might want to saved UD state here?
     deinit {
+        log("ObservableState deinit called")
         store.unsubscribe(self)
     }
     
     // MARK: Public methods
     
     public func dispatch(_ action: Action) {
+        log("ObservableState dispatch 1 called")
         store.dispatch(action)
     }
     
     public func dispatch(_ action: Action) -> () -> Void {
-        {
+        log("ObservableState dispatch 2 called")
+        return {
+//        {
             self.store.dispatch(action)
         }
     }
@@ -128,6 +187,7 @@ extension ObservableState: StoreSubscriber {
     // MARK: - <StoreSubscriber>
     
     public func newState(state: T) {
+        log("ObservableState: StoreSubscriber: newState called")
         DispatchQueue.main.async {
             self.current = state
         }
@@ -194,12 +254,13 @@ struct Fun: Identifiable, Codable {
     var count: Int = 0
 }
 
-struct ContentView: View {
+struct FunContentView: View {
     
     @State private var fun: Fun
     
     init() {
         log("FunView: init")
+        
         if let data = UserDefaults.standard.data(forKey: "SavedData") {
 //            if let decoded = try? JSONDecoder().decode([Prospect].self, from: data) {
             if let decoded = try? JSONDecoder().decode(Fun.self, from: data) {
