@@ -53,35 +53,29 @@ struct GraphEditorChild: View {
                 Button("< Back") {
                     log("graph edit screen back pressed")
                     dispatch(GoToGraphSelectionScreenAction())
-                    //
                 }
+                Spacer()
                 Text("Graph \(graphId)")
-            }
+                Spacer()
+            }.padding()
             
             Spacer()
             HStack {
                 Spacer()
                 ZStack {
                     ForEach(nodes, id: \.id) { (node: Node) in
-                        Ball(
-//                            nodeCount: $nodeCount,
-                             connectingNode: $connectingNode,
+                        Ball(connectingNode: $connectingNode,
                              node: node,
                              graphId: graphId,
                              connections: connections,
                              dispatch: dispatch)
                     }.padding(.trailing, 30).padding(.bottom, 30)
-
                 }
             }
         }
         .backgroundPreferenceValue(BallPreferenceKey.self) { (preferences: [BallPreferenceData]) in
-            // these are just the connections for this graph
-            if connections.count >= 1
-            {
-                let graphPreferences = preferences.filter( { (pref: BallPreferenceData) -> Bool in
-                    pref.graphId == graphId
-                })
+            if connections.count >= 1 {
+                let graphPreferences = preferences.filter( { (pref: BallPreferenceData) -> Bool in pref.graphId == graphId })
                 GeometryReader { (geometry: GeometryProxy) in
                     ForEach(connections, content: { (connection: Connection) in
                         // Find each conn node's ball pref data
@@ -91,7 +85,6 @@ struct GraphEditorChild: View {
                         })
                         line(from: geometry[to!.center], to: geometry[from!.center])
                     })
-
                 }
             }
         }
