@@ -132,13 +132,24 @@ struct ContentView: View {
                                      connections: state.current.connections.filter( {
                                         (conn: Connection) -> Bool in conn.graphId == state.current.currentGraphId!
                                      }),
-                                     dispatch: { (action: Action) in state.dispatch(action) })
+                                     dispatch: { (action: Action) in state.dispatch(action) }
+                    )
+                    // works, but looks
+//                    .transition(.move(edge: .bottom))
+                    // nice -- but want a rightward-> sliding animation
+//                    .transition(AnyTransition.opacity.animation(.easeInOut(duration: 0.5)))
+//                    .transition(AnyTransition.opacity.animation(.))
+//                    .transition(AnyTransition.opacity.animation(.easeInOut(duration: 0.2)))
+                    .transition(.asymmetric(insertion: AnyTransition.opacity.combined(with: .slide), removal: .scale))
                 
                 case Screens.graphSelection:
                     GraphSelectionView(graphs: state.current.graphs,
                                        nodes: state.current.nodes,
                                        connections: state.current.connections,
-                                       dispatch: { (action: Action) in state.dispatch(action) })
+                                       dispatch: { (action: Action) in state.dispatch(action) }
+                    )
+//                    .transition(.asymmetric(insertion: AnyTransition.opacity.combined(with: .slide), removal: .scale))
+                    .transition(AnyTransition.opacity.animation(.easeInOut(duration: 0.35)))
             }
         }
     }
