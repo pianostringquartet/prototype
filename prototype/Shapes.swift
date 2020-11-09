@@ -37,7 +37,6 @@ func updatePosition(value: DragGesture.Value, position: CGSize) -> CGSize {
 struct Ball: View {
     @Environment(\.managedObjectContext) var moc
     
-//    @Binding private var nodeCount: Int
     @Binding private var connectingNode: Int? // not persisted
     
     // node info
@@ -59,26 +58,20 @@ struct Ball: View {
     
     let dispatch: Dispatch
 
-    init(
-//        nodeCount: Binding<Int>, // shouldn't need this anymore
-         connectingNode: Binding<Int?>,
+    init(connectingNode: Binding<Int?>,
          node: Node,
          graphId: Int, // don't need to pass graphID -- the node will have it
          connections: [Connection],
          dispatch: @escaping Dispatch
     ) {
-//        self._nodeCount = nodeCount // not used?
         self._connectingNode = connectingNode
-        
         self.node = node
-                
+        
         // use node's position directly
         self._localPosition = State.init(initialValue: node.position)
         self._localPreviousPosition = State.init(initialValue: node.position)
         
-        
         self.graphId = graphId
-        
         self.connections = connections
         self.dispatch = dispatch
     }
@@ -118,7 +111,6 @@ struct Ball: View {
                                     endPoint: .bottomTrailing
             ))
             .clipShape(/*@START_MENU_TOKEN@*/Circle()/*@END_MENU_TOKEN@*/)
-//            .overlay(Text(movedEnough(width: localPosition.width, height: localPosition.height) ? "\(node.nodeNumber)": ""))
             .overlay(Text(movedEnough(width: localPosition.width, height: localPosition.height) ? "\(node.nodeId)": ""))
             .frame(width: CGFloat(node.radius), height: CGFloat(node.radius))
             // Child stores its center in anchor preference data,
@@ -133,23 +125,15 @@ struct Ball: View {
             .offset(x: localPosition.width, y: localPosition.height)
             .gesture(DragGesture()
                         .onChanged {
-                            log("drag onChanged")
                             self.localPosition = updatePosition(value: $0, position: self.localPreviousPosition)
                             
-                            // if position just held locally, then when we close app,
-                            // we won't have the position saved in redux store
                             if !node.isAnchored {
-                                log("dragged node was not anchored")
                                 dispatch(NodeMovedAction(graphId: node.graphId, position: self.localPosition, node: node))
                             }
-                            
-                            
                         }
                         .onEnded { (value: DragGesture.Value) in
-                            log("drag onEnded")
                             if node.isAnchored {
                                 if movedEnough(width: value.translation.width, height: value.translation.height) {
-                                    log("movedEnough")
                                     self.localPreviousPosition = self.localPosition // not even needed here?
                                     playSound(sound: "positive_ping", type: "mp3")
                                     dispatch(NodeCommittedAction(graphId: node.graphId, position: self.localPosition, node: node))
@@ -164,13 +148,11 @@ struct Ball: View {
                         })
             .animation(.spring(response: 0.3, dampingFraction: 0.65, blendDuration: 4))
             .onTapGesture(count: 2, perform: {
-                log("2 tap")
                 if !node.isAnchored {
                     self.showPopover.toggle()
                 }
             })
             .onTapGesture(count: /*@START_MENU_TOKEN@*/1/*@END_MENU_TOKEN@*/, perform: {
-                log("1 tap")
                 if !node.isAnchored {
                     let existsConnectingNode: Bool = connectingNode != nil
                     let isConnectingNode: Bool = existsConnectingNode && connectingNode != nil && connectingNode! == node.nodeId
@@ -178,7 +160,6 @@ struct Ball: View {
                     // Note: if no existing connecting node, make this node the connecting node
                     // ie user is attempting to create or remove a node
                     if !existsConnectingNode {
-//                        self.connectingNode = Int(node.nodeNumber)
                         self.connectingNode = node.nodeId
                     }
                     else { // ie there is an connecting node:
@@ -194,7 +175,6 @@ struct Ball: View {
                         // if existing connecting node and I am NOT the connecting node AND there already exists a connxn(connecting node, me),
                         // remove the connection and set connecting node=nil
                         else if !isConnectingNode && edgeAlreadyExists {
-                            log("Need to delete this connection")
                             playSound(sound: "connection_removed", type: "mp3")
                             dispatch(EdgeRemovedAction(graphId: graphId,
                                                        from: connectingNode!,
@@ -204,7 +184,6 @@ struct Ball: View {
                         // if existing connecting node and I am NOT the connecting node AND there DOES NOT exist a connxn(connecting node, me),
                         // add the connection and set connecting node=nil
                         else if !isConnectingNode && !edgeAlreadyExists {
-                            log("Need to create new edge")
                             playSound(sound: "connection_added", type: "mp3")
                             dispatch(EdgeAddedAction(graphId: graphId,
                                                        from: connectingNode!,
@@ -216,5 +195,3 @@ struct Ball: View {
             })
     }
 }
-
-    

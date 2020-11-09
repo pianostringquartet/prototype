@@ -76,11 +76,11 @@
 				20521CA12558B36900270E72 /* Reducer.swift */,
 				200BD85C254F66EB00692903 /* ContentView.swift */,
 				20521CA62558B3BE00270E72 /* Util.swift */,
+				20521CAF2558B73300270E72 /* Shapes.swift */,
 				20A71F8225523CCA00553F7E /* Sounds */,
 				200BD85E254F66EE00692903 /* Assets.xcassets */,
 				200BD863254F66EE00692903 /* Info.plist */,
 				200BD860254F66EE00692903 /* Preview Content */,
-				20521CAF2558B73300270E72 /* Shapes.swift */,
 			);
 			path = prototype;
 			sourceTree = "<group>";
