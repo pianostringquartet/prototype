@@ -37,7 +37,7 @@ func updatePosition(value: DragGesture.Value, position: CGSize) -> CGSize {
 struct Ball: View {
     @Environment(\.managedObjectContext) var moc
     
-    @Binding private var nodeCount: Int
+//    @Binding private var nodeCount: Int
     @Binding private var connectingNode: Int? // not persisted
     
     // node info
@@ -53,36 +53,25 @@ struct Ball: View {
     
     let connections: [Connection]
     
-//    private var connectionsFetchRequest: FetchRequest<Connection>
-//    private var connections: FetchedResults<Connection> { connectionsFetchRequest.wrappedValue }
-    
+
     // minimum distance for plus-sign to be dragged to become committed as a node
     let minDistance: CGFloat = CGFloat(90)
     
     let dispatch: Dispatch
 
-    init(nodeCount: Binding<Int>, // shouldn't need this anymore
+    init(
+//        nodeCount: Binding<Int>, // shouldn't need this anymore
          connectingNode: Binding<Int?>,
          node: Node,
          graphId: Int, // don't need to pass graphID -- the node will have it
          connections: [Connection],
          dispatch: @escaping Dispatch
     ) {
-        self._nodeCount = nodeCount
+//        self._nodeCount = nodeCount // not used?
         self._connectingNode = connectingNode
         
-//        connectionsFetchRequest = FetchRequest<Connection>(
-//            entity: Connection.entity(),
-//            sortDescriptors: [],
-//            predicate: NSPredicate(format: "graphId = %@", NSNumber(value: graphId)))
-        
         self.node = node
-        
-//        let convertedPosition: CGSize = CGSize(width: CGFloat(node.positionX),
-//                                               height: CGFloat(node.positionY))
-//        self._localPosition = State.init(initialValue: convertedPosition)
-//        self._localPreviousPosition = State.init(initialValue: convertedPosition)
-        
+                
         // use node's position directly
         self._localPosition = State.init(initialValue: node.position)
         self._localPreviousPosition = State.init(initialValue: node.position)
@@ -95,7 +84,6 @@ struct Ball: View {
     }
     
     private func determineColor() -> Color {
-//        if connectingNode != nil && connectingNode! == node.nodeNumber {
         if connectingNode != nil && connectingNode! == node.nodeId {
             return Color.pink
         }
@@ -117,11 +105,9 @@ struct Ball: View {
         Circle().stroke(Color.black)
             .popover(isPresented: $showPopover, arrowEdge: .bottom) {
                 VStack (spacing: 20) {
-//                    Text("Node Number: \(node.nodeNumber)")
                     Text("Node ID: \(node.nodeId)")
                     Text("Node Serial: \(info)")
-                }
-                .padding()
+                }.padding()
             }
             .background(Image(systemName: "plus"))
             .overlay(LinearGradient(gradient: Gradient(colors: [
@@ -141,13 +127,23 @@ struct Ball: View {
             .anchorPreference(key: BallPreferenceKey.self,
                               value: .center, // center for Anchor<CGPoint>
                               transform: {
-//                                [BallPreferenceData(viewIdx: Int(node.nodeNumber), center: $0)] })
-                                [BallPreferenceData(viewIdx: Int(node.nodeId), center: $0)] })
+                                [BallPreferenceData(viewIdx: Int(node.nodeId), center: $0,
+                                                    graphId: node.graphId,
+                                                    nodeId: node.nodeId)] })
             .offset(x: localPosition.width, y: localPosition.height)
             .gesture(DragGesture()
                         .onChanged {
                             log("drag onChanged")
                             self.localPosition = updatePosition(value: $0, position: self.localPreviousPosition)
+                            
+                            // if position just held locally, then when we close app,
+                            // we won't have the position saved in redux store
+                            if !node.isAnchored {
+                                log("dragged node was not anchored")
+                                dispatch(NodeMovedAction(graphId: node.graphId, position: self.localPosition, node: node))
+                            }
+                            
+                            
                         }
                         .onEnded { (value: DragGesture.Value) in
                             log("drag onEnded")
@@ -165,14 +161,6 @@ struct Ball: View {
                             else {
                                 self.localPreviousPosition = self.localPosition
                             }
-                            
-//                            node.positionX = Float(localPosition.width)
-//                            node.positionY = Float(localPosition.height)
-                            
-//                            node.position = localPosition
-                            
-                            
-//                            try? moc.save()
                         })
             .animation(.spring(response: 0.3, dampingFraction: 0.65, blendDuration: 4))
             .onTapGesture(count: 2, perform: {
@@ -185,21 +173,19 @@ struct Ball: View {
                 log("1 tap")
                 if !node.isAnchored {
                     let existsConnectingNode: Bool = connectingNode != nil
-//                    let isConnectingNode: Bool = existsConnectingNode && connectingNode != nil && connectingNode! == node.nodeNumber
-                    
                     let isConnectingNode: Bool = existsConnectingNode && connectingNode != nil && connectingNode! == node.nodeId
                     
                     // Note: if no existing connecting node, make this node the connecting node
                     // ie user is attempting to create or remove a node
                     if !existsConnectingNode {
 //                        self.connectingNode = Int(node.nodeNumber)
-                        self.connectingNode = Int(node.nodeId)
+                        self.connectingNode = node.nodeId
                     }
                     else { // ie there is an connecting node:
                         let edgeAlreadyExists: Bool = !connections.filter { (conn: Connection) -> Bool in
-                            conn.graphId == Int32(graphId) &&
-                                (conn.to == node.nodeId && conn.from == Int32(connectingNode!)
-                                    || conn.from == node.nodeId && conn.to == Int32(connectingNode!))
+                            conn.graphId == graphId &&
+                                (conn.to == node.nodeId && conn.from == connectingNode!
+                                    || conn.from == node.nodeId && conn.to == connectingNode!)
                         }.isEmpty
                         
                         if isConnectingNode {
@@ -208,37 +194,22 @@ struct Ball: View {
                         // if existing connecting node and I am NOT the connecting node AND there already exists a connxn(connecting node, me),
                         // remove the connection and set connecting node=nil
                         else if !isConnectingNode && edgeAlreadyExists {
-                            
-                            // Retrieve the existing connection and delete it
-//                            let fetchRequest : NSFetchRequest<Connection> = Connection.fetchRequest()
-//                            fetchRequest.predicate = NSPredicate(format: "graphId = %i AND (from = %i AND to = %i) OR (to = %i AND from = %i)",
-//                                                                 graphId, connectingNode!, node.nodeNumber, connectingNode!, node.nodeNumber)
-//                            let fetchedResults = try? moc.fetch(fetchRequest) as! [Connection]
-//                            if let aConnection = fetchedResults?.first {
-//                                moc.delete(aConnection)
-//                                try? moc.save()
-//                            }
-                            
                             log("Need to delete this connection")
-                            
-                            self.connectingNode = nil
                             playSound(sound: "connection_removed", type: "mp3")
+                            dispatch(EdgeRemovedAction(graphId: graphId,
+                                                       from: connectingNode!,
+                                                       to: node.nodeId))
+                            self.connectingNode = nil
                         }
                         // if existing connecting node and I am NOT the connecting node AND there DOES NOT exist a connxn(connecting node, me),
                         // add the connection and set connecting node=nil
                         else if !isConnectingNode && !edgeAlreadyExists {
-                            
-//                            let edge = Connection(context: self.moc)
-//                            edge.id = UUID()
-//                            edge.from = Int32(connectingNode!)
-//                            edge.to = node.nodeNumber
-//                            edge.graphId = Int32(graphId)
-//                            try? moc.save()
-                            
-                            log("Need to create new node")
-                            
-                            self.connectingNode = nil
+                            log("Need to create new edge")
                             playSound(sound: "connection_added", type: "mp3")
+                            dispatch(EdgeAddedAction(graphId: graphId,
+                                                       from: connectingNode!,
+                                                       to: node.nodeId))
+                            self.connectingNode = nil
                         }
                     }
                 }
