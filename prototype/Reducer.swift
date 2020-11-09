@@ -53,11 +53,15 @@ struct GoToScreen: Action {
 struct GoToGraphSelectionScreenAction: Action {}
 
 
+struct NewGraphCreatedAction: Action {}
+
 /* ----------------------------------------------------------------
  Reducer
  ---------------------------------------------------------------- */
 
 func reducer(action: Action, state: AppState?) -> AppState {
+    log("reducer called")
+    
     var defaultState: AppState = AppState()
     if let persistedState = pullState() {
         defaultState = persistedState
@@ -113,6 +117,7 @@ func reducer(action: Action, state: AppState?) -> AppState {
         // NAVIGATION
             
         case let newGraph as GoToNewGraphAction:
+            log("handling GoToNewGraphAction")
             // create new graph
             state.graphs.append(Graph(graphId: newGraph.graphId))
             state.nodes.append(Node(graphId: newGraph.graphId, isAnchored: true, nodeId: 1))
@@ -123,6 +128,22 @@ func reducer(action: Action, state: AppState?) -> AppState {
             // route to graph edit screen:
             state.currentScreen = Screens.graphEditing
             
+            
+            // the idea is 
+        case let createdGraph as NewGraphCreatedAction:
+            let nextGraphId = state.graphs.count + 1
+            log("handling NewGraphCreatedAction, nextGraphId: \(nextGraphId)")
+            
+            state.graphs.append(Graph(graphId: nextGraphId))
+            state.nodes.append(Node(graphId: nextGraphId, isAnchored: true, nodeId: 1))
+            
+            // set as active graph
+            state.currentGraphId = nextGraphId
+            
+            // route to graph edit screen:
+            state.currentScreen = Screens.graphEditing
+            
+        
         case let goToGraph as GoToGraphAction:
             state.currentGraphId = goToGraph.graphId
             state.currentScreen = Screens.graphEditing
