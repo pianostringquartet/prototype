@@ -2,7 +2,15 @@
 
 Prototype.
 
-# PLEASE SEE SMALLJUMP FOR STAGE 7+: https://github.com/pianostringquartet/smalljump
+## Stage 7: persistent graphs and selection screen using ReSwift and UserDefaults
+
+Graphs (nodes and edges) are now persisted across app closures.
+
+We can create and edit multiple graphs.
+
+Also, nodes now display their numbers.
+
+![](reswift_persistence.gif)
 
 ## Stage 6: node info; improved node commit coloring
 
