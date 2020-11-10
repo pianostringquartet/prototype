@@ -35,14 +35,18 @@ struct GraphEditorView: View {
 
     var body: some View {
         VStack { // HACK: bottom right corner alignment
+            
+//            HStack(alignment: .center) {
             HStack {
                 Button("< Back") {
                     dispatch(GoToGraphSelectionScreenAction())
                 }
                 Spacer()
                 Text("Graph \(graphId)")
+                    //.alignmentGuide(HorizontalAlignment.center)
                 Spacer()
             }.padding()
+            
             
             Spacer()
             HStack {
@@ -87,7 +91,6 @@ struct GraphSelectionView: View {
     let connections: [Connection]
     let dispatch: Dispatch
     
-
     var body: some View {
         VStack(spacing: 20) {
             Spacer()
@@ -96,10 +99,15 @@ struct GraphSelectionView: View {
             }
             List {
                 ForEach(graphs, id: \.id) { (graph: Graph) in
-                        Text("Graph \(graph.graphId)").onTapGesture {
-                            dispatch(GoToGraphAction(graphId: graph.graphId))
-                        }
+                    Button("Graph \(graph.graphId)") {
+                        dispatch(GoToGraphAction(graphId: graph.graphId))
                     }
+                }.onDelete { (indexSet: IndexSet) in
+                    for idx in indexSet {
+                        log("onDelete: graphs[idx] was: \(graphs[idx])")
+                        dispatch(GraphDeletedAction(graphId: graphs[idx].graphId))
+                    }
+                }
             }
         }.padding()
     }
@@ -133,23 +141,16 @@ struct ContentView: View {
                                         (conn: Connection) -> Bool in conn.graphId == state.current.currentGraphId!
                                      }),
                                      dispatch: { (action: Action) in state.dispatch(action) }
-                    )
-                    // works, but looks
-//                    .transition(.move(edge: .bottom))
-                    // nice -- but want a rightward-> sliding animation
-//                    .transition(AnyTransition.opacity.animation(.easeInOut(duration: 0.5)))
-//                    .transition(AnyTransition.opacity.animation(.))
-//                    .transition(AnyTransition.opacity.animation(.easeInOut(duration: 0.2)))
-                    .transition(.asymmetric(insertion: AnyTransition.opacity.combined(with: .slide), removal: .scale))
+                    ).transition(.asymmetric(insertion: AnyTransition.opacity.combined(with: .slide),
+                                             removal: AnyTransition.opacity.animation(.easeInOut(duration: 0.2))))
                 
                 case Screens.graphSelection:
                     GraphSelectionView(graphs: state.current.graphs,
                                        nodes: state.current.nodes,
                                        connections: state.current.connections,
                                        dispatch: { (action: Action) in state.dispatch(action) }
-                    )
-//                    .transition(.asymmetric(insertion: AnyTransition.opacity.combined(with: .slide), removal: .scale))
-                    .transition(AnyTransition.opacity.animation(.easeInOut(duration: 0.35)))
+                    ).transition(.asymmetric(insertion: AnyTransition.opacity.combined(with: .slide),
+                                             removal: AnyTransition.opacity.animation(.easeInOut(duration: 0.2))))
             }
         }
     }

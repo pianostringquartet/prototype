@@ -2,6 +2,15 @@
 
 Prototype.
 
+## Stage 8: delete graphs
+
+Graphs can now be deleted -- drag to the right to reveal red delete button. 
+
+Tappable areas on graph selection screen are now larger. UI slightly less choppy. 
+
+![](delete_graphs.gif)
+
+
 ## Stage 7: persistent graphs and selection screen using ReSwift and UserDefaults
 
 Graphs (nodes and edges) are now persisted across app closures.
