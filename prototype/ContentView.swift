@@ -35,15 +35,12 @@ struct GraphEditorView: View {
 
     var body: some View {
         VStack { // HACK: bottom right corner alignment
-            
-//            HStack(alignment: .center) {
             HStack {
                 Button("< Back") {
                     dispatch(GoToGraphSelectionScreenAction())
                 }
                 Spacer()
                 Text("Graph \(graphId)")
-                    //.alignmentGuide(HorizontalAlignment.center)
                 Spacer()
             }.padding()
             
