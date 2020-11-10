@@ -4,7 +4,7 @@ Prototype.
 
 ## Stage 8: delete graphs
 
-Graphs can now be deleted -- drag to the right to reveal red delete button. 
+Graphs can now be deleted -- drag to the left to reveal red delete button. 
 
 Tappable areas on graph selection screen are now larger. UI slightly less choppy. 
 
