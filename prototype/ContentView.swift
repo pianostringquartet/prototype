@@ -44,6 +44,7 @@ struct GraphEditorView: View {
                 Spacer()
             }.padding()
             
+            
             Spacer()
             HStack {
                 Spacer()
@@ -87,7 +88,6 @@ struct GraphSelectionView: View {
     let connections: [Connection]
     let dispatch: Dispatch
     
-
     var body: some View {
         VStack(spacing: 20) {
             Spacer()
@@ -96,10 +96,15 @@ struct GraphSelectionView: View {
             }
             List {
                 ForEach(graphs, id: \.id) { (graph: Graph) in
-                        Text("Graph \(graph.graphId)").onTapGesture {
-                            dispatch(GoToGraphAction(graphId: graph.graphId))
-                        }
+                    Button("Graph \(graph.graphId)") {
+                        dispatch(GoToGraphAction(graphId: graph.graphId))
                     }
+                }.onDelete { (indexSet: IndexSet) in
+                    for idx in indexSet {
+                        log("onDelete: graphs[idx] was: \(graphs[idx])")
+                        dispatch(GraphDeletedAction(graphId: graphs[idx].graphId))
+                    }
+                }
             }
         }.padding()
     }
@@ -132,13 +137,17 @@ struct ContentView: View {
                                      connections: state.current.connections.filter( {
                                         (conn: Connection) -> Bool in conn.graphId == state.current.currentGraphId!
                                      }),
-                                     dispatch: { (action: Action) in state.dispatch(action) })
+                                     dispatch: { (action: Action) in state.dispatch(action) }
+                    ).transition(.asymmetric(insertion: AnyTransition.opacity.combined(with: .slide),
+                                             removal: AnyTransition.opacity.animation(.easeInOut(duration: 0.2))))
                 
                 case Screens.graphSelection:
                     GraphSelectionView(graphs: state.current.graphs,
                                        nodes: state.current.nodes,
                                        connections: state.current.connections,
-                                       dispatch: { (action: Action) in state.dispatch(action) })
+                                       dispatch: { (action: Action) in state.dispatch(action) }
+                    ).transition(.asymmetric(insertion: AnyTransition.opacity.combined(with: .slide),
+                                             removal: AnyTransition.opacity.animation(.easeInOut(duration: 0.2))))
             }
         }
     }

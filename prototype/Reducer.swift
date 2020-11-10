@@ -26,6 +26,10 @@ struct NodeCommittedAction: Action {
     let node: Node
 }
 
+struct GraphDeletedAction: Action {
+    let graphId: Int
+}
+
 struct EdgeAddedAction: Action {
     let graphId: Int
     let from: Int
@@ -98,7 +102,6 @@ func reducer(action: Action, state: AppState?) -> AppState {
                      nodeId: nodesForGraph(graphId: nodeCommitted.graphId,
                                            nodes: state.nodes).count + 1))
             
-            
         // EDGES
             
         case let edgeAdded as EdgeAddedAction:
@@ -108,6 +111,14 @@ func reducer(action: Action, state: AppState?) -> AppState {
             state.connections.removeAll(where: {(conn: Connection) -> Bool in
                 conn.graphId == edgeRemoved.graphId && (conn.from == edgeRemoved.from && conn.to == edgeRemoved.to || conn.from == edgeRemoved.to && conn.to == edgeRemoved.from)
             })
+            
+            
+        // GRAPHS
+        
+        case let graphDeleted as GraphDeletedAction:
+            state.graphs.removeAll(where: { $0.graphId == graphDeleted.graphId })
+            state.nodes.removeAll(where: { $0.graphId == graphDeleted.graphId })
+            state.connections.removeAll(where: { $0.graphId == graphDeleted.graphId })
             
         
         // NAVIGATION
@@ -127,7 +138,7 @@ func reducer(action: Action, state: AppState?) -> AppState {
             state.currentGraphId = goToGraph.graphId
             state.currentScreen = Screens.graphEditing
             
-        case let goToSelection as GoToGraphSelectionScreenAction:
+        case _ as GoToGraphSelectionScreenAction:
             state.currentGraphId = nil
             state.currentScreen = Screens.graphSelection
             
