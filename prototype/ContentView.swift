@@ -61,6 +61,18 @@ struct GraphEditorView: View {
                 }
             }
         }
+        
+//        https://stackoverflow.com/questions/63838185/swiftui-onappear-ondisappear-not-working-in-xcode-11-7-11e801a-ios-13-7
+        .onAppear {
+            log("graph editor .onAppear called")
+            // no handler yet...
+            // should check if graphId already exists; if not, create new graph (id of ) of one node ('plus ball')
+            dispatch(SetupGraphAction(graphId: graphId))
+        }
+        .onDisappear {
+            log("graph editor .onDisappear called")
+        }
+        
         .backgroundPreferenceValue(BallPreferenceKey.self) { (preferences: [BallPreferenceData]) in
             if connections.count >= 1 {
                 let graphPreferences = preferences.filter( { (pref: BallPreferenceData) -> Bool in pref.graphId == graphId })
@@ -155,28 +167,28 @@ struct GraphSelectionView: View {
 //    }
     
     // like a special window onto a @State var, where we can do callbacks when getting and setting
-    func customBinding() -> Binding<Int?> {
-        let binding = Binding<Int?>(get: {
-            log("customBinding GET called: \(self.hasActiveGraph)")
-            return self.hasActiveGraph
-//            return activeGraph != nil ? 1 : 0
-        }, set: {
-//            print("Table \(String(describing: $0)) chosen")
-            // this is presumably the value it will be set to
-            log("customBinding SET called: \($0)")
-            
-            // this will force a re-rendering?
-//            dispatch(GoToNewGraphAction(graphId: 1))
-            if $0 == 1 {
-                log("will dispatch 'go to new graph' action for graph: \(graphs.count + 1)")
-                dispatch(GoToNewGraphAction(graphId: graphs.count + 1))
-            }
-            
-            return self.hasActiveGraph = $0
-        })
-        log("about to return binding: \(binding)")
-        return binding
-    }
+//    func customBinding() -> Binding<Int?> {
+//        let binding = Binding<Int?>(get: {
+//            log("customBinding GET called: \(self.hasActiveGraph)")
+//            return self.hasActiveGraph
+////            return activeGraph != nil ? 1 : 0
+//        }, set: {
+////            print("Table \(String(describing: $0)) chosen")
+//            // this is presumably the value it will be set to
+//            log("customBinding SET called: \($0)")
+//
+//            // this will force a re-rendering?
+////            dispatch(GoToNewGraphAction(graphId: 1))
+//            if $0 == 1 {
+//                log("will dispatch 'go to new graph' action for graph: \(graphs.count + 1)")
+//                dispatch(GoToNewGraphAction(graphId: graphs.count + 1))
+//            }
+//
+//            return self.hasActiveGraph = $0
+//        })
+//        log("about to return binding: \(binding)")
+//        return binding
+//    }
         
     
     var body: some View {
@@ -211,7 +223,8 @@ struct GraphSelectionView: View {
                                     if $0 == 1 {
 //                                        log("will dispatch 'go to new graph' action for graph: \(graphs.count + 1)")
 //                                        dispatch(GoToNewGraphAction(graphId: graphs.count + 1))
-                                        dispatch(NewGraphCreatedAction())
+//                                        dispatch(NewGraphCreatedAction())
+                                        log("would have dispatched NewGraphCreatedAction....")
                                     }
                                     return self.hasActiveGraph = $0
                                 }))

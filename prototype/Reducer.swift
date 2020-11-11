@@ -55,6 +55,12 @@ struct GoToGraphSelectionScreenAction: Action {}
 
 struct NewGraphCreatedAction: Action {}
 
+
+struct SetupGraphAction: Action {
+    let graphId: Int
+}
+//(graphId: graphId)
+
 /* ----------------------------------------------------------------
  Reducer
  ---------------------------------------------------------------- */
