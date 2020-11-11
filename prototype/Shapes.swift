@@ -52,7 +52,6 @@ struct Ball: View {
     
     let connections: [Connection]
     
-
     // minimum distance for plus-sign to be dragged to become committed as a node
     let minDistance: CGFloat = CGFloat(90)
     
@@ -100,6 +99,9 @@ struct Ball: View {
                 VStack (spacing: 20) {
                     Text("Node ID: \(node.nodeId)")
                     Text("Node Serial: \(info)")
+                    Button("Delete") {
+                        dispatch(NodeDeletedAction(graphId: node.graphId, nodeId: node.nodeId))
+                    }
                 }.padding()
             }
             .background(Image(systemName: "plus"))
