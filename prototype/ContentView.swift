@@ -136,7 +136,7 @@ struct ContentView: View {
                                      connections: state.current.connections.filter({
                                         $0.graphId == state.current.currentGraphId!
                                      }),
-                                     dispatch: dispatcher // { state.dispatch($0) }
+                                     dispatch: dispatcher
                     ).transition(.asymmetric(insertion: AnyTransition.opacity.combined(with: .slide),
                                              removal: AnyTransition.opacity.animation(.easeInOut(duration: 0.2))))
                 
@@ -144,7 +144,7 @@ struct ContentView: View {
                     GraphSelectionView(graphs: state.current.graphs,
                                        nodes: state.current.nodes,
                                        connections: state.current.connections,
-                                       dispatch: dispatcher // { (action: Action) in state.dispatch(action) }
+                                       dispatch: dispatcher
                     ).transition(.asymmetric(insertion: AnyTransition.opacity.combined(with: .slide),
                                              removal: AnyTransition.opacity.animation(.easeInOut(duration: 0.2))))
             }
