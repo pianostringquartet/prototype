@@ -6,7 +6,7 @@ Prototype.
 
 Nodes can now be deleted -- double tap to open the node info box and click 'Delete'.
 
-Also fixes graph deletion bug where graphs would afterward we created without proper graph numbers.
+Also fixes graph deletion bug where graphs would afterward be created with improper graph numbers.
 
 ![](delete_nodes.gif)
 
