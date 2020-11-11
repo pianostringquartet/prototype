@@ -2,6 +2,14 @@
 
 Prototype.
 
+## Stage 9: delete nodes
+
+Nodes can now be deleted -- double tap to open the node info box and click 'Delete'.
+
+Also fixes graph deletion bug where graphs would afterward we created without proper graph numbers.
+
+![](delete_nodes.gif)
+
 ## Stage 8: delete graphs
 
 Graphs can now be deleted -- drag to the left to reveal red delete button. 

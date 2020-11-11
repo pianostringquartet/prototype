@@ -26,6 +26,11 @@ struct NodeCommittedAction: Action {
     let node: Node
 }
 
+struct NodeDeletedAction: Action {
+    let graphId: Int
+    let nodeId: Int
+}
+
 struct GraphDeletedAction: Action {
     let graphId: Int
 }
@@ -47,7 +52,7 @@ struct GoToGraphAction: Action {
 }
 
 struct GoToNewGraphAction: Action {
-    let graphId: Int // the id for the newly created graph
+//    let graphId: Int // the id for the newly created graph
 }
 
 struct GoToScreen: Action {
@@ -99,8 +104,17 @@ func reducer(action: Action, state: AppState?) -> AppState {
             state.nodes.append(
                 Node(graphId: nodeCommitted.graphId,
                      isAnchored: true,
-                     nodeId: nodesForGraph(graphId: nodeCommitted.graphId,
-                                           nodes: state.nodes).count + 1))
+                     nodeId: nextNodeId(nodes: nodesForGraph(graphId: nodeCommitted.graphId,
+                                                             nodes: state.nodes))
+                )
+            )
+            
+        case let nodeDeleted as NodeDeletedAction:
+            state.nodes.removeAll(where: { $0.graphId == nodeDeleted.graphId && $0.nodeId == nodeDeleted.nodeId })
+            state.connections.removeAll(where: {
+                                            $0.graphId == nodeDeleted.graphId &&
+                                                ($0.to == nodeDeleted.nodeId || $0.from == nodeDeleted.nodeId) })
+    
             
         // EDGES
             
@@ -123,13 +137,14 @@ func reducer(action: Action, state: AppState?) -> AppState {
         
         // NAVIGATION
             
-        case let newGraph as GoToNewGraphAction:
+        case _ as GoToNewGraphAction:
             // create new graph
-            state.graphs.append(Graph(graphId: newGraph.graphId))
-            state.nodes.append(Node(graphId: newGraph.graphId, isAnchored: true, nodeId: 1))
+            let newGraphId = nextGraphId(graphs: state.graphs)
+            state.graphs.append(Graph(graphId: newGraphId))
+            state.nodes.append(Node(graphId: newGraphId, isAnchored: true, nodeId: 1))
             
             // set as active graph
-            state.currentGraphId = newGraph.graphId
+            state.currentGraphId = newGraphId
             
             // route to graph edit screen:
             state.currentScreen = Screens.graphEditing
@@ -152,6 +167,11 @@ func reducer(action: Action, state: AppState?) -> AppState {
     return state
 }
 
+
+/* ----------------------------------------------------------------
+ State/domain helpers
+ ---------------------------------------------------------------- */
+
 func nodesForGraph(graphId: Int, nodes: [Node]) -> [Node] {
     return nodes.filter({ (n: Node) -> Bool in n.graphId == graphId
     })
@@ -162,6 +182,17 @@ func connectionsForGraph(graphId: Int, connections: [Connection]) -> [Connection
     })
 }
 
+func nextNodeId(nodes: [Node]) -> Int {
+    return nodes.isEmpty ?
+        1 :
+        nodes.max(by: {(n1: Node, n2: Node) -> Bool in n1.nodeId < n2.nodeId})!.nodeId + 1
+    
+}
+
+func nextGraphId(graphs: [Graph]) -> Int {
+    return graphs.isEmpty ? 1 :
+        graphs.max(by: {(g1: Graph, g2: Graph) -> Bool in g1.graphId < g2.graphId})!.graphId + 1
+}
 
 
 /* ----------------------------------------------------------------

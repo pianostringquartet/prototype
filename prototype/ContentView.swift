@@ -44,7 +44,6 @@ struct GraphEditorView: View {
                 Spacer()
             }.padding()
             
-            
             Spacer()
             HStack {
                 Spacer()
@@ -92,7 +91,7 @@ struct GraphSelectionView: View {
         VStack(spacing: 20) {
             Spacer()
             Button("Create new graph") {
-                dispatch(GoToNewGraphAction(graphId: graphs.count + 1))
+                dispatch(GoToNewGraphAction())
             }
             List {
                 ForEach(graphs, id: \.id) { (graph: Graph) in
@@ -101,7 +100,6 @@ struct GraphSelectionView: View {
                     }
                 }.onDelete { (indexSet: IndexSet) in
                     for idx in indexSet {
-                        log("onDelete: graphs[idx] was: \(graphs[idx])")
                         dispatch(GraphDeletedAction(graphId: graphs[idx].graphId))
                     }
                 }
@@ -127,17 +125,18 @@ struct ContentView: View {
     @ObservedObject private var state = ObservableState(store: mainStore)
 
     var body: some View {
+        let dispatcher: Dispatch = { state.dispatch($0) }
         return VStack {
             switch state.current.currentScreen {
                 
                 case Screens.graphEditing:
                     GraphEditorView(graphId: state.current.currentGraphId!,
-                                     nodes: state.current.nodes.filter({ (n: Node) -> Bool in n.graphId == state.current.currentGraphId!
+                                    nodes: state.current.nodes.filter({ $0.graphId == state.current.currentGraphId!
                                      }),
-                                     connections: state.current.connections.filter( {
-                                        (conn: Connection) -> Bool in conn.graphId == state.current.currentGraphId!
+                                     connections: state.current.connections.filter({
+                                        $0.graphId == state.current.currentGraphId!
                                      }),
-                                     dispatch: { (action: Action) in state.dispatch(action) }
+                                     dispatch: dispatcher // { state.dispatch($0) }
                     ).transition(.asymmetric(insertion: AnyTransition.opacity.combined(with: .slide),
                                              removal: AnyTransition.opacity.animation(.easeInOut(duration: 0.2))))
                 
@@ -145,7 +144,7 @@ struct ContentView: View {
                     GraphSelectionView(graphs: state.current.graphs,
                                        nodes: state.current.nodes,
                                        connections: state.current.connections,
-                                       dispatch: { (action: Action) in state.dispatch(action) }
+                                       dispatch: dispatcher // { (action: Action) in state.dispatch(action) }
                     ).transition(.asymmetric(insertion: AnyTransition.opacity.combined(with: .slide),
                                              removal: AnyTransition.opacity.animation(.easeInOut(duration: 0.2))))
             }
