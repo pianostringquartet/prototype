@@ -16,6 +16,15 @@ import ReSwift
 
 struct GraphEditorView: View {
     
+    // zooming
+    @State private var currentAmount: CGFloat = 0
+    @State private var finalAmount: CGFloat = 1
+    
+    // dragging
+    @State private var localPosition: CGSize = CGSize.zero
+    @State private var localPreviousPosition: CGSize = CGSize.zero
+    
+    
     // particular node to which we are adding/removing connections
     @State public var connectingNode: Int? = nil // not persisted
 
@@ -34,6 +43,7 @@ struct GraphEditorView: View {
     }
 
     var body: some View {
+        log("GraphEditorView body called")
         VStack { // HACK: bottom right corner alignment
             HStack {
                 Button("< Back") {
@@ -43,6 +53,7 @@ struct GraphEditorView: View {
                 Text("Graph \(graphId)")
                 Spacer()
             }.padding()
+            
             
             Spacer()
             HStack {
@@ -58,6 +69,64 @@ struct GraphEditorView: View {
                 }
             }
         }
+        .offset(x: localPosition.width, y: localPosition.height)
+        
+        // Pinch to zoom
+        // TODO: set limit to how far out / in we can zoom
+        .contentShape(Rectangle()) // make container
+        .scaleEffect(finalAmount + currentAmount)
+        .gesture(
+            MagnificationGesture()
+                .onChanged { amount in
+                    log("onChanged called")
+                    self.currentAmount = amount - 1
+                }
+                .onEnded { amount in
+                    log("onEnded called")
+                    self.finalAmount += self.currentAmount
+                    self.currentAmount = 0
+                }
+        )
+        
+        
+        // the frame width 100 etc. is too small 
+//        .frame(
+////            width: 100 * magnifyBy,
+////               height: 100 * magnifyBy,
+//            width: 500 * magnifyBy,
+//               height: 500 * magnifyBy,
+//               alignment: .center)
+//        .gesture(magnification)
+        
+        
+        
+        // Drag around:
+//        .offset(x: localPosition.width, y: localPosition.height)
+        
+        // DEBUG: onEnded called but onChanged never called
+        .gesture(DragGesture()
+                    .onChanged {
+                        
+                        log("drag onChanged called")
+                        log("localPosition: \(localPosition)")
+                        log("localPreviousPosition: \(localPreviousPosition)")
+                        log("value: \($0)")
+                        self.localPosition = updatePosition(value: $0, position: self.localPreviousPosition)
+                    }
+                    .onEnded {
+                        log("drag onEnded called")
+                        log("localPosition: \(localPosition)")
+                        log("localPreviousPosition: \(localPreviousPosition)")
+                        log("value: \($0)")
+                    
+                        self.localPosition = updatePosition(value: $0, position: self.localPreviousPosition)
+                        
+                        self.localPreviousPosition = self.localPosition
+                    }
+        )
+        
+        
+        
         .backgroundPreferenceValue(BallPreferenceKey.self) { (preferences: [BallPreferenceData]) in
             if connections.count >= 1 {
                 let graphPreferences = preferences.filter( { (pref: BallPreferenceData) -> Bool in pref.graphId == graphId })
@@ -68,11 +137,25 @@ struct GraphEditorView: View {
                         })
                         let from: BallPreferenceData? = graphPreferences.first(where: { (pref: BallPreferenceData) -> Bool in pref.nodeId == connection.from
                         })
-                        line(from: geometry[to!.center], to: geometry[from!.center])
+                        
+                        // TODO: handle this properly;
+                        // all connections should be deletions
+                        if to != nil && from != nil {
+                            line(from: geometry[to!.center], to: geometry[from!.center])
+                        }
+                        else {
+                            log("Encountered a nil while trying to draw an edge.")
+                            log("to: \(to)")
+                            log("from: \(from)")
+                        }
+                        
+//                        line(from: geometry[to!.center], to: geometry[from!.center])
                     })
                 }
             }
-        }
+        } // backgroundPreferenceValue
+
+            
     }
 }
 
@@ -124,6 +207,10 @@ struct ContentView: View {
 
     @ObservedObject private var state = ObservableState(store: mainStore)
 
+    // zooming
+//    @State private var currentAmount: CGFloat = 0
+//    @State private var finalAmount: CGFloat = 1
+    
     var body: some View {
         let dispatcher: Dispatch = { state.dispatch($0) }
         return VStack {
@@ -138,8 +225,11 @@ struct ContentView: View {
                                      }),
                                      dispatch: dispatcher
                     ).transition(.asymmetric(insertion: AnyTransition.opacity.combined(with: .slide),
-                                             removal: AnyTransition.opacity.animation(.easeInOut(duration: 0.2))))
+                                             removal: AnyTransition.opacity.animation(.easeInOut(duration: 0.2)))
+                    )
+                    
                 
+                    
                 case Screens.graphSelection:
                     GraphSelectionView(graphs: state.current.graphs,
                                        nodes: state.current.nodes,

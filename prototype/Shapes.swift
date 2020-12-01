@@ -28,6 +28,30 @@ func line(from: CGPoint, to: CGPoint) -> some View {
     Line(from: from, to: to).stroke().animation(.default)
 }
 
+
+
+// how will a port stay attached to a given node?
+
+// Port's position will be determined by the passed-in localPosition etc.;
+// if needed, can use @State or @Binding to match the above Node's position
+struct Port: View {
+
+    let label: String
+    
+    let localPosition: CGSize
+    let previousLocalPosition: CGSize
+    
+    var body: some View {
+        Circle().stroke(Color.black)
+            .overlay(Text("Label: \(label)"))
+            .offset(x: localPosition.width, y: localPosition.height)
+            .frame(width: CGFloat(5), height: CGFloat(5))
+    }
+
+}
+
+
+
 // ball's new position = old position + displacement from current drag gesture
 func updatePosition(value: DragGesture.Value, position: CGSize) -> CGSize {
     CGSize(width: value.translation.width + position.width,
@@ -94,7 +118,8 @@ struct Ball: View {
     }
     
     var body: some View {
-        Circle().stroke(Color.black)
+        Circle()
+            .stroke(Color.black)
             .popover(isPresented: $showPopover, arrowEdge: .bottom) {
                 VStack (spacing: 20) {
                     Text("Node ID: \(node.nodeId)")
@@ -115,15 +140,18 @@ struct Ball: View {
             .clipShape(/*@START_MENU_TOKEN@*/Circle()/*@END_MENU_TOKEN@*/)
             .overlay(Text(movedEnough(width: localPosition.width, height: localPosition.height) ? "\(node.nodeId)": ""))
             .frame(width: CGFloat(node.radius), height: CGFloat(node.radius))
+            
             // Child stores its center in anchor preference data,
             // for parent to later access.
             // NOTE: must come before .offset modifier
             .anchorPreference(key: BallPreferenceKey.self,
                               value: .center, // center for Anchor<CGPoint>
                               transform: {
-                                [BallPreferenceData(viewIdx: Int(node.nodeId), center: $0,
+                                [BallPreferenceData(viewIdx: Int(node.nodeId),
+                                                    center: $0,
                                                     graphId: node.graphId,
                                                     nodeId: node.nodeId)] })
+            
             .offset(x: localPosition.width, y: localPosition.height)
             .gesture(DragGesture()
                         .onChanged {
