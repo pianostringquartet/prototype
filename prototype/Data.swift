@@ -43,6 +43,26 @@ struct Fun: Identifiable, Codable {
     var count: Int = 0
 }
 
+
+struct PortConnection: Identifiable, Codable, Equatable {
+    var id: UUID = UUID()
+//    var graphId: Int
+    
+    // from a port #, to a port #
+    var from: Int
+    var to: Int
+    
+    // invariant: can only do input->output
+    
+    
+    // here, the edges SHOULD HAVE DIRECTIONS?
+    static func ==(lhs: PortConnection, rhs: PortConnection) -> Bool {
+        // Edgeless connection:
+        return (lhs.from == rhs.from && lhs.to == rhs.to || lhs.from == rhs.to && lhs.to == rhs.from)
+    }
+}
+
+
 struct Connection: Identifiable, Codable, Equatable {
     var id: UUID = UUID()
     var graphId: Int
@@ -76,6 +96,30 @@ struct Node: Identifiable, Codable, Equatable {
 /* ----------------------------------------------------------------
  SwiftUI Preference Data: passing data up from children to parent view
  ---------------------------------------------------------------- */
+
+
+// Datatype for preference data
+struct PortPreferenceData: Identifiable {
+    let id = UUID()
+    let viewIdx: Int // not needed?
+    let center: Anchor<CGPoint>
+//    let graphId: Int
+    let nodeId: Int
+    let portId: Int
+}
+
+// Preference key for preference data
+struct PortPreferenceKey: PreferenceKey {
+    typealias Value = [PortPreferenceData]
+    
+    static var defaultValue: [PortPreferenceData] = []
+    
+    static func reduce(value: inout [PortPreferenceData], nextValue: () -> [PortPreferenceData]) {
+        value.append(contentsOf: nextValue())
+    }
+}
+
+
 
 // Datatype for preference data
 struct BallPreferenceData: Identifiable {

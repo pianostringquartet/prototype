@@ -30,26 +30,169 @@ func line(from: CGPoint, to: CGPoint) -> some View {
 
 
 
-// how will a port stay attached to a given node?
 
-// Port's position will be determined by the passed-in localPosition etc.;
-// if needed, can use @State or @Binding to match the above Node's position
+enum Directionality: String, Codable {
+    case input = "input"
+    case output = "output"
+}
+
+
+
+
 struct Port: View {
 
+//    let id: UUID = UUID()
+    let id: Int
+    
     let label: String
     
-    let localPosition: CGSize
-    let previousLocalPosition: CGSize
+    // is input vs output
+    // and two inputs cannot connect?
+    
+//    let direction: Directionality
+    
+    // e.g. port 1 is input and port 2 is NOT input
+    
+    let isInput: Bool
+    
+    // also want something like a node id,
+    // ie which node this specific port belongs to
+    let nodeId: Int
+    
+    // and also graphId?
     
     var body: some View {
         Circle().stroke(Color.black)
-            .overlay(Text("Label: \(label)"))
-            .offset(x: localPosition.width, y: localPosition.height)
-            .frame(width: CGFloat(5), height: CGFloat(5))
+            .overlay(Text(label))
+//            .overlay(Text("Label"))
+            .frame(width: 45, height: 45)
+            
+            .anchorPreference(key: PortPreferenceKey.self,
+                              value: .center, // center for Anchor<CGPoint>
+                              transform: {
+                                [PortPreferenceData(viewIdx: nodeId,
+                                                    center: $0,
+//                                                    graphId: node.graphId,
+                                                    nodeId: nodeId,
+                                                    portId: id)] })
+        
     }
 
 }
 
+
+// VBox: top is title,
+//  bottom is HBox of: ports etc.
+// bottom
+struct Box2: View {
+    
+    
+    // dragging
+    @State private var localPosition: CGSize = CGSize.zero
+    @State private var localPreviousPosition: CGSize = CGSize.zero
+    
+    let title: String
+    let color: Color
+//    let width: CGFloat
+//    let height: CGFloat
+    
+    // really, should be a tuple?
+    let leftPorts: [Port]
+    let rightPorts: [Port]
+    
+    let spacing: CGFloat = 10
+    
+    var body: some View {
+        VStack (spacing: spacing) {
+         // top
+            Text(verbatim: title)
+                // should be frame that covers whole space
+                .background(Color.gray.opacity(0.4))
+                
+            // bottom
+            HStack (spacing: spacing) {
+                
+                // left side
+                VStack (spacing: spacing) {
+//                    Text("Port Left 1")
+//                    Text("Port Left 2")
+                    ForEach(leftPorts, id: \.id) { (port: Port) in
+                        port // just showing the port
+                    }
+                    
+                }
+                
+                // right side
+                VStack (spacing: spacing) {
+//                    Text("Port Right 1")
+//                    Text("Port Right 2")
+                    ForEach(rightPorts, id: \.id) { (port: Port) in
+                        port // just showing the port
+                    }
+                }
+            }
+            
+        }
+        
+        // needs a better way to space out
+//        .frame(width: width, height: height)
+        .background(color.opacity(0.3))
+        
+        .offset(x: localPosition.width, y: localPosition.height)
+        .gesture(DragGesture()
+                    .onChanged {
+                        log("Box2: onChanged")
+                        self.localPosition = updatePosition(value: $0, position: self.localPreviousPosition)
+                    }
+                    .onEnded {  _ in
+                        // i.e. no anchoring for now
+                        self.localPreviousPosition = self.localPosition
+                    })
+        .animation(.spring(response: 0.3, dampingFraction: 0.65, blendDuration: 4))
+        
+    }
+}
+
+
+// square node
+//struct Box: View {
+//
+//    let title: String
+//
+//    let color: Color
+//
+//    @State private var localPosition: CGSize = CGSize.zero
+//    @State private var localPreviousPosition: CGSize = CGSize.zero
+//
+//    let width: CGFloat
+//    let height: CGFloat
+//
+//    var body: some View {
+//        Rectangle()
+//            .stroke(color.opacity(0.5), lineWidth: 3)
+//            .background(Color.gray.opacity(0.5))
+//            .overlay(Text(title))
+//
+//
+//            .background(Port(label: title))
+//
+//
+//            .frame(width: width, height: height)
+//            .offset(x: localPosition.width, y: localPosition.height)
+//            .gesture(DragGesture()
+//                        .onChanged {
+//                            log("Box: onChanged")
+//                            self.localPosition = updatePosition(value: $0, position: self.localPreviousPosition)
+//                        }
+//                        .onEnded {  _ in
+//                            // i.e. no anchoring for now
+//                            self.localPreviousPosition = self.localPosition
+//                        })
+//            .animation(.spring(response: 0.3, dampingFraction: 0.65, blendDuration: 4))
+//
+//    }
+//
+//}
 
 
 // ball's new position = old position + displacement from current drag gesture
@@ -223,5 +366,11 @@ struct Ball: View {
                     }
                 }
             })
+    }
+}
+
+struct Shapes_Previews: PreviewProvider {
+    static var previews: some View {
+        /*@START_MENU_TOKEN@*/Text("Hello, World!")/*@END_MENU_TOKEN@*/
     }
 }
