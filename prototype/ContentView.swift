@@ -14,21 +14,6 @@ import ReSwift
  GRAPH EDITING VIEW
  ---------------------------------------------------------------- */
 
-func leftPorts(nodeId: Int, id1: Int, id2: Int) -> [Port] {
- return [
-    Port(id: id1, label: "L \(id1)", isInput: true, nodeId: nodeId),
-    Port(id: id2, label: "L \(id2)", isInput: true, nodeId: nodeId),
- ]
-}
-
-func rightPorts(nodeId: Int, id1: Int, id2: Int) -> [Port] {
- return [
-    Port(id: id1, label: "R \(id1)", isInput: false, nodeId: nodeId),
-    Port(id: id2, label: "R \(id2)", isInput: false, nodeId: nodeId),
- ]
-}
-
-
 struct GraphEditorView: View {
     
     // zooming
@@ -39,7 +24,6 @@ struct GraphEditorView: View {
     @State private var localPosition: CGSize = CGSize.zero
     @State private var localPreviousPosition: CGSize = CGSize.zero
     
-    
     // particular node to which we are adding/removing connections
     @State public var connectingNode: Int? = nil // not persisted
 
@@ -49,40 +33,53 @@ struct GraphEditorView: View {
     let portConnections: [PortConnection]
     let dispatch: Dispatch
     
+    let state: AppState
+    
     init(graphId: Int,
          nodes: [Node],
          connections: [Connection],
          portConnections: [PortConnection],
-         dispatch: @escaping Dispatch) {
+         dispatch: @escaping Dispatch,
+         state: AppState) {
         self.graphId = graphId
         self.nodes = nodes
         self.connections = connections
         self.portConnections = portConnections
         self.dispatch = dispatch
+        self.state = state
     }
 
     var body: some View {
         log("GraphEditorView body called")
-        HStack {
+        
+        HStack (spacing: 50) {
+    
+            // left
+            VStack {
+                Text("Value nodes")
+                ForEach(state.valNodes, id: \.id) { (valNode: ValNode) in
+                    ValNodeView(title: "Val. Node", valNode: valNode, dispatch: dispatch, state: state)
+                }
+            }
             
-            Box2(title: "Box 1", color: .green,
-                 leftPorts: leftPorts(nodeId: 1, id1: 1, id2: 2),
-                 rightPorts: rightPorts(nodeId: 1, id1: 3, id2: 4))
+            // middle
+            VStack {
+                Text("Calc nodes")
+                ForEach(state.calcNodes, id: \.id) { (calcNode: CalcNode) in
+                    CalcNodeView(title: "Calc Node", calcNode: calcNode, dispatch: dispatch, state: state)
+                }
+            }
             
-            Box2(title: "Box 2", color:  .orange,
-                 leftPorts: leftPorts(nodeId: 2, id1: 5, id2: 6),
-                 rightPorts: rightPorts(nodeId: 2, id1: 7, id2: 8))
+            // right
+            VStack {
+                Text("Viz nodes")
+                ForEach(state.vizNodes, id: \.id) { (vizNode: VizNode) in
+                    VizNodeView(title: "Viz. Node", vizNode: vizNode, dispatch: dispatch, state: state)
+                }
+            }
             
-            Box2(title: "Box 3", color:  .blue,
-                 leftPorts: leftPorts(nodeId: 3, id1: 9, id2: 10),
-                 rightPorts: rightPorts(nodeId: 3, id1: 11, id2: 12))
-            
+  // manually hardcode what you want / need here
 
-                    // manually hardcode what you want / need here
-
-                    
-                    
-                    
                     // keep the logic of the nodes, adding removing etc.
 //                    ForEach(nodes, id: \.id) { (node: Node) in
 //                        Ball(connectingNode: $connectingNode,
@@ -116,20 +113,28 @@ struct GraphEditorView: View {
 //                    self.currentAmount = 0
 //                }
 //        )
-        
-        // created HARDCODED CONNECTIONS FOR NOW
+  
         .backgroundPreferenceValue(PortPreferenceKey.self) { (preferences: [PortPreferenceData]) in
 //            if connections.count >= 1 {
-            if portConnections.count >= 1 {
+            if state.edges.count >= 1 {
                 let graphPreferences = preferences
                 // no graphId right now
 //                    .filter( { (pref: PortPreferenceData) -> Bool in pref.graphId == graphId })
                 GeometryReader { (geometry: GeometryProxy) in
-                    ForEach(portConnections, content: { (portConnection: PortConnection) in
+                    ForEach(state.edges, content: { (portEdge: PortEdge) in
                         // Find each conn node's ball pref data
-                        let to: PortPreferenceData? = graphPreferences.first(where: { (pref: PortPreferenceData) -> Bool in pref.portId == portConnection.to
+                        
+                        // find the pref data for this port (its node id and port id)
+                        let to: PortPreferenceData? = graphPreferences.first(where: { (pref: PortPreferenceData) -> Bool in
+                            pref.portId == portEdge.to.portId &&
+                                pref.nodeId == portEdge.to.nodeId
+                            
                         })
-                        let from: PortPreferenceData? = graphPreferences.first(where: { (pref: PortPreferenceData) -> Bool in pref.portId == portConnection.from
+                        
+                        let from: PortPreferenceData? = graphPreferences.first(where: { (pref: PortPreferenceData) -> Bool in
+//                            pref.portId == portConnection.from
+                            pref.portId == portEdge.from.portId &&
+                                pref.nodeId == portEdge.from.nodeId
                         })
                         
                         // TODO: handle this properly;
@@ -148,6 +153,39 @@ struct GraphEditorView: View {
                 }
             }
         } // backgroundPreferenceValue
+        
+        
+        // created HARDCODED CONNECTIONS FOR NOW
+//        .backgroundPreferenceValue(PortPreferenceKey.self) { (preferences: [PortPreferenceData]) in
+////            if connections.count >= 1 {
+//            if portConnections.count >= 1 {
+//                let graphPreferences = preferences
+//                // no graphId right now
+////                    .filter( { (pref: PortPreferenceData) -> Bool in pref.graphId == graphId })
+//                GeometryReader { (geometry: GeometryProxy) in
+//                    ForEach(portConnections, content: { (portConnection: PortConnection) in
+//                        // Find each conn node's ball pref data
+//                        let to: PortPreferenceData? = graphPreferences.first(where: { (pref: PortPreferenceData) -> Bool in pref.portId == portConnection.to
+//                        })
+//                        let from: PortPreferenceData? = graphPreferences.first(where: { (pref: PortPreferenceData) -> Bool in pref.portId == portConnection.from
+//                        })
+//
+//                        // TODO: handle this properly;
+//                        // all connections should be deletions
+//                        if to != nil && from != nil {
+//                            line(from: geometry[to!.center], to: geometry[from!.center])
+//                        }
+//                        else {
+//                            log("Encountered a nil while trying to draw an edge.")
+//                            log("to: \(to)")
+//                            log("from: \(from)")
+//                        }
+//
+////                        line(from: geometry[to!.center], to: geometry[from!.center])
+//                    })
+//                }
+//            }
+//        } // backgroundPreferenceValue
 
         
         
@@ -258,78 +296,71 @@ struct GraphSelectionView: View {
 // Initialize redux store
 let mainStore = Store<AppState>(
     reducer: reducer,
-    state: nil
+//    state: nil
+    state: hwState
 )
+
+
+let valNodeOutput = PortValue(id: 1, nodeId: 1, label: "String value", value: "hello")
+let valNode = ValNode(id: 1, outputs: [valNodeOutput])
+
+
+//let calcNodeInput = PortValue(id: 2, nodeId: 2, label: "String value", value: "hello")
+//let calcNodeOutput = PortValue(id: 3, nodeId: 2, label: "String value", value: "HELLO")
+// ie start out empty
+let calcNodeInput = PortValue(id: 2, nodeId: 2, label: "String value", value: "x1")
+let calcNodeOutput = PortValue(id: 3, nodeId: 2, label: "String value", value: "x2")
+let calcNode: CalcNode = CalcNode(
+    id: 2,
+    inputs: [calcNodeInput],
+    outputs: [calcNodeOutput],
+    operation: "uppercase"
+//    operation: { (s: String) -> String in s.uppercased() }
+)
+
+//let vizNodeInput = Input(id: 3, nodeId: 3, value: "HELLO")
+//let vizNodeInput = PortValue(id: 4, nodeId: 3, label: "String value", value: "HELLO")
+let vizNodeInput = PortValue(id: 4, nodeId: 3, label: "String value", value: "x3")
+let vizNode = VizNode(id: 3, inputs: [vizNodeInput])
+
+
+let hwState = AppState(graphs: [],
+                       nodes: [],
+                       connections: [],
+                       currentScreen: Screens.graphEditing,
+                       currentGraphId: 1,
+                       // might want each of these to be a map {:nodeId nodeType}
+                       // instead of just a list?
+                       valNodes: [valNode],
+                       calcNodes: [calcNode],
+                       vizNodes: [vizNode])
+
+
+
 
 struct ContentView: View {
 
     @ObservedObject private var state = ObservableState(store: mainStore)
 
-    // zooming
-//    @State private var currentAmount: CGFloat = 0
-//    @State private var finalAmount: CGFloat = 1
-    
-    
     // fake port connections for now
-    let portConnections = [
-        
+    let portConnections: [PortConnection] = [
         // output only
-        PortConnection(from: 3, to: 5),
-        
+//        PortConnection(from: 1, to: 2),
         // input and output
-        PortConnection(from: 7, to: 9),
-        PortConnection(from: 8, to: 9),
-//
-//        // input only
-//        PortConnection(from: <#T##Int#>, to: <#T##Int#>),
-        // ^^^ implicitly already created by other connections
-//
-        
-
+//        PortConnection(from: 3, to: 4   ),
     ]
-    
-    
+
     var body: some View {
         let dispatcher: Dispatch = { state.dispatch($0) }
         
-        
         return GraphEditorView(graphId: 1, //state.current.currentGraphId!,
-                               nodes: [],
-                                connections: [],
+                               nodes: state.current.nodes,
+                               connections: state.current.connections,
                                 portConnections: portConnections,
-                                dispatch: dispatcher
-               ).transition(.asymmetric(insertion: AnyTransition.opacity.combined(with: .slide),
-                                        removal: AnyTransition.opacity.animation(.easeInOut(duration: 0.2)))
+                                dispatch: dispatcher,
+                                // careful -- is this updated enough?
+                                state: state.current
                )
-        
-//        return VStack {
-//
-//
-//            switch state.current.currentScreen {
-//
-//                case Screens.graphEditing:
-//                    GraphEditorView(graphId: state.current.currentGraphId!,
-//                                    nodes: state.current.nodes.filter({ $0.graphId == state.current.currentGraphId!
-//                                     }),
-//                                     connections: state.current.connections.filter({
-//                                        $0.graphId == state.current.currentGraphId!
-//                                     }),
-//                                     dispatch: dispatcher
-//                    ).transition(.asymmetric(insertion: AnyTransition.opacity.combined(with: .slide),
-//                                             removal: AnyTransition.opacity.animation(.easeInOut(duration: 0.2)))
-//                    )
-//
-//
-//
-//                case Screens.graphSelection:
-//                    GraphSelectionView(graphs: state.current.graphs,
-//                                       nodes: state.current.nodes,
-//                                       connections: state.current.connections,
-//                                       dispatch: dispatcher
-//                    ).transition(.asymmetric(insertion: AnyTransition.opacity.combined(with: .slide),
-//                                             removal: AnyTransition.opacity.animation(.easeInOut(duration: 0.2))))
-//            }
-//        }
     }
 }
 

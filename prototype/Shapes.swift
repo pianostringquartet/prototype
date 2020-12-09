@@ -29,16 +29,234 @@ func line(from: CGPoint, to: CGPoint) -> some View {
 }
 
 
+let commonSpacing: CGFloat = 10
+
+struct ValNodeView: View {
+    
+    @State private var localPosition: CGSize = CGSize.zero
+    @State private var localPreviousPosition: CGSize = CGSize.zero
+    
+    let title: String // title of the node
+    let valNode: ValNode
+    let dispatch: Dispatch
+    let state: AppState
+    
+    var body: some View {
+        VStack (spacing: commonSpacing) {
+            Text(title)
+//            ForEach(valNode.outputs, id: \.id) { (output: Output) in
+//                Text(output.value)
+//            }
+            
+            
+            HStack {
+                Spacer()
+                ForEach(valNode.outputs, id: \.id) { (output: PortValue) in
+    //                Text(output.value)
+                    Port2(pv: output, dispatch: dispatch, state: state, isInput: false)
+                }
+            }
+            
+        }
+        .frame(maxWidth: 100)
+        .background(Color.gray.opacity(0.3))
+        .offset(x: localPosition.width, y: localPosition.height)
+        .gesture(DragGesture()
+                    .onChanged {
+                        log("ValNodeView: onChanged")
+                        self.localPosition = updatePosition(value: $0, position: self.localPreviousPosition)
+                    }
+                    .onEnded {  _ in
+                        // i.e. no anchoring for now
+                        log("ValNodeView: onEnded")
+                        self.localPreviousPosition = self.localPosition
+                    })
+        .animation(.spring(response: 0.3, dampingFraction: 0.65, blendDuration: 4))
+        
+    }
+}
+
+struct CalcNodeView: View {
+
+    @State private var localPosition: CGSize = CGSize.zero
+    @State private var localPreviousPosition: CGSize = CGSize.zero
+    
+    let title: String
+    let calcNode: CalcNode
+    let dispatch: Dispatch
+    let state: AppState
+
+    var body: some View {
+        VStack (spacing: commonSpacing) {
+         // top
+            Text(title)
+                // should be frame that covers whole space
+                .background(Color.gray.opacity(0.4))
+                
+            // bottom
+            HStack (spacing: commonSpacing) {
+                
+                // left side
+                VStack (spacing: commonSpacing) {
+                    ForEach(calcNode.inputs, id: \.id) {
+//                        (input: Input) in
+                        (input: PortValue) in
+//                        Text(input.value)
+                        Port2(pv: input,
+                              dispatch: dispatch,
+                              state: state,
+                              isInput: true)
+                    }
+                }
+                
+                // right side
+                VStack (spacing: commonSpacing) {
+                    ForEach(calcNode.outputs, id: \.id) {
+//                        (output: Output) in
+                        (output: PortValue) in
+//                        Text(output.value)
+                        Port2(pv: output, dispatch: dispatch, state: state, isInput: false)
+
+                    }
+                }
+            }
+            
+        }
+        .background(Color.yellow.opacity(0.3))
+        .offset(x: localPosition.width, y: localPosition.height)
+        .gesture(DragGesture()
+                    .onChanged {
+                        log("CalcNodeView: onChanged")
+                        self.localPosition = updatePosition(value: $0, position: self.localPreviousPosition)
+                    }
+                    .onEnded {  _ in
+                        // i.e. no anchoring for now
+                        log("CalcNodeView: onEnded")
+                        self.localPreviousPosition = self.localPosition
+                    })
+        .animation(.spring(response: 0.3, dampingFraction: 0.65, blendDuration: 4))
+    }
+}
+
+struct VizNodeView: View {
+    
+    @State private var localPosition: CGSize = CGSize.zero
+    @State private var localPreviousPosition: CGSize = CGSize.zero
+    
+    let title: String
+    let vizNode: VizNode
+    let dispatch: Dispatch
+    let state: AppState
+    
+    var body: some View {
+        VStack (spacing: commonSpacing) {
+            Text(title)
+            
+            HStack {
+                ForEach(vizNode.inputs, id: \.id) {
+    //                (input: Input) in
+                    (input: PortValue) in
+                    // wrap the input in a port
+    //                Text(input.value)
+                    Port2(pv: input, dispatch: dispatch,
+                          state: state, isInput: true)
+                }
+                Spacer()
+                
+            }
+            
+            
+        }
+        .frame(maxWidth: 100)
+        .background(Color.blue.opacity(0.3))
+        .offset(x: localPosition.width, y: localPosition.height)
+        .gesture(DragGesture()
+                    .onChanged {
+                        log("VizNodeView: onChanged")
+                        self.localPosition = updatePosition(value: $0, position: self.localPreviousPosition)
+                    }
+                    .onEnded {  _ in
+                        // i.e. no anchoring for now
+                        log("VizNodeView: onEnded")
+                        self.localPreviousPosition = self.localPosition
+                    })
+        .animation(.spring(response: 0.3, dampingFraction: 0.65, blendDuration: 4))
+    }
+}
 
 
-enum Directionality: String, Codable {
-    case input = "input"
-    case output = "output"
+// a Port has portId, nodeId etc.,
+// but these are stored in the PortValue,
+// which represents them at the redux level...
+struct Port2: View {
+
+//    let id: Int
+//    let label: String
+//    let nodeId: Int
+    
+    let pv: PortValue
+    let dispatch: Dispatch
+    let state: AppState
+    let isInput: Bool
+    
+    
+    init(
+        pv: PortValue,
+        dispatch: @escaping Dispatch,
+        state: AppState,
+        isInput: Bool
+        ) {
+        self.pv = pv
+        self.dispatch = dispatch
+        self.state = state
+        self.isInput = isInput
+    }
+    
+    var body: some View {
+        
+        let isActivePort: Bool = state.activePort?.nodeId == pv.nodeId && state.activePort?.portId == pv.id
+        
+        VStack (spacing: 10) {
+            Text(pv.label)
+            Text("Node \(pv.nodeId), Port \(pv.id)")
+            Circle().stroke(Color.black)
+    //            .overlay(Text(pv.label))
+                .overlay(Text(pv.value))
+                .background(isActivePort ? Color.green.opacity(0.5) : Color.white.opacity(1.0))
+            
+                .clipShape(/*@START_MENU_TOKEN@*/Circle()/*@END_MENU_TOKEN@*/)
+                .frame(width: 60, height: 60)
+                
+                .anchorPreference(key: PortPreferenceKey.self,
+                                  value: .center,
+                                  transform: {
+                                    [PortPreferenceData(viewIdx: pv.nodeId,
+                                                        center: $0,
+                                                        nodeId: pv.nodeId,
+                                                        portId: pv.id)] })
+                
+                .onTapGesture(count: 1, perform: {
+                    log("port2 tap called: Node \(pv.nodeId), Port \(pv.id)")
+                    
+                    // prev: dispatched based on passed around connecting-node
+                    dispatch(PortTapped(
+                                port: PortIdentifier(
+                                    nodeId: pv.nodeId,
+                                    portId: pv.id,
+                                    isInput: isInput))
+                    )
+                })
+            
+        }
+        
+        
+        
+    }
 }
 
 
 
-
+// a UI element
 struct Port: View {
 
 //    let id: UUID = UUID()
@@ -72,12 +290,9 @@ struct Port: View {
                               transform: {
                                 [PortPreferenceData(viewIdx: nodeId,
                                                     center: $0,
-//                                                    graphId: node.graphId,
                                                     nodeId: nodeId,
                                                     portId: id)] })
-        
     }
-
 }
 
 
@@ -133,11 +348,7 @@ struct Box2: View {
             }
             
         }
-        
-        // needs a better way to space out
-//        .frame(width: width, height: height)
         .background(color.opacity(0.3))
-        
         .offset(x: localPosition.width, y: localPosition.height)
         .gesture(DragGesture()
                     .onChanged {
@@ -146,10 +357,10 @@ struct Box2: View {
                     }
                     .onEnded {  _ in
                         // i.e. no anchoring for now
+                        log("Box2: onEnded")
                         self.localPreviousPosition = self.localPosition
                     })
         .animation(.spring(response: 0.3, dampingFraction: 0.65, blendDuration: 4))
-        
     }
 }
 

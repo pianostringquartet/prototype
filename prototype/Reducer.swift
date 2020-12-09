@@ -14,6 +14,33 @@ import ReSwift
  Actions
  ---------------------------------------------------------------- */
 
+// later need to update this when adding back graph stuff
+struct PortEdgeCreated: Action {
+//    let to: (nodeId, portId)
+//    let from: (nodeId, portId)
+    let fromNode: Int
+    let fromPort: Int
+    
+    let toNode: Int
+    let toPort: Int
+}
+
+
+// a port was tapped;
+// if NOT exists activePort/connectingPort,
+//  then make this port the activePort
+// else:
+//  create an edge between this port and the existing activePort
+struct PortTapped: Action {
+    let port: PortIdentifier
+//    let isInput: Bool
+}
+
+
+
+
+
+
 struct NodeMovedAction: Action {
     let graphId: Int
     let position: CGSize
@@ -62,9 +89,73 @@ struct GoToScreen: Action {
 struct GoToGraphSelectionScreenAction: Action {}
 
 
+
+
 /* ----------------------------------------------------------------
  Reducer
  ---------------------------------------------------------------- */
+
+//func handlePortTapped(portTapped: PortTapped, state: AppState) -> AppState {
+//    log("handling portTapped... state.activePort: \(state.activePort)")
+//
+//    if state.activePort == nil {
+//        log("setting new activePort: \(portTapped.port)")
+//        state.activePort = portTapped.port
+//    }
+//    else if state.activePort == portTapped.port {
+//        log("turning off activePort")
+//        state.activePort = nil
+//    }
+//    else {
+//        // if ports are not in same node,
+//        // and if an edge does not already exist,
+//        // create a new edge between the ports
+//
+//        // if edge already exists, then remove it
+//
+//        let isEdgeInsideNode = state.activePort!.nodeId == portTapped.port.nodeId
+//
+//
+//        let newEdge: PortEdge = PortEdge(from: state.activePort!,
+//                                         to: portTapped.port)
+//        let edgeAlreadyExists = state.edges.contains(newEdge)
+//
+//
+//
+//        if isEdgeInsideNode {
+//            log("attempted to create an edge inside a node!")
+//        }
+//        else if edgeAlreadyExists {
+//            log("edge already exists; will remove it")
+//
+////                    state.edges.re
+//
+//            state.activePort = nil
+//        }
+//        else if !edgeAlreadyExists {
+//
+//            log("will create a new edge")
+//            // create a connection between the activePort and tappedPort,
+//            // and reset activePort
+//            log("state.edges was: \(state.edges)")
+//
+////                    let newEdge: PortEdge = PortEdge(from: state.activePort!,
+////                                                     to: portTapped.port)
+//
+//            state.edges.append(newEdge)
+//            log("state.edges is now: \(state.edges)")
+//
+//
+//            state.activePort = nil
+//        }
+//
+//        // ie we always set activePort `nil` after adding or removing an edge?
+//        state.activePort = nil
+//
+//    }
+//}
+
+
 
 func reducer(action: Action, state: AppState?) -> AppState {
     var defaultState: AppState = AppState()
@@ -76,6 +167,85 @@ func reducer(action: Action, state: AppState?) -> AppState {
     
     switch action {
         
+        case let portTapped as PortTapped:
+//            return handlePortTapped(portTapped: portTapped, state: state)
+            log("handling portTapped... state.activePort: \(state.activePort)")
+            
+            if state.activePort == nil {
+                log("setting new activePort: \(portTapped.port)")
+                state.activePort = portTapped.port
+            }
+            else if state.activePort == portTapped.port {
+                log("turning off activePort")
+                state.activePort = nil
+            }
+            else {
+                // if ports are not in same node,
+                // and if an edge does not already exist,
+                // create a new edge between the ports
+                
+                // if edge already exists, then remove it
+                
+                let isEdgeInsideNode = state.activePort!.nodeId == portTapped.port.nodeId
+                
+                
+                let newEdge: PortEdge = PortEdge(from: state.activePort!,
+                                                 to: portTapped.port)
+                let edgeAlreadyExists = state.edges.contains(newEdge)
+                
+                
+                let isEdgeBetweenInputs = state.activePort!.isInput && portTapped.port.isInput
+                
+                if isEdgeInsideNode {
+                    log("ILLEGAL: attempted to create an edge inside a node!")
+                }
+                
+                // disallow connecting an input to another input;
+                // only outputs can connect to
+                
+                else if isEdgeBetweenInputs {
+                    log("ILLEGAL: attempted to create an edge between inputs!")
+                }
+                
+                else if edgeAlreadyExists {
+                    log("edge already exists; will remove it")
+                    
+                    
+                    log("state.edges was: \(state.edges)")
+                    state.edges.removeAll(where: { (edge: PortEdge) -> Bool in
+                        edge == newEdge
+                    })
+                    log("state.edges is now: \(state.edges)")
+                    
+//                    state.connections.removeAll(where: {(conn: Connection) -> Bool in
+//                        conn.graphId == edgeRemoved.graphId && (conn.from == edgeRemoved.from && conn.to == edgeRemoved.to || conn.from == edgeRemoved.to && conn.to == edgeRemoved.from)
+//                    })
+        //                    state.edges.re
+                    
+                    state.activePort = nil
+                }
+                else if !edgeAlreadyExists {
+                    
+                    log("will create a new edge")
+                    // create a connection between the activePort and tappedPort,
+                    // and reset activePort
+                    log("state.edges was: \(state.edges)")
+                    
+        //                    let newEdge: PortEdge = PortEdge(from: state.activePort!,
+        //                                                     to: portTapped.port)
+                    
+                    state.edges.append(newEdge)
+                    log("state.edges is now: \(state.edges)")
+                    
+                    
+                    state.activePort = nil
+                }
+                
+                // ie we always set activePort `nil` after adding or removing an edge?
+                state.activePort = nil
+                
+            }
+                    
         // NODES
         
         case let nodeMoved as NodeMovedAction:
