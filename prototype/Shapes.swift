@@ -110,15 +110,19 @@ struct CalcNodeView: View {
                 }
                 
                 // right side
-                VStack (spacing: commonSpacing) {
-                    ForEach(calcNode.outputs, id: \.id) {
-//                        (output: Output) in
-                        (output: PortValue) in
-//                        Text(output.value)
-                        Port2(pv: output, dispatch: dispatch, state: state, isInput: false)
-
-                    }
-                }
+                Port2(pv: calcNode.output,
+                      dispatch: dispatch,
+                      state: state,
+                      isInput: false)
+//                VStack (spacing: commonSpacing) {
+//                    ForEach(calcNode.output, id: \.id) {
+////                        (output: Output) in
+//                        (output: PortValue) in
+////                        Text(output.value)
+//                        Port2(pv: output, dispatch: dispatch, state: state, isInput: false)
+//
+//                    }
+//                }
             }
             
         }
@@ -222,7 +226,7 @@ struct Port2: View {
             Circle().stroke(Color.black)
     //            .overlay(Text(pv.label))
                 .overlay(Text(pv.value))
-                .background(isActivePort ? Color.green.opacity(0.5) : Color.white.opacity(1.0))
+                .background(isActivePort ? Color.green.opacity(1.0) : Color.white.opacity(1.0))
             
                 .clipShape(/*@START_MENU_TOKEN@*/Circle()/*@END_MENU_TOKEN@*/)
                 .frame(width: 60, height: 60)

@@ -109,7 +109,10 @@ struct CalcNode: Identifiable, Codable {
 //    let inputs: [Input]
     let inputs: [PortValue]
 //    let outputs: [Output]
-    let outputs: [PortValue]
+//    let outputs: [PortValue]
+    
+    // a calc node only has one output!
+    let output: PortValue
     
     // functionality, e.g. str-concat or str-caps
     // swift: how to indicate just a general function?

@@ -313,7 +313,7 @@ let calcNodeOutput = PortValue(id: 3, nodeId: 2, label: "String value", value: "
 let calcNode: CalcNode = CalcNode(
     id: 2,
     inputs: [calcNodeInput],
-    outputs: [calcNodeOutput],
+    output: calcNodeOutput,
     operation: "uppercase"
 //    operation: { (s: String) -> String in s.uppercased() }
 )
