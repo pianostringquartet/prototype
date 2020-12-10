@@ -215,7 +215,40 @@ func reducer(action: Action, state: AppState?) -> AppState {
                         edge == newEdge
                     })
                     log("state.edges is now: \(state.edges)")
-                                        
+                    
+                    
+                    
+                    
+                    // WHEN EDGE REMOVED, want to reset the port values of the CalcNode
+                    
+                    // NOTE: newEdge is the edge we just removed;
+                    // can reuse it's vals here
+//                    let fromPortIdentifier: PortIdentifier = newEdge.from
+                    let toPortIdentifier: PortIdentifier = newEdge.to
+                    
+                    
+//                    let toPV: PortValue = getPortValue(state: state, pi: toPortIdentifier)
+//
+                    
+                    
+                    let updatedCalcNode: CalcNode = updateCalcNodeInput(state: state,
+                                        port: toPortIdentifier,
+                                        newValue: "default")
+                    
+                    state.calcNodes = updateCalcNodes(calcNodes: state.calcNodes, newCalcNode: updatedCalcNode)
+                    
+                    
+                    let updatedCalcNode2: CalcNode = updateCalcNodeOutput(
+                        state: state,
+                        nodeId: toPortIdentifier.nodeId,
+                        // note we use `fromPV.value`, since is supposed to be the
+                        // updated calc node's input anyway
+                        inputValue: "other",
+                        operation: { $0 })
+                    
+                    state.calcNodes = updateCalcNodes(calcNodes: state.calcNodes, newCalcNode: updatedCalcNode2)
+                    
+                    
                     state.activePort = nil
                 }
                 
@@ -231,23 +264,7 @@ func reducer(action: Action, state: AppState?) -> AppState {
                     log("state.edges is now: \(state.edges)")
                     
                     
-                    
-                    // we've added the edge; now we want to recalculate the value...
-                    // ... cannot yet return another action from here, in this redux implementation
-                    
-                    // when new edge created:
-                    // 1. the to-port needs to reflect the from-port value
-                    //  = retrieve input-port and update port value
-                    // 2. the to-node's output-port needs to reflect operation(input-port value)
-                    
-                    // need to be able to find the node
-//                    let toPort: PortIdentifier = newEdge.to
-//                    let toPortNodeId = toPort.nodeId
-                    
-//                    state.calcNodes.first(where: { $0.inputs.first })
-//                    state.calcNodes.first?.inputs
-                    
-                    
+                    // LOGIC FOR UPDATING CALC NODE INPUTS
                     let fromPortIdentifier: PortIdentifier = newEdge.from
                     let toPortIdentifier: PortIdentifier = newEdge.to
                     
@@ -263,16 +280,8 @@ func reducer(action: Action, state: AppState?) -> AppState {
                     let updatedCalcNode: CalcNode = updateCalcNodeInput(state: state,
                                         port: toPortIdentifier,
                                         newValue: fromPV.value)
-                    // ^^ now need to update state's CalcNodes
                     
-                    log("state.calcNodes was: \(state.calcNodes)")
-                    
-                    state.calcNodes.removeAll { (cn: CalcNode) -> Bool in
-                        cn.id == updatedCalcNode.id
-                    }
-                    state.calcNodes.append(updatedCalcNode)
-                    
-                    log("state.calcNodes is now: \(state.calcNodes)")
+                    state.calcNodes = updateCalcNodes(calcNodes: state.calcNodes, newCalcNode: updatedCalcNode)
                     
                     
                     // both modifications are done to same CalcNode; but different ports
@@ -288,30 +297,9 @@ func reducer(action: Action, state: AppState?) -> AppState {
                         inputValue: fromPV.value,
                         operation: operation)
                     
-                    log("state.calcNodes AGAIN was: \(state.calcNodes)")
+                    state.calcNodes = updateCalcNodes(calcNodes: state.calcNodes, newCalcNode: updatedCalcNode2)
                     
-                    state.calcNodes.removeAll { (cn: CalcNode) -> Bool in
-                        cn.id == updatedCalcNode2.id
-                    }
-                    
-                    state.calcNodes.append(updatedCalcNode2)
-                    // ^^^ this is adding and removing THE SAME CalcNode AGAIN... :-(
-                    
-                    log("state.calcNodes AGAIN is now: \(state.calcNodes)")
-                    
-                    
-                    
-                //    let inputPort: PortValue = calcNode.inputs.first(where: { (pv: PortValue) -> Bool in pv.nodeId == port.nodeId && pv.id == port.portId })!
-                    
-                    // several steps:
-                    // find the original input-port
-                    // update it,
-                    // remove old input-port
-                    // add modified input-port back
-                    
-                    
-                    
-                    
+//
                     
                     
                     
@@ -422,6 +410,7 @@ func reducer(action: Action, state: AppState?) -> AppState {
  ---------------------------------------------------------------- */
 
 
+
 // given a port identifer, retrieve the port value
 func getPortValue(state: AppState, pi: PortIdentifier) -> PortValue {
         
@@ -487,15 +476,28 @@ func getPortValue(state: AppState, pi: PortIdentifier) -> PortValue {
 
 
 
-//
-//func getEdgeFromValue() -> String {
-//
-//}
-//
-////
-//func getEdgeToValue() -> String {
-//
-//}
+
+func updateCalcNodes(calcNodes: [CalcNode], newCalcNode: CalcNode) -> [CalcNode] {
+    
+    
+    var myCalcNodes = calcNodes
+    
+    log("updateCalcNodes: calcNodes AGAIN was: \(myCalcNodes)")
+    
+    myCalcNodes.removeAll { (cn: CalcNode) -> Bool in
+        cn.id == newCalcNode.id
+    }
+    
+    myCalcNodes.append(newCalcNode)
+    // ^^^ this is adding and removing THE SAME CalcNode AGAIN... :-(
+    
+    log("updateCalcNodes: calcNodes AGAIN is now: \(myCalcNodes)")
+    
+    return myCalcNodes
+    
+    
+}
+
 
 
 // given a port identifier, retrieve the calc node's input-port
@@ -512,6 +514,8 @@ func updateCalcNodeInput(state: AppState, port: PortIdentifier, newValue: String
 
     // the specific calcNode we're looking for
 //    let calcNode: CalcNode = state.calcNodes.first(where: {$0.id == port.nodeId})!
+    
+    // DOES NOT WORK EG WHEN WE TRY TO DRAW 
     let calcNode: CalcNode = state.calcNodes.first(where: {$0.id == port.nodeId})!
     
     var calcNodeInputs: [PortValue] = calcNode.inputs
@@ -540,6 +544,7 @@ func updateCalcNodeInput(state: AppState, port: PortIdentifier, newValue: String
     
     return updatedCalcNode
 }
+
 
 
 
