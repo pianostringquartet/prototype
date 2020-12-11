@@ -297,11 +297,22 @@ func addEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: String
     
     let nodeType: NodeType = getNodeTypeForPort(nodeModels: state.nodeModels, nodeId: toPort.nodeId, portId: toPort.portId)
     
+    
+    // UPDATING THE OUTPUT
     if nodeType == .calcNode {
         log("will update a calcNode's output too")
         
         // later?: customize operation etc.
-        let operation = { (s: String) -> String in s.uppercased() }
+//        let operation = { (s: String) -> String in s.uppercased() }
+        
+        let calculatedValue = calculateValue(
+            nm: updatedNode, // should contain updated inputs...
+            op: updatedNode.operation!, // REQUIRED
+            flowValue: flowValue)
+        // let calculatedValue = operation(flowValue)
+        
+        log("will use calculatedValue: \(calculatedValue)")
+        
         
         // don't know a priori the PortIdent for the output
         let outputPM: PortModel = getOutputPortModel(nodeModels: state.nodeModels, nodeId: toPort.nodeId)
@@ -310,7 +321,8 @@ func addEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: String
         let updatedNode2: NodeModel = updateNodePortModel(
             state: state,
             port: PortIdentifier(nodeId: outputPM.nodeId, portId: outputPM.id, isInput: false),
-            newValue: operation(flowValue))
+            newValue: calculatedValue)
+//            newValue: operation(flowValue))
         
         let updatedNodes2: [NodeModel] = replace(ts: state.nodeModels, t: updatedNode2)
         
@@ -320,6 +332,53 @@ func addEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: String
     state.activePM = nil
     return state // we added the edges and updated
 }
+
+
+// ASSUMES: nodeType is .calcNode, and CALLED AFTER WE'VE UPDATED NODE'S INPUTS
+func calculateValue(nm: NodeModel, op: Operation, flowValue: String) -> String {
+    log("calculateValue called")
+    
+    // we MUST have an operation
+    
+    // the actual function
+//    let fn = operations[op]!
+    
+    // this node's inputs
+    let inputs = nm.ports.filter { (pm: PortModel) -> Bool in
+        pm.portType == .input
+    }
+    
+    // the specific operation tells you how many inputs to look for
+    
+    switch op {
+        case .identity:
+            return flowValue
+        case .concat:
+            log("matched on .concat")
+            
+            // will always have at least 2 inputs;
+            // though their values may be empty-strings etc.
+            
+            let s1: String = inputs[0].value
+            let s2: String = inputs[1].value
+            if (s1 == "") || (s2 == "") {
+                return "" // ie don't calculate yet
+            }
+            else {
+                log("...will return: \(inputs[0].value + inputs[1].value)")
+                return inputs[0].value + inputs[1].value
+            }
+            
+//            log("...will return: \(inputs[0].value + inputs[1].value)")
+//            return inputs[0].value + inputs[1].value
+            
+        case .uppercase:
+            log("matched on .uppercase, will return: \(inputs[0].value.uppercased())")
+            return inputs[0].value.uppercased()
+    }
+}
+
+
 
 
     

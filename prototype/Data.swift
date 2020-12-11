@@ -476,9 +476,10 @@ struct Node: Identifiable, Codable, Equatable {
 enum Operation: String, Codable {
     case uppercase = "uppercase"
     case concat = "concat" // str concat
-//    case identity = "identity"
+    case identity = "identity"
 }
 
+// doesn't this mapping just reproduce the switch/case mapping in `calculateValue`?
 let operations: [Operation: Any] = [
     Operation.uppercase: { (s: String) -> String in s.uppercased() },
     Operation.concat: { (s1: String, s2: String) -> String in s1 + s2 },
@@ -495,7 +496,6 @@ struct PortPreferenceData: Identifiable {
     let id = UUID()
     let viewIdx: Int // not needed?
     let center: Anchor<CGPoint>
-//    let graphId: Int
     let nodeId: Int
     let portId: Int
 }
@@ -531,18 +531,4 @@ struct BallPreferenceKey: PreferenceKey {
         value.append(contentsOf: nextValue())
     }
 }
-
-
-// but also want a
-//enum Operations: String {
-//    case Uppercase = "uppercase"
-//}
-
-
-/// enum vals must be LITERALS
-//enum Operations<T>: T {
-//    case Uppercase = { (s: String) -> String in s.uppercased() }
-//}
-
-
 
