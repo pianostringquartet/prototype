@@ -155,60 +155,12 @@ func handlePortTappedAction(state: AppState, action: PortTappedAction) -> AppSta
             // prev: was updating calc-node, removing old node and adding updated node
             
             return removeEdgeAndUpdateNodes(state: state, newEdge: newEdge)
-            
-            
         }
         
         else { // ie edge does not already exist; will add it and update ports
             log("handlePortTappedAction: edge does not exist; will add it")
             
             return addEdgeAndUpdateNodes(state: state, newEdge: newEdge, flowValue: flowValue, toPort: toPort)
-            
-            // add the new edge
-//            state.edges.append(newEdge)
-//
-//            // update
-//            // an edge is always `output -> input` and `output` never changes
-//
-//            // update the port
-//            // update the node model to use the new port
-//            // update the state to use the new node model
-//
-//            // later?: look up the value in state rather than taking it from the action
-//            let updatedNode: NodeModel = updateNodePortModel(state: state, port: toPort, newValue: flowValue)
-//
-//            let updatedNodes: [NodeModel] = replace(ts: state.nodeModels, t: updatedNode)
-//
-//            state.nodeModels = updatedNodes
-//
-//            // if input-port's node was an calc-node,
-//            // we also update the output-port
-//            // ASSUME: calc-node has SINGLE output port
-//
-//            let nodeType: NodeType = getNodeTypeForPort(nodeModels: state.nodeModels, nodeId: toPort.nodeId, portId: toPort.portId)
-//
-//            if nodeType == .calcNode {
-//                log("will update a calcNode's output too")
-//
-//                // later?: customize operation etc.
-//                let operation = { (s: String) -> String in s.uppercased() }
-//
-//                // don't know a priori the PortIdent for the output
-//                let outputPM: PortModel = getOutputPortModel(nodeModels: state.nodeModels, nodeId: toPort.nodeId)
-//
-//                // node model with updated output
-//                let updatedNode2: NodeModel = updateNodePortModel(
-//                    state: state,
-//                    port: PortIdentifier(nodeId: outputPM.nodeId, portId: outputPM.id, isInput: false),
-//                    newValue: operation(flowValue))
-//
-//                let updatedNodes2: [NodeModel] = replace(ts: state.nodeModels, t: updatedNode2)
-//
-//                state.nodeModels = updatedNodes2
-//            }
-//
-//            state.activePM = nil
-//            return state // we added the edges and updated
         }
     }
     
@@ -263,6 +215,10 @@ func removeEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: Str
     
     // since we've removed an edge, we need to flow the values
     state = flowValues(state: state, nodes: state.nodeModels, edges: state.edges)
+    
+    state = selfConsistency(state: state,
+                            nodes: state.nodeModels.filter({ (n: NodeModel) -> Bool in
+                                n.nodeType == .calcNode }))
     
     state.activePM = nil
     
@@ -335,7 +291,9 @@ func addEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: String
     
     // since we've added an edge, we need to flow the values
     state = flowValues(state: state, nodes: state.nodeModels, edges: state.edges)
-    
+    state = selfConsistency(state: state,
+                            nodes: state.nodeModels.filter({ (n: NodeModel) -> Bool in
+                                n.nodeType == .calcNode }))
     
     
     state.activePM = nil
@@ -438,6 +396,60 @@ func flowValues(state: AppState, nodes: [NodeModel], edges: [PortEdge]) -> AppSt
 //    let updatedNode: NodeModel = updateNodePortModel(state: state, port: target, newValue: originPM.value)
 //    let updatedNodes: [NodeModel] = replace(ts: state.nodeModels, t: updatedNode)
 //    state.nodeModels = updatedNodes
+    
+    return state
+}
+
+
+// self-consistency
+// iterate through every node make sure output is consistent with operation(inputs)
+// ie rerun calculateValue
+// BETTER?: nodes should only be calcNodes
+func selfConsistency(state: AppState, nodes: [NodeModel]) -> AppState {
+    log("selfConsistency called")
+    
+    var state = state
+    
+//    let node: NodeModel = nodes.first!
+    
+    nodes.forEach { (node: NodeModel) in
+        
+        // we only recalculate the value if there's an operation / it's a calcNode
+        if node.operation != nil && node.nodeType == .calcNode {
+            
+            let inputs: [PortModel] = node.ports.filter { $0.portType == .input && $0.nodeId == node.id }
+            
+            // assumes single output; output port modl for just this node
+            let output: PortModel = node.ports.first { $0.portType == .output && $0.nodeId == node.id }!
+            
+            // `inputs[0].value` is just some simple default value
+            let newOutputValue: String = calculateValue(nm: node, op: node.operation!, flowValue: inputs[0].value)
+            
+            let updatedNode2: NodeModel = updateNodePortModel(
+                state: state,
+                port: PortIdentifier(nodeId: output.nodeId, portId: output.id, isInput: false),
+                newValue: newOutputValue)
+    //            newValue: operation(flowValue))
+            
+            let updatedNodes2: [NodeModel] = replace(ts: state.nodeModels, t: updatedNode2)
+            
+            state.nodeModels = updatedNodes2
+            
+            
+        } else {
+            log("selfConsistency: encountered a non-calc node?!: \(node)")
+        }
+        
+    }
+    
+    
+    
+    // gr
+//    the input port models for just this node
+    
+    
+    
+    
     
     return state
 }
