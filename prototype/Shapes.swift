@@ -85,41 +85,14 @@ struct NodeView: View {
                     .background(Color.gray.opacity(0.4))
                 : nil
   
-//            DualPortTypeView(inputs: inputs, outputs: outputs, state: state, dispatch: dispatch)
-            
-            // unable to infer complex closure type? wtf?
             switch nodeModel.nodeType {
                 case .valNode:
                     SinglePortTypeView(ports: outputs, state: state, dispatch: dispatch)
                 case .calcNode:
                     DualPortTypeView(inputs: inputs, outputs: outputs, state: state, dispatch: dispatch)
-//                    return SinglePortTypeView(ports: inputs, state: state, dispatch: dispatch)
                 case .vizNode:
                     SinglePortTypeView(ports: inputs, state: state, dispatch: dispatch)
             }
-            
-//            // bottom
-//            HStack (spacing: spacing) {
-//
-//                // left side
-//                VStack (spacing: spacing) {
-//                    ForEach(inputs, id: \.id) {
-//                        (input: PortModel) in
-//                        PortView(pm: input,
-//                              dispatch: dispatch,
-//                              state: state)
-//                    }
-//                }
-//
-//                // right side
-//                VStack (spacing: spacing) {
-//                    ForEach(outputs, id: \.id) {
-//                        (output: PortModel) in
-//                        PortView(pm: output, dispatch: dispatch, state: state)
-//
-//                    }
-//                }
-//            } // HStack
             
         }
         .padding()

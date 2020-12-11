@@ -18,6 +18,9 @@ func identity<T>(t: T) -> T {
     return t
 }
 
+//func ascending(x: Identifiable, y: Identifiable) -> Bool {
+//    x.id < y.id
+//}
 
 func replace<T: Identifiable>(ts: [T], t: T) -> [T] {
     var ts = ts

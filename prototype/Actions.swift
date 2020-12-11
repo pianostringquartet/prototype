@@ -261,6 +261,9 @@ func removeEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: Str
     }
     
     
+    // since we've removed an edge, we need to flow the values
+    state = flowValues(state: state, nodes: state.nodeModels, edges: state.edges)
+    
     state.activePM = nil
     
     
@@ -329,6 +332,12 @@ func addEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: String
         state.nodeModels = updatedNodes2
     }
     
+    
+    // since we've added an edge, we need to flow the values
+    state = flowValues(state: state, nodes: state.nodeModels, edges: state.edges)
+    
+    
+    
     state.activePM = nil
     return state // we added the edges and updated
 }
@@ -380,7 +389,61 @@ func calculateValue(nm: NodeModel, op: Operation, flowValue: String) -> String {
     }
 }
 
+//
+
+// make the values 'flow' across the graph
+// Origami does this whenever an output changes (though currently you and origami change `output` at different times
+
+
+// don't update ALL data, just the edges after the startPoint
+// probably a better implementation?
+func flowValues(state: AppState, nodes: [NodeModel], edges: [PortEdge]) -> AppState {
+    log("flowValues called")
     
+    var state = state
+    
+    edges.forEach { (edge: PortEdge) in
+        
+        log("flowValues: edge: \(edge)")
+        
+        let origin: PortIdentifier = edge.from
+        let originPM: PortModel = getPortModel(nodeModels: nodes, nodeId: origin.nodeId, portId: origin.portId)
+        
+        
+        let target: PortIdentifier = edge.to
+        let targetPM: PortModel = getPortModel(nodeModels: nodes, nodeId: target.nodeId, portId: target.portId)
+        
+        // update target to use origin's value
+        let updatedNode: NodeModel = updateNodePortModel(state: state, port: target, newValue: originPM.value)
+        let updatedNodes: [NodeModel] = replace(ts: state.nodeModels, t: updatedNode)
+        
+        state.nodeModels = updatedNodes
+    }
+    
+    
+    
+    // for a given edge, set edge.target.portValue = edge.origin.portValue
+    
+//    let edge: PortEdge = edges.first!
+    
+    
+//    let origin: PortIdentifier = edge.from
+//    let originPM: PortModel = getPortModel(nodeModels: nodes, nodeId: origin.nodeId, portId: origin.portId)
+//
+//
+//    let target: PortIdentifier = edge.to
+//    let targetPM: PortModel = getPortModel(nodeModels: nodes, nodeId: target.nodeId, portId: target.portId)
+//
+//    // update target to use origin's value
+//    let updatedNode: NodeModel = updateNodePortModel(state: state, port: target, newValue: originPM.value)
+//    let updatedNodes: [NodeModel] = replace(ts: state.nodeModels, t: updatedNode)
+//    state.nodeModels = updatedNodes
+    
+    return state
+}
+
+
+
 func getNodeTypeForPort(nodeModels: [NodeModel], nodeId: Int, portId: Int) -> NodeType {
     let isDesiredNode = { (nm: NodeModel) -> Bool in nm.id == nodeId}
     let isDesiredPort = { (pm: PortModel) -> Bool in pm.id == portId }
@@ -404,6 +467,7 @@ func getPortModel(nodeModels: [NodeModel], nodeId: Int, portId: Int) -> PortMode
     var node: NodeModel = nodeModels.first(where: isDesiredNode)!
     return node.ports.first(where: isDesiredPort)!
 }
+
 
 
 // difference: don't have portID, just nodeID
@@ -502,3 +566,6 @@ func updateNodeOutputPortModel(state: AppState,
 //
 //    nodeModels.
 //}
+
+// given a port identifier, get the port model
+

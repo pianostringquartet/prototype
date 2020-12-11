@@ -42,28 +42,31 @@ struct GraphEditorView: View {
         
         HStack (spacing: 50) {
     
+            let ascending = { (nm1: NodeModel, nm2: NodeModel) -> Bool in
+                nm1.id < nm2.id
+            }
+            
             let valNodes = state.nodeModels.filter { (n: NodeModel) -> Bool in
                 n.nodeType == NodeType.valNode
-            }
+            }.sorted(by: ascending)
+            
             let calcNodes = state.nodeModels.filter { (n: NodeModel) -> Bool in
                 n.nodeType == NodeType.calcNode
-            }
+            }.sorted(by: ascending)
+            
             let vizNodes = state.nodeModels.filter { (n: NodeModel) -> Bool in
                 n.nodeType == NodeType.vizNode
-            }
+            }.sorted(by: ascending)
             
             // left
             VStack {
-//                Text("Value nodes")
                 ForEach(valNodes, id: \.id) { (nm: NodeModel) in
                     NodeView(nodeModel: nm, dispatch: dispatch, state: state, title: "Val node", color: Color.gray)
                 }
             }
             
             // middle
-//            VStack {
             HStack (spacing: 50) {
-//                Text("Calc nodes")
                 ForEach(calcNodes, id: \.id) { (nm: NodeModel) in
                     NodeView(nodeModel: nm, dispatch: dispatch, state: state, title: "Calc node", color: Color.yellow)
                 }
@@ -71,7 +74,6 @@ struct GraphEditorView: View {
             
             // right
             VStack {
-//                Text("Viz nodes")
                 ForEach(vizNodes, id: \.id) { (nm: NodeModel) in
                     NodeView(nodeModel: nm, dispatch: dispatch, state: state, title: "Viz node", color: Color.blue)
                 }
