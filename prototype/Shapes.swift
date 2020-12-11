@@ -62,17 +62,11 @@ struct NodeView: View {
         let inputs: [PortModel] = nodeModel.ports.filter { (pm: PortModel) -> Bool in
             pm.portType == PortType.input
         }.sorted(by: ascending)
-//        .sorted { (pm1: PortModel, pm2: PortModel) -> Bool in
-//            pm1.id < pm2.id
-//        }
         
         let outputs: [PortModel] = nodeModel.ports.filter { (pm: PortModel) -> Bool in
             pm.portType == PortType.output
         }.sorted(by: ascending)
         
-//        .sorted { (pm1: PortModel, pm2: PortModel) -> Bool in
-//            pm1.id < pm2.id
-//        }
         
 //        log("NodeView: nodeModel.nodeType: \(nodeModel.nodeType)")
 //        log("NodeView: inputs: \(inputs)")
@@ -82,37 +76,51 @@ struct NodeView: View {
          // top
             Text(title)
                 // should be frame that covers whole space
-                .padding()
+                .padding(10)
                 .background(Color.gray.opacity(0.4))
             
             nodeModel.operation != nil ?
                 Text("Operation: \(nodeModel.operation!.rawValue)")
-                    .padding()
+                    .padding(10)
                     .background(Color.gray.opacity(0.4))
                 : nil
+  
+//            DualPortTypeView(inputs: inputs, outputs: outputs, state: state, dispatch: dispatch)
             
-            // bottom
-            HStack (spacing: spacing) {
-                
-                // left side
-                VStack (spacing: spacing) {
-                    ForEach(inputs, id: \.id) {
-                        (input: PortModel) in
-                        PortView(pm: input,
-                              dispatch: dispatch,
-                              state: state)
-                    }
-                }
-                
-                // right side
-                VStack (spacing: spacing) {
-                    ForEach(outputs, id: \.id) {
-                        (output: PortModel) in
-                        PortView(pm: output, dispatch: dispatch, state: state)
-
-                    }
-                }
+            // unable to infer complex closure type? wtf?
+            switch nodeModel.nodeType {
+                case .valNode:
+                    SinglePortTypeView(ports: outputs, state: state, dispatch: dispatch)
+                case .calcNode:
+                    DualPortTypeView(inputs: inputs, outputs: outputs, state: state, dispatch: dispatch)
+//                    return SinglePortTypeView(ports: inputs, state: state, dispatch: dispatch)
+                case .vizNode:
+                    SinglePortTypeView(ports: inputs, state: state, dispatch: dispatch)
             }
+            
+//            // bottom
+//            HStack (spacing: spacing) {
+//
+//                // left side
+//                VStack (spacing: spacing) {
+//                    ForEach(inputs, id: \.id) {
+//                        (input: PortModel) in
+//                        PortView(pm: input,
+//                              dispatch: dispatch,
+//                              state: state)
+//                    }
+//                }
+//
+//                // right side
+//                VStack (spacing: spacing) {
+//                    ForEach(outputs, id: \.id) {
+//                        (output: PortModel) in
+//                        PortView(pm: output, dispatch: dispatch, state: state)
+//
+//                    }
+//                }
+//            } // HStack
+            
         }
         .padding()
         .background(color.opacity(0.3))
@@ -131,6 +139,63 @@ struct NodeView: View {
     }
 }
 
+
+
+//for both inputs and outputs (calc node)
+// Hstack + vstacks
+struct DualPortTypeView: View {
+
+    let inputs: [PortModel]
+    let outputs: [PortModel]
+    let state: AppState
+    let dispatch: Dispatch
+    
+    
+    let spacing: CGFloat = 20
+    
+    var body: some View {
+        HStack (spacing: spacing) {
+            
+            // left side
+            VStack (spacing: spacing) {
+                ForEach(inputs, id: \.id) {
+                    (input: PortModel) in
+                    PortView(pm: input,
+                          dispatch: dispatch,
+                          state: state)
+                }
+            }
+            
+            // right side
+            VStack (spacing: spacing) {
+                ForEach(outputs, id: \.id) {
+                    (output: PortModel) in
+                    PortView(pm: output, dispatch: dispatch, state: state)
+
+                }
+            }
+        } // HStack
+    }
+}
+
+struct SinglePortTypeView: View {
+
+    let ports: [PortModel]
+    let state: AppState
+    let dispatch: Dispatch
+    
+    let spacing: CGFloat = 20
+    
+    var body: some View {
+        // output or inputs
+        VStack (spacing: spacing) {
+            ForEach(ports, id: \.id) {
+                (port: PortModel) in
+                PortView(pm: port, dispatch: dispatch, state: state)
+            }
+        }
+    }
+}
 
 
 
@@ -368,3 +433,4 @@ struct Shapes_Previews: PreviewProvider {
         /*@START_MENU_TOKEN@*/Text("Hello, World!")/*@END_MENU_TOKEN@*/
     }
 }
+

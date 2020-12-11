@@ -54,15 +54,16 @@ struct GraphEditorView: View {
             
             // left
             VStack {
-                Text("Value nodes")
+//                Text("Value nodes")
                 ForEach(valNodes, id: \.id) { (nm: NodeModel) in
                     NodeView(nodeModel: nm, dispatch: dispatch, state: state, title: "Val node", color: Color.gray)
                 }
             }
             
             // middle
-            VStack {
-                Text("Calc nodes")
+//            VStack {
+            HStack (spacing: 50) {
+//                Text("Calc nodes")
                 ForEach(calcNodes, id: \.id) { (nm: NodeModel) in
                     NodeView(nodeModel: nm, dispatch: dispatch, state: state, title: "Calc node", color: Color.yellow)
                 }
@@ -70,7 +71,7 @@ struct GraphEditorView: View {
             
             // right
             VStack {
-                Text("Viz nodes")
+//                Text("Viz nodes")
                 ForEach(vizNodes, id: \.id) { (nm: NodeModel) in
                     NodeView(nodeModel: nm, dispatch: dispatch, state: state, title: "Viz node", color: Color.blue)
                 }
@@ -163,7 +164,8 @@ let mainStore = Store<AppState>(
 let valNodeId = 1
 let valNodeId2 = 2
 let calcNodeId = 3
-let vizNodeId = 4
+let calcNodeId2 = 4
+let vizNodeId = 5
 
 let valNodeOutput: PortModel = PortModel(id: 1, nodeId: valNodeId, portType: PortType.output, label: "output: String", value: "hello")
 
@@ -182,6 +184,8 @@ let valNode2: NodeModel = NodeModel(id: valNodeId2, nodeType: NodeType.valNode, 
 
 let calcNode = concatNodeModel(id: calcNodeId)
 
+let calcNode2 = uppercaseNodeModel(id: calcNodeId2)
+
 
 
 let vizNodeInput: PortModel = PortModel(id: 1, nodeId: vizNodeId, portType: PortType.input, label: "input: String", value: "")
@@ -194,7 +198,7 @@ let hwState = AppState(graphs: [],
                        connections: [],
                        currentScreen: Screens.graphEditing,
                        currentGraphId: 1,
-                       nodeModels: [valNode, valNode2, calcNode, vizNode])
+                       nodeModels: [valNode, valNode2, calcNode, calcNode2, vizNode])
 
 
 

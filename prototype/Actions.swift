@@ -353,6 +353,8 @@ func calculateValue(nm: NodeModel, op: Operation, flowValue: String) -> String {
     switch op {
         case .identity:
             return flowValue
+        
+        // TODO: should be a reduce option; can take arbitrarily many inputs
         case .concat:
             log("matched on .concat")
             
@@ -377,9 +379,6 @@ func calculateValue(nm: NodeModel, op: Operation, flowValue: String) -> String {
             return inputs[0].value.uppercased()
     }
 }
-
-
-
 
     
 func getNodeTypeForPort(nodeModels: [NodeModel], nodeId: Int, portId: Int) -> NodeType {
