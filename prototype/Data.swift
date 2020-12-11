@@ -57,6 +57,49 @@ enum NodeType: String, Codable {
     case vizNode = "vizNode"
 }
 
+
+
+// for CREATING BRAND NEW (CALC) NODE MODEL
+func uppercaseNodeModel(id: Int) -> NodeModel {
+    // a calc node whose operation is Uppercase
+    
+    // autogenerate node id too?
+    
+    let operation: Operation = Operation.uppercase
+    
+    let input: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: "input: String", value: "")
+
+    let output: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.output, label: "output: String", value: "")
+    
+    return NodeModel(id: id, nodeType: .calcNode, ports: [input, output], operation: operation)
+}
+
+
+func concatNodeModel(id: Int) -> NodeModel {
+    // a calc node whose operation is Uppercase
+    
+    // autogenerate node id too?
+    
+    let operation: Operation = Operation.concat
+    
+    
+    // MUST have at least two inputs;
+    // ideally, should allow as many as desired
+    
+    let input: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: "input: String", value: "")
+    
+    let input2: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.input, label: "input: String", value: "")
+
+    let output: PortModel = PortModel(id: 3, nodeId: id, portType: PortType.output, label: "output: String", value: "")
+    
+    return NodeModel(id: id, nodeType: .calcNode, ports: [input, input2, output], operation: operation)
+}
+
+
+
+
+
+
 struct NodeModel: Identifiable, Codable {
     
     let id: Int // nodeId
@@ -79,10 +122,16 @@ struct NodeModel: Identifiable, Codable {
     let ports: [PortModel]
     
     
-    func update(id: Int? = nil, nodeType: NodeType? = nil, ports: [PortModel]? = nil) -> NodeModel {
+    // only for calc Nodes
+//    let operation: Operation?
+//    let operation: Operation? = nil
+    var operation: Operation? = nil
+    
+    func update(id: Int? = nil, nodeType: NodeType? = nil, ports: [PortModel]? = nil, operation: Operation? = nil) -> NodeModel {
         return NodeModel(id: id ?? self.id,
                          nodeType: nodeType ?? self.nodeType,
-                         ports: ports ?? self.ports
+                         ports: ports ?? self.ports,
+                         operation: operation ?? self.operation
         )
     }
     
@@ -118,6 +167,7 @@ struct PortModel: Identifiable, Codable, Equatable {
     
     let value: String // port value
     
+    let defaultValue: String = ""
     
     func update(id: Int? = nil, nodeId: Int? = nil, portType: PortType? = nil, label: String? = nil, value: String? = nil) -> PortModel {
         
@@ -173,75 +223,75 @@ struct PortValue: Codable, Equatable {
 
 
 
-
-// 'layer 1' node: output only
-struct ValNode: Identifiable, Codable {
-    
-    let id: Int
-//    let outputs: [Output]
-    let outputs: [PortValue]
-}
-
-
-// 'layer 2' node: input and output
-//struct CalcNode: Identifiable, Codable {
-struct CalcNode: Identifiable, Codable {
-
-    let id: Int
-//    let inputs: [Input]
-    let inputs: [PortValue]
-//    let outputs: [Output]
+//
+//// 'layer 1' node: output only
+//struct ValNode: Identifiable, Codable {
+//
+//    let id: Int
+////    let outputs: [Output]
 //    let outputs: [PortValue]
-    
-    // a calc node only has one output!
-    let output: PortValue
-    
-    // functionality, e.g. str-concat or str-caps
-    // swift: how to indicate just a general function?
-//    let operation: (Any) -> Any
-    
-    // for now using:
-    // how to use this with Codable?
-    // if can't serialize the function,
-    // alternatively, could have a redux action for operation,
-    // and dispatch the
-//    let operation: (String) -> String
-    // but redux actions are hardcoded and known;
-    
-    // some redux action
-    // not serializable?
-//    let operation: Action.Type
-    
-    //
-//    let operation: NodeDeletedAction.Type
-    
-    // RIGHT NOW: unused and
-    let operation: String // and do Action.Type
-    
-    
-    // or define custom serializers?
-    // toString: Action.self or Action.type
-    // fromString: ... would need to match the string against a list of actions...
-    
-    // can you set this aside for now?
-    // can you just hardcode something for now?
-    
-
-    
-}
-
-
-// 'layer 3' node: input only; UI elem only
-// what
-struct VizNode: Identifiable, Codable {
-    
-    let id: Int
-//    let inputs: [Input]
-    let inputs: [PortValue]
-    
-
-    
-}
+//}
+//
+//
+//// 'layer 2' node: input and output
+////struct CalcNode: Identifiable, Codable {
+//struct CalcNode: Identifiable, Codable {
+//
+//    let id: Int
+////    let inputs: [Input]
+//    let inputs: [PortValue]
+////    let outputs: [Output]
+////    let outputs: [PortValue]
+//
+//    // a calc node only has one output!
+//    let output: PortValue
+//
+//    // functionality, e.g. str-concat or str-caps
+//    // swift: how to indicate just a general function?
+////    let operation: (Any) -> Any
+//
+//    // for now using:
+//    // how to use this with Codable?
+//    // if can't serialize the function,
+//    // alternatively, could have a redux action for operation,
+//    // and dispatch the
+////    let operation: (String) -> String
+//    // but redux actions are hardcoded and known;
+//
+//    // some redux action
+//    // not serializable?
+////    let operation: Action.Type
+//
+//    //
+////    let operation: NodeDeletedAction.Type
+//
+//    // RIGHT NOW: unused and
+//    let operation: String // and do Action.Type
+//
+//
+//    // or define custom serializers?
+//    // toString: Action.self or Action.type
+//    // fromString: ... would need to match the string against a list of actions...
+//
+//    // can you set this aside for now?
+//    // can you just hardcode something for now?
+//
+//
+//
+//}
+//
+//
+//// 'layer 3' node: input only; UI elem only
+//// what
+//struct VizNode: Identifiable, Codable {
+//
+//    let id: Int
+////    let inputs: [Input]
+//    let inputs: [PortValue]
+//
+//
+//
+//}
 
 
 
@@ -279,15 +329,15 @@ struct AppState: StateType, Codable {
     var currentGraphId: Int? = nil
     
     //
-    var valNodes: [ValNode] = []
-    var calcNodes: [CalcNode] = []
-    var vizNodes: [VizNode] = []
+//    var valNodes: [ValNode] = []
+//    var calcNodes: [CalcNode] = []
+//    var vizNodes: [VizNode] = []
     
     
     var nodeModels: [NodeModel] = []
     
     // ie the connectingPort
-    var activePort: PortIdentifier? = nil
+//    var activePort: PortIdentifier? = nil
     
     var activePM: PortModel? = nil
     
@@ -316,30 +366,30 @@ struct PortCoordinate: Equatable, Codable {
 // ie old port-values will be trapped inside an edge;
 // it's better to look those up based on
 
-struct PortEdge2: Identifiable, Codable, Equatable {
-    var id: UUID = UUID()
-
-    let from: PortCoordinate // ie nodeId, portId
-    let to: PortCoordinate
-
-
-    // are two edges the same?
-    static func ==(x: PortEdge2, y: PortEdge2) -> Bool {
-        // Edgeless connection:
-
-//        let isSameNodeId: Bool = x.from.nodeId == y.from.nodeId && x.from.nodeId == y.from.nodeId
+//struct PortEdge2: Identifiable, Codable, Equatable {
+//    var id: UUID = UUID()
 //
-//        let isSame
-//        let x1:
-        let res: Bool = (x.from == y.from && x.to == y.to) || (x.from == y.to && x.to == y.from)
-
-//        log("PortEdge == res: \(res)")
-        print("PortEdge2 == res: \(res)")
-
-        // now compaing
-        return res
-    }
-}
+//    let from: PortCoordinate // ie nodeId, portId
+//    let to: PortCoordinate
+//
+//
+//    // are two edges the same?
+//    static func ==(x: PortEdge2, y: PortEdge2) -> Bool {
+//        // Edgeless connection:
+//
+////        let isSameNodeId: Bool = x.from.nodeId == y.from.nodeId && x.from.nodeId == y.from.nodeId
+////
+////        let isSame
+////        let x1:
+//        let res: Bool = (x.from == y.from && x.to == y.to) || (x.from == y.to && x.to == y.from)
+//
+////        log("PortEdge == res: \(res)")
+//        print("PortEdge2 == res: \(res)")
+//
+//        // now compaing
+//        return res
+//    }
+//}
 
 
 struct PortEdge: Identifiable, Codable, Equatable {
@@ -368,23 +418,23 @@ struct PortEdge: Identifiable, Codable, Equatable {
 }
 
 
-struct PortConnection: Identifiable, Codable, Equatable {
-    var id: UUID = UUID()
-//    var graphId: Int
-    
-    // from a port #, to a port #
-    var from: Int
-    var to: Int
-    
-    // invariant: can only do input->output
-    
-    
-    // here, the edges SHOULD HAVE DIRECTIONS?
-    static func ==(lhs: PortConnection, rhs: PortConnection) -> Bool {
-        // Edgeless connection:
-        return (lhs.from == rhs.from && lhs.to == rhs.to || lhs.from == rhs.to && lhs.to == rhs.from)
-    }
-}
+//struct PortConnection: Identifiable, Codable, Equatable {
+//    var id: UUID = UUID()
+////    var graphId: Int
+//
+//    // from a port #, to a port #
+//    var from: Int
+//    var to: Int
+//
+//    // invariant: can only do input->output
+//
+//
+//    // here, the edges SHOULD HAVE DIRECTIONS?
+//    static func ==(lhs: PortConnection, rhs: PortConnection) -> Bool {
+//        // Edgeless connection:
+//        return (lhs.from == rhs.from && lhs.to == rhs.to || lhs.from == rhs.to && lhs.to == rhs.from)
+//    }
+//}
 
 struct Connection: Identifiable, Codable, Equatable {
     var id: UUID = UUID()
@@ -425,10 +475,14 @@ struct Node: Identifiable, Codable, Equatable {
 
 enum Operation: String, Codable {
     case uppercase = "uppercase"
+    case concat = "concat" // str concat
+//    case identity = "identity"
 }
 
 let operations: [Operation: Any] = [
-    Operation.uppercase: { (s: String) -> String in s.uppercased() }
+    Operation.uppercase: { (s: String) -> String in s.uppercased() },
+    Operation.concat: { (s1: String, s2: String) -> String in s1 + s2 },
+//    Operation.identity: { (x: T) -> T in x } // T not in scope?
 ]
 
 

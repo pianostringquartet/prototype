@@ -125,8 +125,8 @@ func handlePortTappedAction(state: AppState, action: PortTappedAction) -> AppSta
         
         let fromPort: PortIdentifier = PortIdentifier(nodeId: state.activePM!.nodeId,
                                                       portId: state.activePM!.id,
-                                                      isInput: state.activePM!.portType == PortType.input
-                                                      )
+                                                      isInput: state.activePM!.portType == PortType.input)
+        
         let toPort: PortIdentifier = PortIdentifier(nodeId: action.port.nodeId,
                                                     portId: action.port.id,
                                                     isInput: action.port.portType == PortType.input)
@@ -137,7 +137,7 @@ func handlePortTappedAction(state: AppState, action: PortTappedAction) -> AppSta
         let edgeAlreadyExists = state.edges.contains(newEdge)
         
         // better?: select these from state?
-        let fromValue: String = state.activePM!.value
+//        let fromValue: String = state.activePM!.value
         
         
         // CANNOT USE THE VALUE HERE, because e.g. the value will be the value of the tapped port, which might be an output
@@ -234,40 +234,17 @@ func removeEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: Str
     // can reuse it's vals here
 //                    let fromPortIdentifier: PortIdentifier = newEdge.from
     let toPortIdentifier: PortIdentifier = newEdge.to
-    
-//    let updatedCalcNode: CalcNode = updateCalcNodeInput(state: state,
-//                        port: toPortIdentifier,
-//                        newValue: "default")
+
     let updatedNode: NodeModel = updateNodePortModel(state: state, port: toPortIdentifier, newValue: flowValue)
     
     let updatedNodes: [NodeModel] = replace(ts: state.nodeModels, t: updatedNode)
     
     state.nodeModels = updatedNodes
-    
-    
-//    state.calcNodes = updateCalcNodes(calcNodes: state.calcNodes, newCalcNode: updatedCalcNode)
-    
-    
-//    let updatedCalcNode2: CalcNode = updateCalcNodeOutput(
-//        state: state,
-//        nodeId: toPortIdentifier.nodeId,
-//        // note we use `fromPV.value`, since is supposed to be the
-//        // updated calc node's input anyway
-//        inputValue: "other",
-//        operation: { $0 })
-//
-//    state.calcNodes = updateCalcNodes(calcNodes: state.calcNodes, newCalcNode: updatedCalcNode2)
-    
+        
     let nodeType: NodeType = getNodeTypeForPort(nodeModels: state.nodeModels, nodeId: toPortIdentifier.nodeId, portId: toPortIdentifier.portId)
     
     if nodeType == .calcNode {
         log("removeEdgeAndUpdateNodes: will update a calcNode's output too")
-        
-        // later?: customize operation etc.
-//        let operation = { (s: String) -> String in s.uppercased() }
-        
-        // ie no input, so no transformation
-//        let operation = identity
         
         // don't know a priori the PortIdent for the output
         let outputPM: PortModel = getOutputPortModel(nodeModels: state.nodeModels, nodeId: toPortIdentifier.nodeId)
@@ -276,7 +253,7 @@ func removeEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: Str
         let updatedNode2: NodeModel = updateNodePortModel(
             state: state,
             port: PortIdentifier(nodeId: outputPM.nodeId, portId: outputPM.id, isInput: false),
-            newValue: flowValue)
+            newValue: flowValue) // NO OPERATION
         
         let updatedNodes2: [NodeModel] = replace(ts: state.nodeModels, t: updatedNode2)
         

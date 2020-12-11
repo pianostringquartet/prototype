@@ -27,24 +27,12 @@ struct GraphEditorView: View {
     // particular node to which we are adding/removing connections
     @State public var connectingNode: Int? = nil // not persisted
 
-    let graphId: Int
-    let nodes: [Node]
-    let connections: [Connection]
-    let portConnections: [PortConnection]
+    
     let dispatch: Dispatch
     
     let state: AppState
     
-    init(graphId: Int,
-         nodes: [Node],
-         connections: [Connection],
-         portConnections: [PortConnection],
-         dispatch: @escaping Dispatch,
-         state: AppState) {
-        self.graphId = graphId
-        self.nodes = nodes
-        self.connections = connections
-        self.portConnections = portConnections
+    init(dispatch: @escaping Dispatch, state: AppState) {
         self.dispatch = dispatch
         self.state = state
     }
@@ -67,9 +55,6 @@ struct GraphEditorView: View {
             // left
             VStack {
                 Text("Value nodes")
-//                ForEach(state.valNodes, id: \.id) { (valNode: ValNode) in
-//                    ValNodeView(title: "Val. Node", valNode: valNode, dispatch: dispatch, state: state)
-//                }
                 ForEach(valNodes, id: \.id) { (nm: NodeModel) in
                     NodeView(nodeModel: nm, dispatch: dispatch, state: state, title: "Val node", color: Color.gray)
                 }
@@ -78,9 +63,6 @@ struct GraphEditorView: View {
             // middle
             VStack {
                 Text("Calc nodes")
-//                ForEach(state.calcNodes, id: \.id) { (calcNode: CalcNode) in
-//                    CalcNodeView(title: "Calc Node", calcNode: calcNode, dispatch: dispatch, state: state)
-//                }
                 ForEach(calcNodes, id: \.id) { (nm: NodeModel) in
                     NodeView(nodeModel: nm, dispatch: dispatch, state: state, title: "Calc node", color: Color.yellow)
                 }
@@ -89,30 +71,12 @@ struct GraphEditorView: View {
             // right
             VStack {
                 Text("Viz nodes")
-//                ForEach(state.vizNodes, id: \.id) { (vizNode: VizNode) in
-//                    VizNodeView(title: "Viz. Node", vizNode: vizNode, dispatch: dispatch, state: state)
-//                }
                 ForEach(vizNodes, id: \.id) { (nm: NodeModel) in
                     NodeView(nodeModel: nm, dispatch: dispatch, state: state, title: "Viz node", color: Color.blue)
                 }
             }
-            
-  // manually hardcode what you want / need here
-
-                    // keep the logic of the nodes, adding removing etc.
-//                    ForEach(nodes, id: \.id) { (node: Node) in
-//                        Ball(connectingNode: $connectingNode,
-//                             node: node,
-//                             graphId: graphId,
-//                             connections: connections,
-//                             dispatch: dispatch)
-//                    }
-                }
+        }
         .padding(.trailing, 30).padding(.bottom, 30)
-//            }
-//        }
-        
-        
         .offset(x: localPosition.width, y: localPosition.height)
         .frame(idealWidth: 500, idealHeight: 500)
         
@@ -195,63 +159,34 @@ let mainStore = Store<AppState>(
 )
 
 
-//let valNodeOutput = PortValue(id: 1, nodeId: 1, label: "String value", value: "hello")
-//let valNode = ValNode(id: 1, outputs: [valNodeOutput])
-//
-//
-//let calcNodeInput = PortValue(id: 2, nodeId: 2, label: "String value", value: "x1")
-//let calcNodeOutput = PortValue(id: 3, nodeId: 2, label: "String value", value: "x2")
-//let calcNode: CalcNode = CalcNode(
-//    id: 2,
-//    inputs: [calcNodeInput],
-//    output: calcNodeOutput,
-//    operation: "uppercase"
-////    operation: { (s: String) -> String in s.uppercased() }
-//)
-//
-////let vizNodeInput = Input(id: 3, nodeId: 3, value: "HELLO")
-////let vizNodeInput = PortValue(id: 4, nodeId: 3, label: "String value", value: "HELLO")
-//let vizNodeInput = PortValue(id: 4, nodeId: 3, label: "String value", value: "x3")
-//let vizNode = VizNode(id: 3, inputs: [vizNodeInput])
-
-
-
 
 let valNodeId = 1
-let calcNodeId = 2
-let vizNodeId = 3
-let commonLabel = "String value"
+let valNodeId2 = 2
+let calcNodeId = 3
+let vizNodeId = 4
 
-
-let valNodeOutput: PortModel = PortModel(id: 1, nodeId: valNodeId, portType: PortType.output, label: commonLabel, value: "hello")
+let valNodeOutput: PortModel = PortModel(id: 1, nodeId: valNodeId, portType: PortType.output, label: "output: String", value: "hello")
 
 let valNode: NodeModel = NodeModel(id: valNodeId, nodeType: NodeType.valNode, ports: [valNodeOutput])
 
+let valNodeOutput2: PortModel = PortModel(id: 2, nodeId: valNodeId2, portType: PortType.output, label: "output: String", value: "world")
 
-let calcNodeInput: PortModel = PortModel(id: 1, nodeId: calcNodeId, portType: PortType.input, label: commonLabel, value: "")
-//    PortValue(id: 2, nodeId: 2, label: "String value", value: "x1")
-let calcNodeOutput: PortModel = PortModel(id: 2, nodeId: calcNodeId, portType: PortType.output, label: commonLabel, value: "")
-//    PortValue(id: 3, nodeId: 2, label: "String value", value: "x2")
+let valNode2: NodeModel = NodeModel(id: valNodeId2, nodeType: NodeType.valNode, ports: [valNodeOutput2])
 
-let calcNode: NodeModel = NodeModel(id: calcNodeId, nodeType: .calcNode, ports: [calcNodeInput, calcNodeOutput])
 
-//let calcNode: CalcNode = CalcNode(
-//    id: 2,
-//    inputs: [calcNodeInput],
-//    output: calcNodeOutput,
-//    operation: "uppercase"
-////    operation: { (s: String) -> String in s.uppercased() }
-//)
+//let calcNodeInput: PortModel = PortModel(id: 1, nodeId: calcNodeId, portType: PortType.input, label: commonLabel, value: "")
+//
+//let calcNodeOutput: PortModel = PortModel(id: 2, nodeId: calcNodeId, portType: PortType.output, label: commonLabel, value: "")
 
-//let vizNodeInput = Input(id: 3, nodeId: 3, value: "HELLO")
-//let vizNodeInput = PortValue(id: 4, nodeId: 3, label: "String value", value: "HELLO")
-let vizNodeInput: PortModel = PortModel(id: 1, nodeId: vizNodeId, portType: PortType.input, label: commonLabel, value: "")
-    //PortValue(id: 4, nodeId: 3, label: "String value", value: "x3")
+//let calcNode: NodeModel = NodeModel(id: calcNodeId, nodeType: .calcNode, ports: [calcNodeInput, calcNodeOutput], operation: Operation.uppercase)
+
+let calcNode = concatNodeModel(id: calcNodeId)
+
+
+
+let vizNodeInput: PortModel = PortModel(id: 1, nodeId: vizNodeId, portType: PortType.input, label: "input: String", value: "")
+
 let vizNode: NodeModel = NodeModel(id: vizNodeId, nodeType: NodeType.vizNode, ports: [vizNodeInput])
-    // VizNode(id: 3, inputs: [vizNodeInput])
-
-
-
 
 
 let hwState = AppState(graphs: [],
@@ -259,15 +194,7 @@ let hwState = AppState(graphs: [],
                        connections: [],
                        currentScreen: Screens.graphEditing,
                        currentGraphId: 1,
-                       // might want each of these to be a map {:nodeId nodeType}
-                       // instead of just a list?
-//                       valNodes: [valNode],
-//                       calcNodes: [calcNode],
-//                       vizNodes: [vizNode],
-                       
-                       // graphEditor view will need to edit these themselves
-                       nodeModels: [valNode, calcNode, vizNode])
-
+                       nodeModels: [valNode, valNode2, calcNode, vizNode])
 
 
 
@@ -278,11 +205,7 @@ struct ContentView: View {
     var body: some View {
         let dispatcher: Dispatch = { state.dispatch($0) }
         
-        return GraphEditorView(graphId: 1, //state.current.currentGraphId!,
-                               nodes: state.current.nodes,
-                               connections: state.current.connections,
-                                portConnections: [],
-                                dispatch: dispatcher,
+        return GraphEditorView(dispatch: dispatcher,
                                 // careful -- is this updated enough?
                                 state: state.current
                )
