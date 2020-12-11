@@ -49,15 +49,97 @@ struct Cell: Identifiable, Codable {
 }
 
 
+// need `String` and string vals for it to be codable?
+// and need codable to be serializable?
+enum NodeType: String, Codable {
+    case valNode = "valNode"
+    case calcNode = "calcNode"
+    case vizNode = "vizNode"
+}
+
+struct NodeModel: Identifiable, Codable {
+    
+    let id: Int // nodeId
+    
+    let nodeType: NodeType
+    
+    // how to enforce e.g. that a valNode has only outputs?
+    // how about through specific constructors?
+    // eg NodeModel.calcNode(inputs, output)
+    // and .calcNode constructor sets nodeType = calcNode etc.
+    // ... but you'd still have an outputs field...
+    
+    //
+//    let inputs: [PortValue]
+//    let outputs: [PortValue]
+    
+    // better?:
+    // right... should be PortModel (not just PortValue)
+    // can determine inputs vs. outputs by sorting ports by PortType
+    let ports: [PortModel]
+    
+    
+    func update(id: Int? = nil, nodeType: NodeType? = nil, ports: [PortModel]? = nil) -> NodeModel {
+        return NodeModel(id: id ?? self.id,
+                         nodeType: nodeType ?? self.nodeType,
+                         ports: ports ?? self.ports
+        )
+    }
+    
+    
+    
+}
 
 
-// using strings for now?
 
-// what kind of id should the outputs/inputs have?
-// previously did a totally unique enumeration,
-// but need to handle programmatically...
+enum PortType: String, Codable {
+    case input = "input"
+    case output = "output"
+}
 
-// a given 'Put' belongs to a node of a given type (Val vs Calc vs Viz)
+// combo of PortIdentifier, PortValue, Cell
+// common to all types of nodes
+// anywhere you use PortIdentifier, you can use PortModel
+struct PortModel: Identifiable, Codable, Equatable {
+    let id: Int
+    let nodeId: Int
+    // later: `let graphId: Int`
+    
+    let portType: PortType // input or output
+     
+    let label: String // port label
+    
+    // later?: use cellId to retrieve port's Cell (ie value), update in one place, display in many
+//    ...unsure how useful if we think about it like "input port of calc-node should have same value as output port of val-node"
+//    let cellId: Cell
+    
+    // later, should be "of type T"
+//    let value: String // port value
+    
+    let value: String // port value
+    
+    
+    func update(id: Int? = nil, nodeId: Int? = nil, portType: PortType? = nil, label: String? = nil, value: String? = nil) -> PortModel {
+        
+        return PortModel(id: id ?? self.id,
+                         nodeId: nodeId ?? self.nodeId,
+                         portType: portType ?? self.portType,
+                         label: label ?? self.label,
+                         value: value ?? self.value)
+    }
+    
+    
+    
+//    func update(id: Int = self.id, nodeId: Int = self.nodeId, portType: PortType = self.portType, label: String = self.label, value: String = self.value) -> PortModel {
+//        return PortModel(id: id,
+//                         nodeId: nodeId,
+//                         portType: portType,
+//                         label: label,
+//                         value: value)
+//    }
+    
+}
+
 
 
 
@@ -202,11 +284,14 @@ struct AppState: StateType, Codable {
     var vizNodes: [VizNode] = []
     
     
+    var nodeModels: [NodeModel] = []
+    
     // ie the connectingPort
     var activePort: PortIdentifier? = nil
     
-    var edges: [PortEdge] = []
+    var activePM: PortModel? = nil
     
+    var edges: [PortEdge] = []
 }
 
 
@@ -214,6 +299,48 @@ struct AppState: StateType, Codable {
 /* ----------------------------------------------------------------
  Domain
  ---------------------------------------------------------------- */
+
+
+// NodeId, PortId
+//typealias PortCoordinate = (Int, Int) // still use PortIdentifier for now?
+//typealias PortCoordinate = (Int, Int) // still use PortIdentifier for now?
+
+// should be identifiable and equatable as well?
+struct PortCoordinate: Equatable, Codable {
+    let nodeId: Int
+    let portId: Int
+}
+
+
+// PROBLEM: if you put port-values inside an edge, when will the edge be updated?
+// ie old port-values will be trapped inside an edge;
+// it's better to look those up based on
+
+struct PortEdge2: Identifiable, Codable, Equatable {
+    var id: UUID = UUID()
+
+    let from: PortCoordinate // ie nodeId, portId
+    let to: PortCoordinate
+
+
+    // are two edges the same?
+    static func ==(x: PortEdge2, y: PortEdge2) -> Bool {
+        // Edgeless connection:
+
+//        let isSameNodeId: Bool = x.from.nodeId == y.from.nodeId && x.from.nodeId == y.from.nodeId
+//
+//        let isSame
+//        let x1:
+        let res: Bool = (x.from == y.from && x.to == y.to) || (x.from == y.to && x.to == y.from)
+
+//        log("PortEdge == res: \(res)")
+        print("PortEdge2 == res: \(res)")
+
+        // now compaing
+        return res
+    }
+}
+
 
 struct PortEdge: Identifiable, Codable, Equatable {
     var id: UUID = UUID()
@@ -259,7 +386,6 @@ struct PortConnection: Identifiable, Codable, Equatable {
     }
 }
 
-
 struct Connection: Identifiable, Codable, Equatable {
     var id: UUID = UUID()
     var graphId: Int
@@ -271,7 +397,6 @@ struct Connection: Identifiable, Codable, Equatable {
         return lhs.graphId == rhs.graphId && (lhs.from == rhs.from && lhs.to == rhs.to || lhs.from == rhs.to && lhs.to == rhs.from)
     }
 }
-
 
 struct Graph: Identifiable, Codable {
     var id: UUID = UUID()
@@ -289,6 +414,22 @@ struct Node: Identifiable, Codable, Equatable {
     var position: CGSize = .zero
     var radius: Int = 40 // start out at 40
 }
+
+
+/* ----------------------------------------------------------------
+ Calc-node operations
+ ---------------------------------------------------------------- */
+
+// a given node can have a serializable `operation: Operation`,
+// and then the fn is retrieved via eg. `operations[operation]`
+
+enum Operation: String, Codable {
+    case uppercase = "uppercase"
+}
+
+let operations: [Operation: Any] = [
+    Operation.uppercase: { (s: String) -> String in s.uppercased() }
+]
 
 
 /* ----------------------------------------------------------------
@@ -317,8 +458,6 @@ struct PortPreferenceKey: PreferenceKey {
     }
 }
 
-
-
 // Datatype for preference data
 struct BallPreferenceData: Identifiable {
     let id = UUID()
@@ -338,4 +477,18 @@ struct BallPreferenceKey: PreferenceKey {
         value.append(contentsOf: nextValue())
     }
 }
+
+
+// but also want a
+//enum Operations: String {
+//    case Uppercase = "uppercase"
+//}
+
+
+/// enum vals must be LITERALS
+//enum Operations<T>: T {
+//    case Uppercase = { (s: String) -> String in s.uppercased() }
+//}
+
+
 

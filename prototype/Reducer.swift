@@ -10,84 +10,6 @@ import SwiftUI
 import ReSwift
 
 
-/* ----------------------------------------------------------------
- Actions
- ---------------------------------------------------------------- */
-
-// later need to update this when adding back graph stuff
-struct PortEdgeCreated: Action {
-//    let to: (nodeId, portId)
-//    let from: (nodeId, portId)
-    let fromNode: Int
-    let fromPort: Int
-    
-    let toNode: Int
-    let toPort: Int
-}
-
-
-// a port was tapped;
-// if NOT exists activePort/connectingPort,
-//  then make this port the activePort
-// else:
-//  create an edge between this port and the existing activePort
-struct PortTapped: Action {
-    let port: PortIdentifier
-//    let isInput: Bool
-}
-
-
-
-
-
-
-struct NodeMovedAction: Action {
-    let graphId: Int
-    let position: CGSize
-    let node: Node
-}
-
-struct NodeCommittedAction: Action {
-    let graphId: Int
-    let position: CGSize
-    let node: Node
-}
-
-struct NodeDeletedAction: Action {
-    let graphId: Int
-    let nodeId: Int
-}
-
-struct GraphDeletedAction: Action {
-    let graphId: Int
-}
-
-struct EdgeAddedAction: Action {
-    let graphId: Int
-    let from: Int
-    let to: Int
-}
-
-struct EdgeRemovedAction: Action {
-    let graphId: Int
-    let from: Int
-    let to: Int
-}
-
-struct GoToGraphAction: Action {
-    let graphId: Int
-}
-
-struct GoToNewGraphAction: Action {
-//    let graphId: Int // the id for the newly created graph
-}
-
-struct GoToScreen: Action {
-    let screen: Screens
-}
-
-struct GoToGraphSelectionScreenAction: Action {}
-
 
 
 
@@ -167,6 +89,12 @@ func reducer(action: Action, state: AppState?) -> AppState {
     
     switch action {
         
+        case let pta as PortTappedAction:
+            var newState = handlePortTappedAction(state: state, action: pta)
+            log("newState from PortTappedAction: \(newState)")
+            state = newState
+        
+        
         case let portTapped as PortTapped:
 //            return handlePortTapped(portTapped: portTapped, state: state)
             log("handling portTapped... state.activePort: \(state.activePort)")
@@ -225,11 +153,6 @@ func reducer(action: Action, state: AppState?) -> AppState {
                     // can reuse it's vals here
 //                    let fromPortIdentifier: PortIdentifier = newEdge.from
                     let toPortIdentifier: PortIdentifier = newEdge.to
-                    
-                    
-//                    let toPV: PortValue = getPortValue(state: state, pi: toPortIdentifier)
-//
-                    
                     
                     let updatedCalcNode: CalcNode = updateCalcNodeInput(state: state,
                                         port: toPortIdentifier,
@@ -299,10 +222,6 @@ func reducer(action: Action, state: AppState?) -> AppState {
                     
                     state.calcNodes = updateCalcNodes(calcNodes: state.calcNodes, newCalcNode: updatedCalcNode2)
                     
-//
-                    
-                    
-                    
                 
                     // do only at very, very end
                     state.activePort = nil
@@ -353,47 +272,16 @@ func reducer(action: Action, state: AppState?) -> AppState {
                                                 ($0.to == nodeDeleted.nodeId || $0.from == nodeDeleted.nodeId) })
     
             
-        // EDGES
-            
-        case let edgeAdded as EdgeAddedAction:
-            state.connections.append(Connection(graphId: edgeAdded.graphId, from: edgeAdded.from, to: edgeAdded.to))
-            
-        case let edgeRemoved as EdgeRemovedAction:
-            state.connections.removeAll(where: {(conn: Connection) -> Bool in
-                conn.graphId == edgeRemoved.graphId && (conn.from == edgeRemoved.from && conn.to == edgeRemoved.to || conn.from == edgeRemoved.to && conn.to == edgeRemoved.from)
-            })
-            
-            
-        // GRAPHS
-        
-        case let graphDeleted as GraphDeletedAction:
-            state.graphs.removeAll(where: { $0.graphId == graphDeleted.graphId })
-            state.nodes.removeAll(where: { $0.graphId == graphDeleted.graphId })
-            state.connections.removeAll(where: { $0.graphId == graphDeleted.graphId })
-            
-        
-        // NAVIGATION
-            
-        case _ as GoToNewGraphAction:
-            // create new graph
-            let newGraphId = nextGraphId(graphs: state.graphs)
-            state.graphs.append(Graph(graphId: newGraphId))
-            state.nodes.append(Node(graphId: newGraphId, isAnchored: true, nodeId: 1))
-            
-            // set as active graph
-            state.currentGraphId = newGraphId
-            
-            // route to graph edit screen:
-            state.currentScreen = Screens.graphEditing
-            
-        case let goToGraph as GoToGraphAction:
-            state.currentGraphId = goToGraph.graphId
-            state.currentScreen = Screens.graphEditing
-            
-        case _ as GoToGraphSelectionScreenAction:
-            state.currentGraphId = nil
-            state.currentScreen = Screens.graphSelection
-            
+//        // EDGES
+//
+////        case let edgeAdded as EdgeAddedAction:
+////            state.connections.append(Connection(graphId: edgeAdded.graphId, from: edgeAdded.from, to: edgeAdded.to))
+////
+////        case let edgeRemoved as EdgeRemovedAction:
+////            state.connections.removeAll(where: {(conn: Connection) -> Bool in
+////                conn.graphId == edgeRemoved.graphId && (conn.from == edgeRemoved.from && conn.to == edgeRemoved.to || conn.from == edgeRemoved.to && conn.to == edgeRemoved.from)
+////            })
+//
         default:
             break
     }
@@ -515,7 +403,7 @@ func updateCalcNodeInput(state: AppState, port: PortIdentifier, newValue: String
     // the specific calcNode we're looking for
 //    let calcNode: CalcNode = state.calcNodes.first(where: {$0.id == port.nodeId})!
     
-    // DOES NOT WORK EG WHEN WE TRY TO DRAW 
+    // DOES NOT WORK EG WHEN WE TRY TO DRAW EDGE TO VIZ NODE
     let calcNode: CalcNode = state.calcNodes.first(where: {$0.id == port.nodeId})!
     
     var calcNodeInputs: [PortValue] = calcNode.inputs

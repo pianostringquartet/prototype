@@ -28,6 +28,92 @@ func line(from: CGPoint, to: CGPoint) -> some View {
     Line(from: from, to: to).stroke().animation(.default)
 }
 
+// common
+//typealias <#type name#> = <#type expression#>
+
+struct NodeView: View {
+    
+    // dragging
+    @State private var localPosition: CGSize = CGSize.zero
+    @State private var localPreviousPosition: CGSize = CGSize.zero
+    
+    // contains the ports etc.
+    let nodeModel: NodeModel
+    
+    
+    let dispatch: Dispatch
+    let state: AppState // convenience for now?
+    
+    // should these properties of NodeModel?
+    let title: String
+    let color: Color
+    
+    
+    let spacing: CGFloat = 10
+    
+    var body: some View {
+        
+        let inputs: [PortModel] = nodeModel.ports.filter { (pm: PortModel) -> Bool in
+            pm.portType == PortType.input
+        }
+        
+        let outputs: [PortModel] = nodeModel.ports.filter { (pm: PortModel) -> Bool in
+            pm.portType == PortType.output
+        }
+        
+//        log("NodeView: nodeModel.nodeType: \(nodeModel.nodeType)")
+//        log("NodeView: inputs: \(inputs)")
+//        log("NodeView: outputs: \(outputs)")
+        
+        VStack (spacing: spacing) {
+         // top
+            Text(title)
+                // should be frame that covers whole space
+                .background(Color.gray.opacity(0.4))
+                
+            // bottom
+            HStack (spacing: spacing) {
+                
+                // left side
+                VStack (spacing: spacing) {
+//                    ForEach(nodeModel.inputs, id: \.id) {
+                    ForEach(inputs, id: \.id) {
+                        (input: PortModel) in
+                        PortView(pm: input,
+                              dispatch: dispatch,
+                              state: state)
+                    }
+                }
+                
+                // right side
+                VStack (spacing: spacing) {
+//                    ForEach(nodeModel.outputs, id: \.id) {
+                    ForEach(outputs, id: \.id) {
+                        (output: PortModel) in
+                        PortView(pm: output, dispatch: dispatch, state: state)
+
+                    }
+                }
+            }
+        }
+        .background(color.opacity(0.3))
+        .offset(x: localPosition.width, y: localPosition.height)
+        .gesture(DragGesture()
+                    .onChanged {
+                        log("NodeView: onChanged")
+                        self.localPosition = updatePosition(value: $0, position: self.localPreviousPosition)
+                    }
+                    .onEnded {  _ in
+                        // i.e. no anchoring for now
+                        log("NodeView: onEnded")
+                        self.localPreviousPosition = self.localPosition
+                    })
+        .animation(.spring(response: 0.3, dampingFraction: 0.65, blendDuration: 4))
+    }
+}
+
+
+
 
 let commonSpacing: CGFloat = 10
 
@@ -189,6 +275,78 @@ struct VizNodeView: View {
 }
 
 
+
+struct PortView: View {
+    
+//    let pv: PortValue
+    
+    //
+    let pm: PortModel
+    
+    let dispatch: Dispatch
+    let state: AppState
+
+    
+    //    let isInput: Bool
+    
+    
+//    init(
+//        pv: PortValue,
+//        dispatch: @escaping Dispatch,
+//        state: AppState,
+//        isInput: Bool
+//        ) {
+//        self.pv = pv
+//        self.dispatch = dispatch
+//        self.state = state
+//        self.isInput = isInput
+//    }
+    
+    var body: some View {
+        
+//        let isActivePort: Bool = state.activePort?.nodeId == pv.nodeId && state.activePort?.portId == pv.id
+        
+//        let isActivePort: Bool = state.activePort?.nodeId == pm.nodeId && state.activePort?.portId == pm.id
+        let isActivePort: Bool = state.activePM?.nodeId == pm.nodeId && state.activePM?.id == pm.id
+        
+        VStack (spacing: 10) {
+            Text(pm.label)
+            Text("Node \(pm.nodeId), Port \(pm.id)")
+            Circle().stroke(Color.black)
+    //            .overlay(Text(pm.label))
+                .overlay(Text(pm.value))
+                .background(isActivePort ? Color.green.opacity(1.0) : Color.white.opacity(1.0))
+            
+                .clipShape(/*@START_MENU_TOKEN@*/Circle()/*@END_MENU_TOKEN@*/)
+                .frame(width: 60, height: 60)
+                
+                .anchorPreference(key: PortPreferenceKey.self,
+                                  value: .center,
+                                  transform: {
+                                    [PortPreferenceData(viewIdx: pm.nodeId,
+                                                        center: $0,
+                                                        nodeId: pm.nodeId,
+                                                        portId: pm.id)] })
+                
+                .onTapGesture(count: 1, perform: {
+                    log("PortView tap called: Node \(pm.nodeId), Port \(pm.id), Value: \(pm.value)")
+                    
+                    // prev: dispatched based on passed around connecting-node
+//                    dispatch(PortTapped(
+//                                port: PortIdentifier(
+//                                    nodeId: pm.nodeId,
+//                                    portId: pm.id,
+//                                    isInput: pm.portType == .input)))
+                    
+                    // CANNOT USE THE VALUE HERE, because e.g. the value will be the value of the tapped port, which might be an output
+                    dispatch(PortTappedAction(port: pm))
+        
+                })
+        }
+    }
+}
+
+
 // a Port has portId, nodeId etc.,
 // but these are stored in the PortValue,
 // which represents them at the redux level...
@@ -250,11 +408,7 @@ struct Port2: View {
                                     isInput: isInput))
                     )
                 })
-            
         }
-        
-        
-        
     }
 }
 
