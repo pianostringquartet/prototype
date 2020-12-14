@@ -118,6 +118,7 @@ func handlePortTappedAction(state: AppState, action: PortTappedAction) -> AppSta
         return state // ie edge would be inside the node; not allowed
     }
     
+    
     // will add or remove an edge
     else {
         log("will add or remove edge")
@@ -136,16 +137,6 @@ func handlePortTappedAction(state: AppState, action: PortTappedAction) -> AppSta
                                            to: toPort)
         let edgeAlreadyExists = state.edges.contains(newEdge)
         
-        // better?: select these from state?
-//        let fromValue: String = state.activePM!.value
-        
-        
-        // CANNOT USE THE VALUE HERE, because e.g. the value will be the value of the tapped port, which might be an output
-//        let toValue: String = action.port.value
-//        let toValue: String = getPV(nodeModels: state.nodeModels, nodeId: toPort.nodeId, portId: toPort.portId)
-        
-        // ASSUMES: we always create edges from Output -> Input
-        // ie the prev node's Output will always be the value flowing into the next node's Input
         let flowValue: String = state.activePM!.value
         
         
@@ -180,11 +171,6 @@ func removeEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: Str
         edge == newEdge
     })
     
-    // WHEN EDGE REMOVED, want to reset the port values of the CalcNode
-    
-    // NOTE: newEdge is the edge we just removed;
-    // can reuse it's vals here
-//                    let fromPortIdentifier: PortIdentifier = newEdge.from
     let toPortIdentifier: PortIdentifier = newEdge.to
 
     let updatedNode: NodeModel = updateNodePortModel(state: state, port: toPortIdentifier, newValue: flowValue)
@@ -220,6 +206,10 @@ func removeEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: Str
                             nodes: state.nodeModels.filter({ (n: NodeModel) -> Bool in
                                 n.nodeType == .calcNode }))
     
+    // need to reflow again because selfConsistency may have changed a node's inputs and outputs
+    state = flowValues(state: state, nodes: state.nodeModels, edges: state.edges)
+    
+    
     state.activePM = nil
     
     
@@ -227,7 +217,6 @@ func removeEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: Str
 }
 
 
-// ie one half og the
 func addEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: String, toPort: PortIdentifier) -> AppState { // ie edge does not already exist; will add it and update ports
     log("addEdgeAndUpdateNodes: edge does not exist; will add it")
     
@@ -253,7 +242,6 @@ func addEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: String
     // if input-port's node was an calc-node,
     // we also update the output-port
     // ASSUME: calc-node has SINGLE output port
-    
     let nodeType: NodeType = getNodeTypeForPort(nodeModels: state.nodeModels, nodeId: toPort.nodeId, portId: toPort.portId)
     
     
@@ -291,9 +279,11 @@ func addEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: String
     
     // since we've added an edge, we need to flow the values
     state = flowValues(state: state, nodes: state.nodeModels, edges: state.edges)
+    
     state = selfConsistency(state: state,
                             nodes: state.nodeModels.filter({ (n: NodeModel) -> Bool in
                                 n.nodeType == .calcNode }))
+    state = flowValues(state: state, nodes: state.nodeModels, edges: state.edges)
     
     
     state.activePM = nil
@@ -304,11 +294,6 @@ func addEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: String
 // ASSUMES: nodeType is .calcNode, and CALLED AFTER WE'VE UPDATED NODE'S INPUTS
 func calculateValue(nm: NodeModel, op: Operation, flowValue: String) -> String {
     log("calculateValue called")
-    
-    // we MUST have an operation
-    
-    // the actual function
-//    let fn = operations[op]!
     
     // this node's inputs
     let inputs = nm.ports.filter { (pm: PortModel) -> Bool in
@@ -413,6 +398,8 @@ func selfConsistency(state: AppState, nodes: [NodeModel]) -> AppState {
 //    let node: NodeModel = nodes.first!
     
     nodes.forEach { (node: NodeModel) in
+        
+        log("selfConsistency: node.id \(node.id), node type \(node.nodeType)")
         
         // we only recalculate the value if there's an operation / it's a calcNode
         if node.operation != nil && node.nodeType == .calcNode {

@@ -29,7 +29,6 @@ struct GraphEditorView: View {
 
     
     let dispatch: Dispatch
-    
     let state: AppState
     
     init(dispatch: @escaping Dispatch, state: AppState) {
@@ -57,6 +56,7 @@ struct GraphEditorView: View {
             let vizNodes = state.nodeModels.filter { (n: NodeModel) -> Bool in
                 n.nodeType == NodeType.vizNode
             }.sorted(by: ascending)
+            
             
             // left
             VStack {

@@ -177,17 +177,7 @@ struct PortModel: Identifiable, Codable, Equatable {
                          label: label ?? self.label,
                          value: value ?? self.value)
     }
-    
-    
-    
-//    func update(id: Int = self.id, nodeId: Int = self.nodeId, portType: PortType = self.portType, label: String = self.label, value: String = self.value) -> PortModel {
-//        return PortModel(id: id,
-//                         nodeId: nodeId,
-//                         portType: portType,
-//                         label: label,
-//                         value: value)
-//    }
-    
+        
 }
 
 
