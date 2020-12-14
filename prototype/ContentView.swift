@@ -31,6 +31,8 @@ struct GraphEditorView: View {
     let dispatch: Dispatch
     let state: AppState
     
+//    let
+    
     init(dispatch: @escaping Dispatch, state: AppState) {
         self.dispatch = dispatch
         self.state = state
@@ -39,45 +41,66 @@ struct GraphEditorView: View {
     var body: some View {
         log("GraphEditorView body called")
         
-        HStack (spacing: 50) {
-    
-            let ascending = { (nm1: NodeModel, nm2: NodeModel) -> Bool in
-                nm1.id < nm2.id
-            }
+        VStack {
+            Text("Graph")
             
-            let valNodes = state.nodeModels.filter { (n: NodeModel) -> Bool in
-                n.nodeType == NodeType.valNode
-            }.sorted(by: ascending)
-            
-            let calcNodes = state.nodeModels.filter { (n: NodeModel) -> Bool in
-                n.nodeType == NodeType.calcNode
-            }.sorted(by: ascending)
-            
-            let vizNodes = state.nodeModels.filter { (n: NodeModel) -> Bool in
-                n.nodeType == NodeType.vizNode
-            }.sorted(by: ascending)
-            
-            
-            // left
-            VStack {
-                ForEach(valNodes, id: \.id) { (nm: NodeModel) in
-                    NodeView(nodeModel: nm, dispatch: dispatch, state: state, title: "Val node", color: Color.gray)
-                }
-            }
-            
-            // middle
+            // GRAPH
             HStack (spacing: 50) {
-                ForEach(calcNodes, id: \.id) { (nm: NodeModel) in
-                    NodeView(nodeModel: nm, dispatch: dispatch, state: state, title: "Calc node", color: Color.yellow)
+        
+                let ascending = { (nm1: NodeModel, nm2: NodeModel) -> Bool in
+                    nm1.id < nm2.id
                 }
-            }
+                
+                let valNodes = state.nodeModels.filter { (n: NodeModel) -> Bool in
+                    n.nodeType == NodeType.valNode
+                }.sorted(by: ascending)
+                
+                let calcNodes = state.nodeModels.filter { (n: NodeModel) -> Bool in
+                    n.nodeType == NodeType.calcNode
+                }.sorted(by: ascending)
+                
+                let vizNodes = state.nodeModels.filter { (n: NodeModel) -> Bool in
+                    n.nodeType == NodeType.vizNode
+                }.sorted(by: ascending)
+                
+                
+                // left
+                VStack {
+                    ForEach(valNodes, id: \.id) { (nm: NodeModel) in
+                        NodeView(nodeModel: nm, dispatch: dispatch, state: state, title: "Val node", color: Color.gray)
+                    }
+                }
+                
+                // middle
+                HStack (spacing: 50) {
+                    ForEach(calcNodes, id: \.id) { (nm: NodeModel) in
+                        NodeView(nodeModel: nm, dispatch: dispatch, state: state, title: "Calc node", color: Color.yellow)
+                    }
+                }
+                
+                // right
+                VStack {
+                    ForEach(vizNodes, id: \.id) { (nm: NodeModel) in
+                        NodeView(nodeModel: nm, dispatch: dispatch, state: state, title: "Viz node", color: Color.blue)
+                    }
+                }
+            } // HStack
+            .padding()
             
-            // right
-            VStack {
-                ForEach(vizNodes, id: \.id) { (nm: NodeModel) in
-                    NodeView(nodeModel: nm, dispatch: dispatch, state: state, title: "Viz node", color: Color.blue)
-                }
-            }
+            
+            // MINIVIEW
+            
+            Text("Miniview")
+            generateMiniview(state: state, dispatch: dispatch)
+            
+            // rather than hardcoded view, we need to use a generated view
+//            TouchableText(text: "Default...",
+//                          // can't be hardcoded in original state;
+//                          // needs to be a feature of
+//                          color: Color.green,
+//                          dispatch: dispatch)
+//                .padding()
+            
         }
         .padding(.trailing, 30).padding(.bottom, 30)
         .offset(x: localPosition.width, y: localPosition.height)
@@ -168,6 +191,8 @@ let valNodeId2 = 2
 let calcNodeId = 3
 let calcNodeId2 = 4
 let vizNodeId = 5
+let vizNodeId2 = 6
+
 
 let valNodeOutput: PortModel = PortModel(id: 1, nodeId: valNodeId, portType: PortType.output, label: "output: String", value: "hello")
 
@@ -190,17 +215,19 @@ let calcNode2 = uppercaseNodeModel(id: calcNodeId2)
 
 
 
-let vizNodeInput: PortModel = PortModel(id: 1, nodeId: vizNodeId, portType: PortType.input, label: "input: String", value: "")
+let vizNodeInput: PortModel = PortModel(id: 1, nodeId: vizNodeId, portType: PortType.input, label: "Text", value: "")
 
-let vizNode: NodeModel = NodeModel(id: vizNodeId, nodeType: NodeType.vizNode, ports: [vizNodeInput])
+let vizNode: NodeModel = NodeModel(id: vizNodeId, nodeType: NodeType.vizNode, ports: [vizNodeInput], previewElement: PreviewElement.text)
+
+// hard code color as a string right now FOR THE DISPLAY VALUE
+// i.e. this viz node is not taking any inputs right now
+// and when minipreview text clicked on, we dispatched an change color
+let vizNodeInput2: PortModel = PortModel(id: 1, nodeId: vizNodeId2, portType: PortType.input, label: "TypographyColor", value: "Green")
+
+let vizNode2: NodeModel = NodeModel(id: vizNodeId2, nodeType: NodeType.vizNode, ports: [vizNodeInput2], previewElement: PreviewElement.typographyColor)
 
 
-let hwState = AppState(graphs: [],
-                       nodes: [],
-                       connections: [],
-                       currentScreen: Screens.graphEditing,
-                       currentGraphId: 1,
-                       nodeModels: [valNode, valNode2, calcNode, calcNode2, vizNode])
+let hwState = AppState(nodeModels: [valNode, valNode2, calcNode, calcNode2, vizNode, vizNode2])
 
 
 

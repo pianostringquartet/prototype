@@ -14,15 +14,23 @@ import SwiftUI
 
 
 /* ----------------------------------------------------------------
- Actions
+ Miniviewer Actions
+ ---------------------------------------------------------------- */
+
+// should change color in redux state, which flow to
+struct TextTappedMiniviewAction: Action {
+}
+
+
+
+/* ----------------------------------------------------------------
+ Graph Actions
  ---------------------------------------------------------------- */
 
 
 struct PortTappedAction: Action {
     let port: PortModel // contains portId, nodeId, portValue etc.
 }
-
-
 
 // later need to update this when adding back graph stuff
 struct PortEdgeCreated: Action {
@@ -145,19 +153,173 @@ func handlePortTappedAction(state: AppState, action: PortTappedAction) -> AppSta
             
             // prev: was updating calc-node, removing old node and adding updated node
             
-            return removeEdgeAndUpdateNodes(state: state, newEdge: newEdge)
+//            return removeEdgeAndUpdateNodes(state: state, newEdge: newEdge)
+            state = removeEdgeAndUpdateNodes(state: state, newEdge: newEdge)
         }
         
         else { // ie edge does not already exist; will add it and update ports
             log("handlePortTappedAction: edge does not exist; will add it")
             
-            return addEdgeAndUpdateNodes(state: state, newEdge: newEdge, flowValue: flowValue, toPort: toPort)
+//            return addEdgeAndUpdateNodes(state: state, newEdge: newEdge, flowValue: flowValue, toPort: toPort)
+            state = addEdgeAndUpdateNodes(state: state, newEdge: newEdge, flowValue: flowValue, toPort: toPort)
         }
     }
     
+    
     log("returning final state...")
+    
+    // only return final state here
+    //
+    
+    // THINGS WE HAVE TO DO ANYTIME AN EDGE WAS ADDED OR REMOVED
+    
+    // since we've removed an edge, we need to flow the values
+//    state = flowValues(state: state, nodes: state.nodeModels, edges: state.edges)
+//
+//    state = selfConsistency(state: state,
+//                            nodes: state.nodeModels.filter({ (n: NodeModel) -> Bool in
+//                                n.nodeType == .calcNode }))
+//
+//    // need to reflow again because selfConsistency may have changed a node's inputs and outputs
+//    state = flowValues(state: state, nodes: state.nodeModels, edges: state.edges)
+//
+//
+//    state.activePM = nil
+    state = recalculateGraph(state: state)
+    
     return state
 }
+
+// stuff we do anytime we add or remove an edge
+func recalculateGraph(state: AppState) -> AppState {
+    var state = state
+    
+    state = flowValues(state: state, nodes: state.nodeModels, edges: state.edges)
+    
+    state = selfConsistency(state: state,
+                            nodes: state.nodeModels.filter({ (n: NodeModel) -> Bool in
+                                n.nodeType == .calcNode }))
+    
+    // need to reflow again because selfConsistency may have changed a node's inputs and outputs
+    state = flowValues(state: state, nodes: state.nodeModels, edges: state.edges)
+    
+    state.activePM = nil
+    
+    return state
+}
+
+// generate a miniview View from the viz nodes in the most updated graph
+// AppState needs to be able to contain a SwiftUI View
+
+// if we assume state can't hold
+
+func isBasePreviewElement(pe: PreviewElement) -> Bool {
+    log("isBasePreviewElement called")
+    switch pe {
+        case .text:
+            return true
+        case .typographyColor:
+            return false
+    }
+}
+
+
+
+// for some reason, when if baseVn.previewElement! etc. is added,
+// we get "Function declares an opaque return type, but the return statements in its body do not have matching underlying types"
+//func generateMiniview(state: AppState, dispatch: @escaping Dispatch) -> some View {
+func generateMiniview(state: AppState, dispatch: @escaping Dispatch) -> AnyView {
+    log("generateMiniview called")
+    
+    // state would contain these values?
+    // iterate through vizModels/uiElems in state,
+    // iterate through the (input) PortModels of the VizNodes;
+    // these inputs contain eg. `Typography Text`, `Typography Color`
+    
+    let vns: [NodeModel] = state.nodeModels.filter { $0.nodeType == .vizNode }
+    log("generateMiniview: vns: \(vns)")
+    
+    
+//    let baseVn: NodeModel = vns.first { isBasePreviewElement(pe: $0.previewElement!) }!
+    
+    let baseVn: NodeModel = vns.first { (nm: NodeModel) -> Bool in
+        log("baseVn: nm.previewElement: \(nm.previewElement)")
+        return isBasePreviewElement(pe: nm.previewElement!)
+    }!
+    
+    let modifierVn: NodeModel = vns.first { (nm: NodeModel) -> Bool in
+        log("modifierVn: nm.previewElement: \(nm.previewElement)")
+        return !isBasePreviewElement(pe: nm.previewElement!)
+    }!
+        
+//        NodeModel = vns.first { !isBasePreviewElement(pe: $0.previewElement!) }!
+    
+    // ui base vs ui modifier
+    // ui base = eg Text, Image
+    // ui modifier = eg TypographyColor
+    // grab every VizNode base
+//    let miniviewBase = switch baseVn.previewElement! {
+//        case .text:
+//            return Text(baseVn.ports.first!.value)
+//        case .typographyColor:
+//            return nil
+//    }
+    
+//    // retrieve the correct base UI...
+
+    if baseVn.previewElement! == .text {
+
+//        let text: some View = Text(baseVn.ports.first!.value) // defaults to empty string?
+        let text = Text(baseVn.ports.first!.value) // defaults to empty string?
+            .font(.largeTitle)
+            .onTapGesture(count: 1) {
+                log("onTapGesture inside generateMiniview")
+                dispatch(TextTappedMiniviewAction())
+            }
+
+        // add any potential modifiers...
+        if modifierVn.previewElement! == .typographyColor {
+
+            let color: Color = modifierVn.ports.first!.value == "Green" ? Color.green : Color.purple
+
+//            return text.foregroundColor(color).padding()
+            return AnyView(text.foregroundColor(color).padding())
+        }
+
+        return AnyView(text.padding())
+    }
+    else {
+        let defaultView = Text("No base UI found...").padding()
+        return AnyView(defaultView)
+    }
+    
+
+
+//    let defaultView: some View = Text("No base UI found...")
+//    let defaultView = Text("No base UI found...")
+//    return defaultView
+//
+    
+    
+//    let text: String = "... Default"
+//    let color: Color = .green
+    
+    // how do you identify the 'base' view (e.g. `Text`) vs a modifier (e.g. `TypographyColor`)?
+    // how do you know which modifiers go with which bases, and in which order?
+    // eg what if you have two different `TextLayers` in the graph, and want each to be a different color?
+
+    // some modifiers obviously only apply to Text (e.g. TypographyColor)
+    // other modifiers obviously only apply to Image
+        
+    // FOR NOW?: assume one Base (Text) and one modifier (Color)
+    
+    
+//    return TouchableText(text: text, color: color, dispatch: dispatch).padding()
+}
+
+
+// you have to be able
+
 
 // probably shares some overlap with addEdgeAndUpdateNodes,
 // in the updating nodes part
@@ -199,18 +361,18 @@ func removeEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: Str
     }
     
     
-    // since we've removed an edge, we need to flow the values
-    state = flowValues(state: state, nodes: state.nodeModels, edges: state.edges)
-    
-    state = selfConsistency(state: state,
-                            nodes: state.nodeModels.filter({ (n: NodeModel) -> Bool in
-                                n.nodeType == .calcNode }))
-    
-    // need to reflow again because selfConsistency may have changed a node's inputs and outputs
-    state = flowValues(state: state, nodes: state.nodeModels, edges: state.edges)
-    
-    
-    state.activePM = nil
+//    // since we've removed an edge, we need to flow the values
+//    state = flowValues(state: state, nodes: state.nodeModels, edges: state.edges)
+//
+//    state = selfConsistency(state: state,
+//                            nodes: state.nodeModels.filter({ (n: NodeModel) -> Bool in
+//                                n.nodeType == .calcNode }))
+//
+//    // need to reflow again because selfConsistency may have changed a node's inputs and outputs
+//    state = flowValues(state: state, nodes: state.nodeModels, edges: state.edges)
+//
+//
+//    state.activePM = nil
     
     
     return state
@@ -278,15 +440,15 @@ func addEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: String
     
     
     // since we've added an edge, we need to flow the values
-    state = flowValues(state: state, nodes: state.nodeModels, edges: state.edges)
-    
-    state = selfConsistency(state: state,
-                            nodes: state.nodeModels.filter({ (n: NodeModel) -> Bool in
-                                n.nodeType == .calcNode }))
-    state = flowValues(state: state, nodes: state.nodeModels, edges: state.edges)
-    
-    
-    state.activePM = nil
+//    state = flowValues(state: state, nodes: state.nodeModels, edges: state.edges)
+//
+//    state = selfConsistency(state: state,
+//                            nodes: state.nodeModels.filter({ (n: NodeModel) -> Bool in
+//                                n.nodeType == .calcNode }))
+//    state = flowValues(state: state, nodes: state.nodeModels, edges: state.edges)
+//
+//
+//    state.activePM = nil
     return state // we added the edges and updated
 }
 

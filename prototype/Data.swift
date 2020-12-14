@@ -98,40 +98,36 @@ func concatNodeModel(id: Int) -> NodeModel {
 
 
 
+// vizmodel would contain things like Color
+//struct PreviewElement: Identifiable, Codable {
+//    let id: Int // viz model id
+//    let element: PreviewElements
+//}
+
 
 
 struct NodeModel: Identifiable, Codable {
-    
+
     let id: Int // nodeId
     
     let nodeType: NodeType
-    
-    // how to enforce e.g. that a valNode has only outputs?
-    // how about through specific constructors?
-    // eg NodeModel.calcNode(inputs, output)
-    // and .calcNode constructor sets nodeType = calcNode etc.
-    // ... but you'd still have an outputs field...
-    
-    //
-//    let inputs: [PortValue]
-//    let outputs: [PortValue]
-    
-    // better?:
-    // right... should be PortModel (not just PortValue)
-    // can determine inputs vs. outputs by sorting ports by PortType
     let ports: [PortModel]
     
+    var operation: Operation? = nil // only for calc nodes
     
-    // only for calc Nodes
-//    let operation: Operation?
-//    let operation: Operation? = nil
-    var operation: Operation? = nil
+    // assuming, for now, one previewElement per VizNode
+    // ... if need to keep track of specifically-embodied PreviewElement,
+    // can use the PreviewElement struct with the id instead?
+    var previewElement: PreviewElement? = nil // only for viz-nodes
     
-    func update(id: Int? = nil, nodeType: NodeType? = nil, ports: [PortModel]? = nil, operation: Operation? = nil) -> NodeModel {
+    
+    
+    func update(id: Int? = nil, nodeType: NodeType? = nil, ports: [PortModel]? = nil, operation: Operation? = nil, previewElement: PreviewElement? = nil) -> NodeModel {
         return NodeModel(id: id ?? self.id,
                          nodeType: nodeType ?? self.nodeType,
                          ports: ports ?? self.ports,
-                         operation: operation ?? self.operation
+                         operation: operation ?? self.operation,
+                         previewElement: previewElement ?? self.previewElement
         )
     }
     
@@ -157,17 +153,11 @@ struct PortModel: Identifiable, Codable, Equatable {
     let portType: PortType // input or output
      
     let label: String // port label
-    
-    // later?: use cellId to retrieve port's Cell (ie value), update in one place, display in many
-//    ...unsure how useful if we think about it like "input port of calc-node should have same value as output port of val-node"
-//    let cellId: Cell
-    
+
     // later, should be "of type T"
-//    let value: String // port value
-    
     let value: String // port value
     
-    let defaultValue: String = ""
+    var defaultValue: String = ""
     
     func update(id: Int? = nil, nodeId: Int? = nil, portType: PortType? = nil, label: String? = nil, value: String? = nil) -> PortModel {
         
@@ -213,75 +203,7 @@ struct PortValue: Codable, Equatable {
 
 
 
-//
-//// 'layer 1' node: output only
-//struct ValNode: Identifiable, Codable {
-//
-//    let id: Int
-////    let outputs: [Output]
-//    let outputs: [PortValue]
-//}
-//
-//
-//// 'layer 2' node: input and output
-////struct CalcNode: Identifiable, Codable {
-//struct CalcNode: Identifiable, Codable {
-//
-//    let id: Int
-////    let inputs: [Input]
-//    let inputs: [PortValue]
-////    let outputs: [Output]
-////    let outputs: [PortValue]
-//
-//    // a calc node only has one output!
-//    let output: PortValue
-//
-//    // functionality, e.g. str-concat or str-caps
-//    // swift: how to indicate just a general function?
-////    let operation: (Any) -> Any
-//
-//    // for now using:
-//    // how to use this with Codable?
-//    // if can't serialize the function,
-//    // alternatively, could have a redux action for operation,
-//    // and dispatch the
-////    let operation: (String) -> String
-//    // but redux actions are hardcoded and known;
-//
-//    // some redux action
-//    // not serializable?
-////    let operation: Action.Type
-//
-//    //
-////    let operation: NodeDeletedAction.Type
-//
-//    // RIGHT NOW: unused and
-//    let operation: String // and do Action.Type
-//
-//
-//    // or define custom serializers?
-//    // toString: Action.self or Action.type
-//    // fromString: ... would need to match the string against a list of actions...
-//
-//    // can you set this aside for now?
-//    // can you just hardcode something for now?
-//
-//
-//
-//}
-//
-//
-//// 'layer 3' node: input only; UI elem only
-//// what
-//struct VizNode: Identifiable, Codable {
-//
-//    let id: Int
-////    let inputs: [Input]
-//    let inputs: [PortValue]
-//
-//
-//
-//}
+
 
 
 
@@ -309,21 +231,12 @@ enum Screens: String, Codable {
 //}
 
 
+
+
 // for redux graph hello world
+// AppState<View> not decodable...
 struct AppState: StateType, Codable {
-    
-    var graphs: [Graph] = []
-    var nodes: [Node] = []
-    var connections: [Connection] = []
-    var currentScreen: Screens = Screens.graphSelection
-    var currentGraphId: Int? = nil
-    
-    //
-//    var valNodes: [ValNode] = []
-//    var calcNodes: [CalcNode] = []
-//    var vizNodes: [VizNode] = []
-    
-    
+        
     var nodeModels: [NodeModel] = []
     
     // ie the connectingPort
@@ -332,6 +245,11 @@ struct AppState: StateType, Codable {
     var activePM: PortModel? = nil
     
     var edges: [PortEdge] = []
+    
+    // right -- how would you serialize a view?
+    // you can't store the View itself?
+    // -- you have to reconstruct the view?
+//    var miniview: View? = nil
 }
 
 
@@ -343,43 +261,12 @@ struct AppState: StateType, Codable {
 
 // NodeId, PortId
 //typealias PortCoordinate = (Int, Int) // still use PortIdentifier for now?
-//typealias PortCoordinate = (Int, Int) // still use PortIdentifier for now?
 
 // should be identifiable and equatable as well?
 struct PortCoordinate: Equatable, Codable {
     let nodeId: Int
     let portId: Int
 }
-
-
-// PROBLEM: if you put port-values inside an edge, when will the edge be updated?
-// ie old port-values will be trapped inside an edge;
-// it's better to look those up based on
-
-//struct PortEdge2: Identifiable, Codable, Equatable {
-//    var id: UUID = UUID()
-//
-//    let from: PortCoordinate // ie nodeId, portId
-//    let to: PortCoordinate
-//
-//
-//    // are two edges the same?
-//    static func ==(x: PortEdge2, y: PortEdge2) -> Bool {
-//        // Edgeless connection:
-//
-////        let isSameNodeId: Bool = x.from.nodeId == y.from.nodeId && x.from.nodeId == y.from.nodeId
-////
-////        let isSame
-////        let x1:
-//        let res: Bool = (x.from == y.from && x.to == y.to) || (x.from == y.to && x.to == y.from)
-//
-////        log("PortEdge == res: \(res)")
-//        print("PortEdge2 == res: \(res)")
-//
-//        // now compaing
-//        return res
-//    }
-//}
 
 
 struct PortEdge: Identifiable, Codable, Equatable {
@@ -392,14 +279,7 @@ struct PortEdge: Identifiable, Codable, Equatable {
     // are two edges the same?
     static func ==(x: PortEdge, y: PortEdge) -> Bool {
         // Edgeless connection:
-        
-//        let isSameNodeId: Bool = x.from.nodeId == y.from.nodeId && x.from.nodeId == y.from.nodeId
-//
-//        let isSame
-//        let x1:
         let res = (x.from == y.from && x.to == y.to || x.from == y.to && x.to == y.from)
-        
-//        log("PortEdge == res: \(res)")
         print("PortEdge == res: \(res)")
         
         // now compaing
@@ -408,52 +288,17 @@ struct PortEdge: Identifiable, Codable, Equatable {
 }
 
 
-//struct PortConnection: Identifiable, Codable, Equatable {
-//    var id: UUID = UUID()
-////    var graphId: Int
-//
-//    // from a port #, to a port #
-//    var from: Int
-//    var to: Int
-//
-//    // invariant: can only do input->output
-//
-//
-//    // here, the edges SHOULD HAVE DIRECTIONS?
-//    static func ==(lhs: PortConnection, rhs: PortConnection) -> Bool {
-//        // Edgeless connection:
-//        return (lhs.from == rhs.from && lhs.to == rhs.to || lhs.from == rhs.to && lhs.to == rhs.from)
-//    }
-//}
+/* ----------------------------------------------------------------
+ `Viz-layer -> miniviewer` models
+ ---------------------------------------------------------------- */
 
-struct Connection: Identifiable, Codable, Equatable {
-    var id: UUID = UUID()
-    var graphId: Int
-    var from: Int
-    var to: Int
-    
-    static func ==(lhs: Connection, rhs: Connection) -> Bool {
-        // Edgeless connection:
-        return lhs.graphId == rhs.graphId && (lhs.from == rhs.from && lhs.to == rhs.to || lhs.from == rhs.to && lhs.to == rhs.from)
-    }
+// string is user displayable?
+// and then these get matched in a gigantic
+enum PreviewElement: String, Codable {
+    case text = "Text"
+    case typographyColor = "Typography Color"
 }
 
-struct Graph: Identifiable, Codable {
-    var id: UUID = UUID()
-    var graphId: Int
-}
-
-
-struct Node: Identifiable, Codable, Equatable {
-    var id: UUID = UUID()
-    var graphId: Int
-    var info: UUID = UUID()
-    var isAnchored: Bool
-    var nodeId: Int
-    
-    var position: CGSize = .zero
-    var radius: Int = 40 // start out at 40
-}
 
 
 /* ----------------------------------------------------------------
@@ -463,10 +308,14 @@ struct Node: Identifiable, Codable, Equatable {
 // a given node can have a serializable `operation: Operation`,
 // and then the fn is retrieved via eg. `operations[operation]`
 
+
 enum Operation: String, Codable {
     case uppercase = "uppercase"
     case concat = "concat" // str concat
     case identity = "identity"
+    
+    // also?:
+    
 }
 
 // doesn't this mapping just reproduce the switch/case mapping in `calculateValue`?
@@ -501,24 +350,3 @@ struct PortPreferenceKey: PreferenceKey {
         value.append(contentsOf: nextValue())
     }
 }
-
-// Datatype for preference data
-struct BallPreferenceData: Identifiable {
-    let id = UUID()
-    let viewIdx: Int
-    let center: Anchor<CGPoint>
-    let graphId: Int
-    let nodeId: Int
-}
-
-// Preference key for preference data
-struct BallPreferenceKey: PreferenceKey {
-    typealias Value = [BallPreferenceData]
-
-    static var defaultValue: [BallPreferenceData] = []
-
-    static func reduce(value: inout [BallPreferenceData], nextValue: () -> [BallPreferenceData]) {
-        value.append(contentsOf: nextValue())
-    }
-}
-
