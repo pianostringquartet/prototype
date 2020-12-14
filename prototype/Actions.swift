@@ -280,7 +280,17 @@ func generateMiniview(state: AppState, dispatch: @escaping Dispatch) -> AnyView 
         // add any potential modifiers...
         if modifierVn.previewElement! == .typographyColor {
 
-            let color: Color = modifierVn.ports.first!.value == "Green" ? Color.green : Color.purple
+//            let color: Color = modifierVn.ports.first!.value == "Green" ? Color.green : Color.purple
+            var color: Color
+            switch modifierVn.ports.first!.value {
+                case "Green":
+                    color = Color.green
+                case "Purple":
+                    color = Color.purple
+                default:
+                    color = Color.red
+            }
+            
 
 //            return text.foregroundColor(color).padding()
             return AnyView(text.foregroundColor(color).padding())
@@ -293,16 +303,6 @@ func generateMiniview(state: AppState, dispatch: @escaping Dispatch) -> AnyView 
         return AnyView(defaultView)
     }
     
-
-
-//    let defaultView: some View = Text("No base UI found...")
-//    let defaultView = Text("No base UI found...")
-//    return defaultView
-//
-    
-    
-//    let text: String = "... Default"
-//    let color: Color = .green
     
     // how do you identify the 'base' view (e.g. `Text`) vs a modifier (e.g. `TypographyColor`)?
     // how do you know which modifiers go with which bases, and in which order?
