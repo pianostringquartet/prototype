@@ -272,10 +272,26 @@ func generateMiniview(state: AppState, dispatch: @escaping Dispatch) -> AnyView 
 //        let text: some View = Text(baseVn.ports.first!.value) // defaults to empty string?
         let text = Text(baseVn.ports.first!.value) // defaults to empty string?
             .font(.largeTitle)
-            .onTapGesture(count: 1) {
-                log("onTapGesture inside generateMiniview")
-                dispatch(TextTappedMiniviewAction())
-            }
+            
+            // long press
+//            .gesture(LongPressGesture()
+            .gesture(DragGesture(minimumDistance: 0)
+                        .onChanged { _ in
+                            log("onChanged inside generateMiniview")
+                            dispatch(TextTappedMiniviewAction())
+                            
+                        }
+                        .onEnded { _ in
+                            log("onEnded inside generateMiniview")
+                            dispatch(TextTappedMiniviewAction())
+                            
+                        }
+            )
+
+//            .onTapGesture(count: 1) {
+//                log("onTapGesture inside generateMiniview")
+//                dispatch(TextTappedMiniviewAction())
+//            }
 
         // add any potential modifiers...
         if modifierVn.previewElement! == .typographyColor {

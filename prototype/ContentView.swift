@@ -90,8 +90,10 @@ struct GraphEditorView: View {
             
             // MINIVIEW
             
-            Text("Miniview")
-            generateMiniview(state: state, dispatch: dispatch)
+//            Text("Miniview")
+//            generateMiniview(state: state, dispatch: dispatch)
+            
+//            FloatingWindow()
             
             // rather than hardcoded view, we need to use a generated view
 //            TouchableText(text: "Default...",
@@ -105,6 +107,10 @@ struct GraphEditorView: View {
         .padding(.trailing, 30).padding(.bottom, 30)
         .offset(x: localPosition.width, y: localPosition.height)
         .frame(idealWidth: 500, idealHeight: 500)
+        
+//        .overlay(FloatingWindow())
+        .overlay(FloatingWindow(content: generateMiniview(state: state, dispatch: dispatch)))
+        
         
         // Pinch to zoom
         // TODO: set limit to how far out / in we can zoom
