@@ -62,20 +62,6 @@ func handleTextTappedMiniviewAction(state: AppState, textTapped: TextTappedMiniv
     
     var state = state
     
-    // instead of changing the viznode model directly,
-    // instead change the Interaction valNode's value
-//
-//    let vns: [NodeModel] = state.nodeModels.filter { $0.nodeType == .vizNode }
-//
-////    let color: Color = modifierVn.ports.first!.value == "Green" ? Color.purple : Color.green
-//    let modifierVn: NodeModel = vns.first { (nm: NodeModel) -> Bool in
-//        log("handleTextTappedMiniviewAction: nm.previewElement: \(nm.previewElement)")
-//        return !isBasePreviewElement(pe: nm.previewElement!)
-//    }!
-    
-    // HARDCODED...
-//    let pi: PortIdentifier = PortIdentifier(nodeId: vizNodeId2, portId: 1, isInput: true)
-    
     let pi: PortIdentifier = PortIdentifier(nodeId: valNodeId3, portId: 1, isInput: false)
     
     let pm: PortModel = getPortModel(nodeModels: state.nodeModels, nodeId: valNodeId3, portId: 1)
@@ -83,7 +69,6 @@ func handleTextTappedMiniviewAction(state: AppState, textTapped: TextTappedMiniv
     // e.g. toggle boolean value
     let newValue: String = pm.value == "false" ? "true" : "false"
     
-//    let newValue: String = modifierVn.ports.first!.value == "Green" ? "Purple" : "Green"
     log("handleTextTappedMiniviewAction newValue: \(newValue)")
     
     let updatedNode: NodeModel = updateNodePortModel(state: state, port: pi, newValue: newValue)
@@ -91,9 +76,6 @@ func handleTextTappedMiniviewAction(state: AppState, textTapped: TextTappedMiniv
     let updatedNodes: [NodeModel] = replace(ts: state.nodeModels, t: updatedNode)
     
     state.nodeModels = updatedNodes
-    
-//    let updatedPortModel: PortModel =
-
     state = recalculateGraph(state: state)
     
     return state
@@ -123,8 +105,8 @@ func reducer(action: Action, state: AppState?) -> AppState {
             break
     }
 
-    // 
-    
+    // always update the graph (flowValues, selfConsistency..)
+//    state = recalculateGraph(state: state)
 
     // persist state to UserDefaults
     saveState(state: state)

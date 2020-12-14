@@ -109,7 +109,7 @@ func optionPickerNodeModel(id: Int) -> NodeModel {
     let input3: PortModel = PortModel(id: 3, nodeId: id, portType: PortType.input, label: "input: Color as String", value: "Purple")
     
     // we're gonna start out as green
-    let output: PortModel = PortModel(id: 4, nodeId: id, portType: PortType.output, label: "output: Color as String", value: "Green")
+    let output: PortModel = PortModel(id: 4, nodeId: id, portType: PortType.output, label: "output: Color as String", value: "Purple")
     
     return NodeModel(id: id, nodeType: .calcNode, ports: [input, input2, input3, output], operation: operation)
 

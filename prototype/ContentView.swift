@@ -219,7 +219,7 @@ let vizNode: NodeModel = NodeModel(id: vizNodeId, nodeType: NodeType.vizNode, po
 // hard code color as a string right now FOR THE DISPLAY VALUE
 // i.e. this viz node is not taking any inputs right now
 // and when minipreview text clicked on, we dispatched an change color
-let vizNodeInput2: PortModel = PortModel(id: 1, nodeId: vizNodeId2, portType: PortType.input, label: "TypographyColor", value: "Green")
+let vizNodeInput2: PortModel = PortModel(id: 1, nodeId: vizNodeId2, portType: PortType.input, label: "TypographyColor", value: "Purple")
 
 let vizNode2: NodeModel = NodeModel(id: vizNodeId2, nodeType: NodeType.vizNode, ports: [vizNodeInput2], previewElement: PreviewElement.typographyColor)
 
