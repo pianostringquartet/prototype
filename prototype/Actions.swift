@@ -473,10 +473,14 @@ func addEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: String
 func calculateValue(nm: NodeModel, op: Operation, flowValue: String) -> String {
     log("calculateValue called")
     
+    let ascending = { (pm1: PortModel, pm2: PortModel) -> Bool in
+        pm1.id < pm2.id
+    }
+    
     // this node's inputs
     let inputs = nm.ports.filter { (pm: PortModel) -> Bool in
         pm.portType == .input
-    }
+    }.sorted(by: ascending)
     
     // the specific operation tells you how many inputs to look for
     
@@ -507,6 +511,17 @@ func calculateValue(nm: NodeModel, op: Operation, flowValue: String) -> String {
         case .uppercase:
             log("matched on .uppercase, will return: \(inputs[0].value.uppercased())")
             return inputs[0].value.uppercased()
+            
+
+        case .optionPicker:
+            log("matched on .optionPicker")
+            // ie flip the value
+            log("inputs: \(inputs)")
+            let boolPort = inputs[0].value
+            log("boolPort: \(boolPort)")
+            let calculatedColor: String = boolPort == "true" ? inputs[1].value : inputs[2].value
+            log("calculatedColor: \(calculatedColor)")
+            return calculatedColor
     }
 }
 

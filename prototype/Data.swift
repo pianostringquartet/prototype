@@ -95,6 +95,37 @@ func concatNodeModel(id: Int) -> NodeModel {
     return NodeModel(id: id, nodeType: .calcNode, ports: [input, input2, output], operation: operation)
 }
 
+// need calcNode for Option picker
+func optionPickerNodeModel(id: Int) -> NodeModel {
+    
+    // binaryOption picker; receives bool / 1-or-0
+    let operation = Operation.optionPicker
+    
+    // for now, hardcoding these values; but normally should be user-editable
+    let input: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: "input: isPicked as String", value: "false")
+    
+    let input2: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.input, label: "input: Color as String", value: "Green")
+    
+    let input3: PortModel = PortModel(id: 3, nodeId: id, portType: PortType.input, label: "input: Color as String", value: "Purple")
+    
+    // we're gonna start out as green
+    let output: PortModel = PortModel(id: 4, nodeId: id, portType: PortType.output, label: "output: Color as String", value: "Green")
+    
+    return NodeModel(id: id, nodeType: .calcNode, ports: [input, input2, input3, output], operation: operation)
+
+}
+
+// need valNode for "Interaction" (only outputs)
+func pressInteractionNodeModel(id: Int) -> NodeModel {
+    
+    // this value never changes...; only flows to other nodes
+    let output: PortModel = PortModel(id: 1, nodeId: id, portType: .output, label: "Interaction", value: "false")
+    
+    return NodeModel(id: id, nodeType: .valNode, ports: [output])
+}
+
+
+
 
 
 
@@ -312,6 +343,7 @@ enum PreviewElement: String, Codable {
 enum Operation: String, Codable {
     case uppercase = "uppercase"
     case concat = "concat" // str concat
+    case optionPicker = "optionPicker"
     case identity = "identity"
     
     // also?:

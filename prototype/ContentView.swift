@@ -42,7 +42,7 @@ struct GraphEditorView: View {
         log("GraphEditorView body called")
         
         VStack {
-            Text("Graph")
+//            Text("Graph")
             
             // GRAPH
             HStack (spacing: 50) {
@@ -86,29 +86,13 @@ struct GraphEditorView: View {
                 }
             } // HStack
             .padding()
-            
-            
-            // MINIVIEW
-            
-//            Text("Miniview")
-//            generateMiniview(state: state, dispatch: dispatch)
-            
-//            FloatingWindow()
-            
-            // rather than hardcoded view, we need to use a generated view
-//            TouchableText(text: "Default...",
-//                          // can't be hardcoded in original state;
-//                          // needs to be a feature of
-//                          color: Color.green,
-//                          dispatch: dispatch)
-//                .padding()
-            
+                        
         }
         .padding(.trailing, 30).padding(.bottom, 30)
         .offset(x: localPosition.width, y: localPosition.height)
         .frame(idealWidth: 500, idealHeight: 500)
         
-//        .overlay(FloatingWindow())
+        
         .overlay(FloatingWindow(content: generateMiniview(state: state, dispatch: dispatch)))
         
         
@@ -194,10 +178,14 @@ let mainStore = Store<AppState>(
 
 let valNodeId = 1
 let valNodeId2 = 2
-let calcNodeId = 3
-let calcNodeId2 = 4
-let vizNodeId = 5
-let vizNodeId2 = 6
+let valNodeId3 = 3 // press-interaction node ('as a val-node')
+
+let calcNodeId = 4
+let calcNodeId2 = 5
+let calcNodeId3 = 6 // option picker
+
+let vizNodeId = 7
+let vizNodeId2 = 8
 
 
 let valNodeOutput: PortModel = PortModel(id: 1, nodeId: valNodeId, portType: PortType.output, label: "output: String", value: "hello")
@@ -208,6 +196,8 @@ let valNodeOutput2: PortModel = PortModel(id: 2, nodeId: valNodeId2, portType: P
 
 let valNode2: NodeModel = NodeModel(id: valNodeId2, nodeType: NodeType.valNode, ports: [valNodeOutput2])
 
+let valNode3: NodeModel = pressInteractionNodeModel(id: valNodeId3)
+
 
 //let calcNodeInput: PortModel = PortModel(id: 1, nodeId: calcNodeId, portType: PortType.input, label: commonLabel, value: "")
 //
@@ -216,8 +206,9 @@ let valNode2: NodeModel = NodeModel(id: valNodeId2, nodeType: NodeType.valNode, 
 //let calcNode: NodeModel = NodeModel(id: calcNodeId, nodeType: .calcNode, ports: [calcNodeInput, calcNodeOutput], operation: Operation.uppercase)
 
 let calcNode = concatNodeModel(id: calcNodeId)
-
 let calcNode2 = uppercaseNodeModel(id: calcNodeId2)
+let calcNode3 = optionPickerNodeModel(id: calcNodeId3)
+
 
 
 
@@ -233,7 +224,10 @@ let vizNodeInput2: PortModel = PortModel(id: 1, nodeId: vizNodeId2, portType: Po
 let vizNode2: NodeModel = NodeModel(id: vizNodeId2, nodeType: NodeType.vizNode, ports: [vizNodeInput2], previewElement: PreviewElement.typographyColor)
 
 
-let hwState = AppState(nodeModels: [valNode, valNode2, calcNode, calcNode2, vizNode, vizNode2])
+//let hwState = AppState(nodeModels: [valNode, valNode2, valNode3, calcNode, calcNode2, calcNode3, vizNode, vizNode2])
+
+// REMOVED CONCAT FOR NOW
+let hwState = AppState(nodeModels: [valNode, valNode2, valNode3, calcNode2, calcNode3, vizNode, vizNode2])
 
 
 

@@ -18,28 +18,72 @@ import ReSwift
 // preferably -- this should be more general?
 // or, at least one hardcoded action per miniviewer Interactin type?
 // e.g. MiniviewTextTapped, MiniviewTextLongPressed
+//func handleTextTappedMiniviewAction(state: AppState, textTapped: TextTappedMiniviewAction) -> AppState {
+//
+//    log("handleTextTappedMiniviewAction called")
+//
+//    var state = state
+//
+//    // where is the 'Green' value stored?
+//    // it's in the Node 6 typography color (input) PORT
+//    // ... so you have to change that value
+//
+//    let vns: [NodeModel] = state.nodeModels.filter { $0.nodeType == .vizNode }
+//
+////    let color: Color = modifierVn.ports.first!.value == "Green" ? Color.purple : Color.green
+//    let modifierVn: NodeModel = vns.first { (nm: NodeModel) -> Bool in
+//        log("handleTextTappedMiniviewAction: nm.previewElement: \(nm.previewElement)")
+//        return !isBasePreviewElement(pe: nm.previewElement!)
+//    }!
+//
+//    // HARDCODED...
+//    let pi: PortIdentifier = PortIdentifier(nodeId: vizNodeId2, portId: 1, isInput: true)
+//
+//    let newValue: String = modifierVn.ports.first!.value == "Green" ? "Purple" : "Green"
+//    log("handleTextTappedMiniviewAction newValue: \(newValue)")
+//
+//    let updatedNode: NodeModel = updateNodePortModel(state: state, port: pi, newValue: newValue)
+//
+//    let updatedNodes: [NodeModel] = replace(ts: state.nodeModels, t: updatedNode)
+//
+//    state.nodeModels = updatedNodes
+//
+////    let updatedPortModel: PortModel =
+//
+//
+//    return state
+//}
+
+
+
 func handleTextTappedMiniviewAction(state: AppState, textTapped: TextTappedMiniviewAction) -> AppState {
     
     log("handleTextTappedMiniviewAction called")
     
     var state = state
     
-    // where is the 'Green' value stored?
-    // it's in the Node 6 typography color (input) PORT
-    // ... so you have to change that value
-    
-    let vns: [NodeModel] = state.nodeModels.filter { $0.nodeType == .vizNode }
-    
-//    let color: Color = modifierVn.ports.first!.value == "Green" ? Color.purple : Color.green
-    let modifierVn: NodeModel = vns.first { (nm: NodeModel) -> Bool in
-        log("handleTextTappedMiniviewAction: nm.previewElement: \(nm.previewElement)")
-        return !isBasePreviewElement(pe: nm.previewElement!)
-    }!
+    // instead of changing the viznode model directly,
+    // instead change the Interaction valNode's value
+//
+//    let vns: [NodeModel] = state.nodeModels.filter { $0.nodeType == .vizNode }
+//
+////    let color: Color = modifierVn.ports.first!.value == "Green" ? Color.purple : Color.green
+//    let modifierVn: NodeModel = vns.first { (nm: NodeModel) -> Bool in
+//        log("handleTextTappedMiniviewAction: nm.previewElement: \(nm.previewElement)")
+//        return !isBasePreviewElement(pe: nm.previewElement!)
+//    }!
     
     // HARDCODED...
-    let pi: PortIdentifier = PortIdentifier(nodeId: vizNodeId2, portId: 1, isInput: true)
-        
-    let newValue: String = modifierVn.ports.first!.value == "Green" ? "Purple" : "Green"
+//    let pi: PortIdentifier = PortIdentifier(nodeId: vizNodeId2, portId: 1, isInput: true)
+    
+    let pi: PortIdentifier = PortIdentifier(nodeId: valNodeId3, portId: 1, isInput: false)
+    
+    let pm: PortModel = getPortModel(nodeModels: state.nodeModels, nodeId: valNodeId3, portId: 1)
+    
+    // e.g. toggle boolean value
+    let newValue: String = pm.value == "false" ? "true" : "false"
+    
+//    let newValue: String = modifierVn.ports.first!.value == "Green" ? "Purple" : "Green"
     log("handleTextTappedMiniviewAction newValue: \(newValue)")
     
     let updatedNode: NodeModel = updateNodePortModel(state: state, port: pi, newValue: newValue)
@@ -50,10 +94,10 @@ func handleTextTappedMiniviewAction(state: AppState, textTapped: TextTappedMiniv
     
 //    let updatedPortModel: PortModel =
 
+    state = recalculateGraph(state: state)
     
     return state
 }
-
 
 func reducer(action: Action, state: AppState?) -> AppState {
     var defaultState: AppState = AppState()

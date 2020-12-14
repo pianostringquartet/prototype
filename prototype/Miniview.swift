@@ -24,17 +24,11 @@ import ReSwift
 
 
 //struct FloatingWindow: View {
-struct FloatingWindow<ContentView:View>: View {
+struct FloatingWindow<ContentView: View>: View {
     
     // dragging
     @State private var localPosition: CGSize = CGSize.zero
     @State private var localPreviousPosition: CGSize = CGSize.zero
-    
-//    let v: some View
-//
-//    init(v: View) {
-//        self.v = v
-//    }
     
     let content: ContentView
     
@@ -46,7 +40,7 @@ struct FloatingWindow<ContentView:View>: View {
 //        .clipShape(RoundedRectangle(cornerRadius: 16))
         .overlay(
             RoundedRectangle(cornerRadius: 16)
-                .stroke(Color.blue, lineWidth: 4)
+                .stroke(Color.black, lineWidth: 4)
         )
         .zIndex(2.0)
         .background(Color.white.opacity(0.9))
