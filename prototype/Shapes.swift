@@ -127,6 +127,7 @@ struct NodeView: View {
                         self.localPreviousPosition = self.localPosition
                     })
         .animation(.spring(response: 0.3, dampingFraction: 0.65, blendDuration: 4))
+        .frame(maxHeight: 600)
     }
 }
 
@@ -240,15 +241,14 @@ struct PortView: View {
             if isInput == true {
                 HStack {
                     portDot
-                    portValue.frame(minWidth: 60)
+                    portValue.frame(minWidth: 90)
                 }
-                
+
             } else {
                 HStack {
-                    portValue.frame(minWidth: 60)
+                    portValue.frame(minWidth: 90)
                     portDot
                 }
-                
             }
         }
     }

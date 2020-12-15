@@ -25,12 +25,12 @@ func identity<T>(t: T) -> T {
 func replace<T: Identifiable>(ts: [T], t: T) -> [T] {
     var ts = ts
     
-    log("replace: ts was: \(ts)")
+//    log("replace: ts was: \(ts)")
     
     ts.removeAll { $0.id == t.id }
     ts.append(t)
     
-    log("replace: ts is now: \(ts)")
+//    log("replace: ts is now: \(ts)")
     
     return ts
 }
