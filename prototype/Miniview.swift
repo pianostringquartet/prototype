@@ -24,6 +24,8 @@ import ReSwift
 
 
 //struct FloatingWindow: View {
+
+// needs to always be placed somewhere
 struct FloatingWindow<ContentView: View>: View {
     
     // dragging
@@ -47,12 +49,12 @@ struct FloatingWindow<ContentView: View>: View {
         .offset(x: localPosition.width, y: localPosition.height)
         .gesture(DragGesture()
                     .onChanged {
-                        log("FloatingWindow: onChanged")
+//                        log("FloatingWindow: onChanged")
                         self.localPosition = updatePosition(value: $0, position: self.localPreviousPosition)
                     }
                     .onEnded {  _ in
                         // i.e. no anchoring for now
-                        log("FloatingWindow: onEnded")
+//                        log("FloatingWindow: onEnded")
                         self.localPreviousPosition = self.localPosition
                     })
         .animation(.spring(response: 0.3, dampingFraction: 0.65, blendDuration: 4))

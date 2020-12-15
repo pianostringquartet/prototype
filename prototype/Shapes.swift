@@ -25,7 +25,18 @@ struct Line: Shape {
 }
 
 func line(from: CGPoint, to: CGPoint) -> some View {
-    Line(from: from, to: to).stroke().animation(.default)
+//    Line(from: from, to: to).stroke().animation(.default)
+    
+    
+    // teal / cyan
+    let color: Color = Color(red: 0, green: 255, blue: 255, opacity: 0.8)
+    
+    return Line(from: from, to: to)
+//        .stroke(Color.green.brightness(0.9), lineWidth: 10)
+//        .stroke(lineWidth: 10.0)
+        .stroke(color, style: StrokeStyle(lineWidth: 10, lineCap: .round, lineJoin: .round))
+        .animation(.default)
+//        .foregroundColor(Color.green.brightness(0.9))
 }
 
 // common
@@ -74,20 +85,21 @@ struct NodeView: View {
         
         VStack (spacing: spacing) {
          // top
-            Text(title)
+//            Text(title)
+            Text("\(nodeModel.nodeType.rawValue) \(nodeModel.id)")
                 // should be frame that covers whole space
-                .padding(10)
+//                .padding()
                 .background(Color.gray.opacity(0.4))
             
             nodeModel.operation != nil ?
-                Text("Operation: \(nodeModel.operation!.rawValue)")
+                Text("\(nodeModel.operation!.rawValue)")
                     .padding(10)
                     .background(Color.gray.opacity(0.4))
                 : nil
   
             
             nodeModel.previewElement != nil ?
-                Text("previewElement: \(nodeModel.previewElement!.rawValue)")
+                Text("\(nodeModel.previewElement!.rawValue)")
                     .padding(10)
                     .background(Color.gray.opacity(0.4))
                 : nil
@@ -95,11 +107,11 @@ struct NodeView: View {
             
             switch nodeModel.nodeType {
                 case .valNode:
-                    SinglePortTypeView(ports: outputs, state: state, dispatch: dispatch)
+                    SinglePortTypeView(ports: outputs, state: state, dispatch: dispatch, isInput: false)
                 case .calcNode:
                     DualPortTypeView(inputs: inputs, outputs: outputs, state: state, dispatch: dispatch)
                 case .vizNode:
-                    SinglePortTypeView(ports: inputs, state: state, dispatch: dispatch)
+                    SinglePortTypeView(ports: inputs, state: state, dispatch: dispatch, isInput: true)
             }
             
         }
@@ -108,12 +120,10 @@ struct NodeView: View {
         .offset(x: localPosition.width, y: localPosition.height)
         .gesture(DragGesture()
                     .onChanged {
-                        log("NodeView: onChanged")
                         self.localPosition = updatePosition(value: $0, position: self.localPreviousPosition)
                     }
                     .onEnded {  _ in
                         // i.e. no anchoring for now
-                        log("NodeView: onEnded")
                         self.localPreviousPosition = self.localPosition
                     })
         .animation(.spring(response: 0.3, dampingFraction: 0.65, blendDuration: 4))
@@ -132,7 +142,7 @@ struct DualPortTypeView: View {
     let dispatch: Dispatch
     
     
-    let spacing: CGFloat = 20
+    let spacing: CGFloat = 10
     
     var body: some View {
         HStack (spacing: spacing) {
@@ -143,7 +153,8 @@ struct DualPortTypeView: View {
                     (input: PortModel) in
                     PortView(pm: input,
                           dispatch: dispatch,
-                          state: state)
+                          state: state,
+                          isInput: true)
                 }
             }
             
@@ -151,7 +162,7 @@ struct DualPortTypeView: View {
             VStack (spacing: spacing) {
                 ForEach(outputs, id: \.id) {
                     (output: PortModel) in
-                    PortView(pm: output, dispatch: dispatch, state: state)
+                    PortView(pm: output, dispatch: dispatch, state: state, isInput: false)
 
                 }
             }
@@ -165,6 +176,8 @@ struct SinglePortTypeView: View {
     let state: AppState
     let dispatch: Dispatch
     
+    let isInput: Bool
+    
     let spacing: CGFloat = 20
     
     var body: some View {
@@ -172,7 +185,7 @@ struct SinglePortTypeView: View {
         VStack (spacing: spacing) {
             ForEach(ports, id: \.id) {
                 (port: PortModel) in
-                PortView(pm: port, dispatch: dispatch, state: state)
+                PortView(pm: port, dispatch: dispatch, state: state, isInput: isInput)
             }
         }
     }
@@ -184,50 +197,59 @@ let commonSpacing: CGFloat = 10
 
 
 struct PortView: View {
-    
+
     let pm: PortModel
-    
+
     let dispatch: Dispatch
     let state: AppState
 
     let radius: CGFloat = 80
     
+    let isInput: Bool
+
     var body: some View {
-        
+
         let isActivePort: Bool = state.activePM?.nodeId == pm.nodeId && state.activePM?.id == pm.id
+
+        let portDot = Circle()
+            .stroke(Color.black)
+            .background(isActivePort ? Color.green.opacity(1.0) : Color.white.opacity(1.0))
+            .clipShape(Circle())
+            .frame(width: 30, height: 30)
+            .anchorPreference(key: PortPreferenceKey.self,
+                              value: .center,
+                              transform: {
+                                [PortPreferenceData(viewIdx: pm.nodeId,
+                                                    center: $0,
+                                                    nodeId: pm.nodeId,
+                                                    portId: pm.id)] })
+
+            .onTapGesture(count: 1, perform: {
+                log("PortView tap called: Node \(pm.nodeId), Port \(pm.id), Value: \(pm.value)")
+                dispatch(PortTappedAction(port: pm))
+
+            })
+        
+        let portValue = Text(pm.value)
         
         VStack (spacing: 10) {
-            Text(pm.label)
-            Text("Node \(pm.nodeId), Port \(pm.id)")
-            Circle().stroke(Color.black)
-                .overlay(Text(pm.value))
-                .background(isActivePort ? Color.green.opacity(1.0) : Color.white.opacity(1.0))
+//            Text(pm.label)
             
-                .clipShape(/*@START_MENU_TOKEN@*/Circle()/*@END_MENU_TOKEN@*/)
-                .frame(width: radius, height: radius)
+            Text("Port \(pm.id)") // for debug, really
+            
+            if isInput == true {
+                HStack {
+                    portDot
+                    portValue.frame(minWidth: 60)
+                }
                 
-                .anchorPreference(key: PortPreferenceKey.self,
-                                  value: .center,
-                                  transform: {
-                                    [PortPreferenceData(viewIdx: pm.nodeId,
-                                                        center: $0,
-                                                        nodeId: pm.nodeId,
-                                                        portId: pm.id)] })
+            } else {
+                HStack {
+                    portValue.frame(minWidth: 60)
+                    portDot
+                }
                 
-                .onTapGesture(count: 1, perform: {
-                    log("PortView tap called: Node \(pm.nodeId), Port \(pm.id), Value: \(pm.value)")
-                    
-                    // prev: dispatched based on passed around connecting-node
-//                    dispatch(PortTapped(
-//                                port: PortIdentifier(
-//                                    nodeId: pm.nodeId,
-//                                    portId: pm.id,
-//                                    isInput: pm.portType == .input)))
-                    
-                    // CANNOT USE THE VALUE HERE, because e.g. the value will be the value of the tapped port, which might be an output
-                    dispatch(PortTappedAction(port: pm))
-        
-                })
+            }
         }
     }
 }
@@ -246,3 +268,54 @@ struct Shapes_Previews: PreviewProvider {
     }
 }
 
+
+// original
+//struct PortView: View {
+//
+//    let pm: PortModel
+//
+//    let dispatch: Dispatch
+//    let state: AppState
+//
+//    let radius: CGFloat = 80
+//
+//    var body: some View {
+//
+//        let isActivePort: Bool = state.activePM?.nodeId == pm.nodeId && state.activePM?.id == pm.id
+//
+//        VStack (spacing: 10) {
+//            Text(pm.label)
+////            Text("Node \(pm.nodeId), Port \(pm.id)")
+//            Circle().stroke(Color.black)
+//                .overlay(Text(pm.value))
+//                .background(isActivePort ? Color.green.opacity(1.0) : Color.white.opacity(1.0))
+//
+//                .clipShape(/*@START_MENU_TOKEN@*/Circle()/*@END_MENU_TOKEN@*/)
+//                .frame(width: radius, height: radius)
+//
+//                .anchorPreference(key: PortPreferenceKey.self,
+//                                  value: .center,
+//                                  transform: {
+//                                    [PortPreferenceData(viewIdx: pm.nodeId,
+//                                                        center: $0,
+//                                                        nodeId: pm.nodeId,
+//                                                        portId: pm.id)] })
+//
+//                .onTapGesture(count: 1, perform: {
+//                    log("PortView tap called: Node \(pm.nodeId), Port \(pm.id), Value: \(pm.value)")
+//
+//                    // prev: dispatched based on passed around connecting-node
+////                    dispatch(PortTapped(
+////                                port: PortIdentifier(
+////                                    nodeId: pm.nodeId,
+////                                    portId: pm.id,
+////                                    isInput: pm.portType == .input)))
+//
+//                    // CANNOT USE THE VALUE HERE, because e.g. the value will be the value of the tapped port, which might be an output
+//                    dispatch(PortTappedAction(port: pm))
+//
+//                })
+//        }
+//    }
+//}
+//
