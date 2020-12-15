@@ -34,7 +34,38 @@ struct FloatingWindow<ContentView: View>: View {
     
     let content: ContentView
     
+    // first want a filled-white semi-opaque rectangle,
+    // then overlay the `content`
     var body: some View {
+        
+        // base
+        RoundedRectangle(cornerRadius: 16)
+//            .fill(Color.white.opacity(0.9))
+            .fill(Color.white.opacity(0.9))
+            .overlay(RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color.black, lineWidth: 4))
+            .overlay(content)
+            .frame(width: 275, height: 200) // better handling of size?
+//            .frame(idealWidth: 275, idealHeight: 200)
+            .zIndex(2.0)
+            .offset(x: localPosition.width, y: localPosition.height)
+            .gesture(DragGesture()
+                        .onChanged {
+    //                        log("FloatingWindow: onChanged")
+                            self.localPosition = updatePosition(value: $0, position: self.localPreviousPosition)
+                        }
+                        .onEnded {  _ in
+                            // i.e. no anchoring for now
+    //                        log("FloatingWindow: onEnded")
+                            self.localPreviousPosition = self.localPosition
+                        })
+            .animation(.spring(response: 0.3, dampingFraction: 0.65, blendDuration: 4))
+            .shadow(radius: 25)
+        
+    }
+    
+    
+    var body3: some View {
         ZStack {
             content
         }
@@ -58,36 +89,6 @@ struct FloatingWindow<ContentView: View>: View {
                         self.localPreviousPosition = self.localPosition
                     })
         .animation(.spring(response: 0.3, dampingFraction: 0.65, blendDuration: 4))
+        .shadow(radius: 5) // added
     }
 }
-
-
-// text that, when touched, changes color
-// ie dispatches action to
-//struct TouchableText: View {
-//
-//    let text: String
-//    let color: Color
-//
-//    // also pass in state?
-//    let dispatch: Dispatch
-//
-//    // better?: because we can pass in the action we want to call etc.
-////    let onTap: () -> Void
-//
-//    var body: some View {
-//        log("TouchableText called")
-//        Text(text)
-//            .font(.largeTitle)
-//            .foregroundColor(color.opacity(0.8))
-//            // should be: green as long as held down...
-//            // so ie more like .onTapBegin and .onTapEnded
-//            .onTapGesture(count: 1) {
-//                log("TouchableText tapped")
-//                dispatch(TextTappedMiniviewAction())
-//            }
-//    }
-//}
-//
-
-

@@ -102,14 +102,14 @@ func optionPickerNodeModel(id: Int) -> NodeModel {
     let operation = Operation.optionPicker
     
     // for now, hardcoding these values; but normally should be user-editable
-    let input: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: "input: isPicked as String", value: "false")
+    let input: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: "Bool", value: "false")
     
-    let input2: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.input, label: "input: Color as String", value: "Green")
+    let input2: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.input, label: "Color", value: "Green")
     
-    let input3: PortModel = PortModel(id: 3, nodeId: id, portType: PortType.input, label: "input: Color as String", value: "Purple")
+    let input3: PortModel = PortModel(id: 3, nodeId: id, portType: PortType.input, label: "Color", value: "Purple")
     
     // we're gonna start out as green
-    let output: PortModel = PortModel(id: 4, nodeId: id, portType: PortType.output, label: "output: Color as String", value: "Purple")
+    let output: PortModel = PortModel(id: 4, nodeId: id, portType: PortType.output, label: "Color", value: "Purple")
     
     return NodeModel(id: id, nodeType: .calcNode, ports: [input, input2, input3, output], operation: operation)
 
@@ -121,7 +121,7 @@ func pressInteractionNodeModel(id: Int) -> NodeModel {
     // this value never changes...; only flows to other nodes
     let output: PortModel = PortModel(id: 1, nodeId: id, portType: .output, label: "Interaction", value: "false")
     
-    return NodeModel(id: id, nodeType: .valNode, ports: [output])
+    return NodeModel(id: id, nodeType: .valNode, ports: [output], previewInteraction: PreviewInteraction.press)
 }
 
 
@@ -151,14 +151,16 @@ struct NodeModel: Identifiable, Codable {
     // can use the PreviewElement struct with the id instead?
     var previewElement: PreviewElement? = nil // only for viz-nodes
     
+    var previewInteraction: PreviewInteraction? = nil // only for interaction val-nodes
     
     
-    func update(id: Int? = nil, nodeType: NodeType? = nil, ports: [PortModel]? = nil, operation: Operation? = nil, previewElement: PreviewElement? = nil) -> NodeModel {
+    func update(id: Int? = nil, nodeType: NodeType? = nil, ports: [PortModel]? = nil, operation: Operation? = nil, previewElement: PreviewElement? = nil, previewInteraction: PreviewInteraction? = nil) -> NodeModel {
         return NodeModel(id: id ?? self.id,
                          nodeType: nodeType ?? self.nodeType,
                          ports: ports ?? self.ports,
                          operation: operation ?? self.operation,
-                         previewElement: previewElement ?? self.previewElement
+                         previewElement: previewElement ?? self.previewElement,
+                         previewInteraction: previewInteraction ?? self.previewInteraction
         )
     }
     
@@ -330,6 +332,9 @@ enum PreviewElement: String, Codable {
     case typographyColor = "Typography Color"
 }
 
+enum PreviewInteraction: String, Codable {
+    case press = "Press"
+}
 
 
 /* ----------------------------------------------------------------

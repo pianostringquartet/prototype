@@ -10,6 +10,9 @@ import SwiftUI
 import AVFoundation
 
 
+// FUNCTIONS THAT HAVE NOTHING TO DO WITH DOMAIN LOGIC
+
+
 /* ----------------------------------------------------------------
  Helper functions
  ---------------------------------------------------------------- */

@@ -15,73 +15,10 @@ import ReSwift
  ---------------------------------------------------------------- */
 
 
-// preferably -- this should be more general?
-// or, at least one hardcoded action per miniviewer Interactin type?
-// e.g. MiniviewTextTapped, MiniviewTextLongPressed
-//func handleTextTappedMiniviewAction(state: AppState, textTapped: TextTappedMiniviewAction) -> AppState {
-//
-//    log("handleTextTappedMiniviewAction called")
-//
-//    var state = state
-//
-//    // where is the 'Green' value stored?
-//    // it's in the Node 6 typography color (input) PORT
-//    // ... so you have to change that value
-//
-//    let vns: [NodeModel] = state.nodeModels.filter { $0.nodeType == .vizNode }
-//
-////    let color: Color = modifierVn.ports.first!.value == "Green" ? Color.purple : Color.green
-//    let modifierVn: NodeModel = vns.first { (nm: NodeModel) -> Bool in
-//        log("handleTextTappedMiniviewAction: nm.previewElement: \(nm.previewElement)")
-//        return !isBasePreviewElement(pe: nm.previewElement!)
-//    }!
-//
-//    // HARDCODED...
-//    let pi: PortIdentifier = PortIdentifier(nodeId: vizNodeId2, portId: 1, isInput: true)
-//
-//    let newValue: String = modifierVn.ports.first!.value == "Green" ? "Purple" : "Green"
-//    log("handleTextTappedMiniviewAction newValue: \(newValue)")
-//
-//    let updatedNode: NodeModel = updateNodePortModel(state: state, port: pi, newValue: newValue)
-//
-//    let updatedNodes: [NodeModel] = replace(ts: state.nodeModels, t: updatedNode)
-//
-//    state.nodeModels = updatedNodes
-//
-////    let updatedPortModel: PortModel =
-//
-//
-//    return state
-//}
-
-
-
-func handleTextTappedMiniviewAction(state: AppState, textTapped: TextTappedMiniviewAction) -> AppState {
-    
-    log("handleTextTappedMiniviewAction called")
-    
-    var state = state
-    
-    let pi: PortIdentifier = PortIdentifier(nodeId: valNodeId3, portId: 1, isInput: false)
-    
-    let pm: PortModel = getPortModel(nodeModels: state.nodeModels, nodeId: valNodeId3, portId: 1)
-    
-    // e.g. toggle boolean value
-    let newValue: String = pm.value == "false" ? "true" : "false"
-    
-    log("handleTextTappedMiniviewAction newValue: \(newValue)")
-    
-    let updatedNode: NodeModel = updateNodePortModel(state: state, port: pi, newValue: newValue)
-    
-    let updatedNodes: [NodeModel] = replace(ts: state.nodeModels, t: updatedNode)
-    
-    state.nodeModels = updatedNodes
-    state = recalculateGraph(state: state)
-    
-    return state
-}
-
 func reducer(action: Action, state: AppState?) -> AppState {
+    
+    log("reducer called")
+    
     var defaultState: AppState = AppState()
     if let persistedState = pullState() {
         defaultState = persistedState
@@ -105,41 +42,12 @@ func reducer(action: Action, state: AppState?) -> AppState {
             break
     }
 
-    // always update the graph (flowValues, selfConsistency..)
-//    state = recalculateGraph(state: state)
-
     // persist state to UserDefaults
     saveState(state: state)
     return state
 }
 
 
-/* ----------------------------------------------------------------
- State/domain helpers
- ---------------------------------------------------------------- */
-
-
-func nodesForGraph(graphId: Int, nodes: [Node]) -> [Node] {
-    return nodes.filter({ (n: Node) -> Bool in n.graphId == graphId
-    })
-}
-
-func connectionsForGraph(graphId: Int, connections: [Connection]) -> [Connection] {
-    return connections.filter({ (conn: Connection) -> Bool in conn.graphId == graphId
-    })
-}
-
-func nextNodeId(nodes: [Node]) -> Int {
-    return nodes.isEmpty ?
-        1 :
-        nodes.max(by: {(n1: Node, n2: Node) -> Bool in n1.nodeId < n2.nodeId})!.nodeId + 1
-    
-}
-
-func nextGraphId(graphs: [Graph]) -> Int {
-    return graphs.isEmpty ? 1 :
-        graphs.max(by: {(g1: Graph, g2: Graph) -> Bool in g1.graphId < g2.graphId})!.graphId + 1
-}
 
 
 /* ----------------------------------------------------------------

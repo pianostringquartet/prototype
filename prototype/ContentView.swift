@@ -42,14 +42,8 @@ struct GraphEditorView: View {
         log("GraphEditorView body called")
         
         VStack {
-//            Text("Graph")
-            
-            // GRAPH
             HStack (spacing: 50) {
-        
-                let ascending = { (nm1: NodeModel, nm2: NodeModel) -> Bool in
-                    nm1.id < nm2.id
-                }
+                let ascending = { (nm1: NodeModel, nm2: NodeModel) -> Bool in nm1.id < nm2.id }
                 
                 let valNodes = state.nodeModels.filter { (n: NodeModel) -> Bool in
                     n.nodeType == NodeType.valNode
@@ -63,25 +57,34 @@ struct GraphEditorView: View {
                     n.nodeType == NodeType.vizNode
                 }.sorted(by: ascending)
                 
-                
                 // left
                 VStack {
                     ForEach(valNodes, id: \.id) { (nm: NodeModel) in
-                        NodeView(nodeModel: nm, dispatch: dispatch, state: state, title: "Val node", color: Color.gray)
+                        NodeView(nodeModel: nm, dispatch: dispatch, state: state, title: "Val node",
+//                                 color: Color.gray)
+//                                 color: nm.previewInteraction == nil ? nodeBottomColor : pinkNodeBottomColor)
+                                 color: valNodeColor)
                     }
                 }
                 
                 // middle
                 HStack (spacing: 50) {
                     ForEach(calcNodes, id: \.id) { (nm: NodeModel) in
-                        NodeView(nodeModel: nm, dispatch: dispatch, state: state, title: "Calc node", color: Color.yellow)
+                        NodeView(nodeModel: nm, dispatch: dispatch, state: state,
+                                 title: "Calc node",
+//                                 color: nodeBottomColor)
+                                 color: calcNodeColor)
+//                                 color: Color.yellow)
                     }
                 }
                 
                 // right
                 VStack {
                     ForEach(vizNodes, id: \.id) { (nm: NodeModel) in
-                        NodeView(nodeModel: nm, dispatch: dispatch, state: state, title: "Viz node", color: Color.blue)
+                        NodeView(nodeModel: nm, dispatch: dispatch, state: state, title: "Viz node",
+//                                 color: Color.blue)
+//                                 color: pinkNodeBottomColor)
+                                 color: vizNodeColor)
                     }
                 }
             } // HStack
@@ -91,7 +94,6 @@ struct GraphEditorView: View {
         .padding(.trailing, 30).padding(.bottom, 30)
         .offset(x: localPosition.width, y: localPosition.height)
         .frame(idealWidth: 500, idealHeight: 500)
-        
         
         .overlay(FloatingWindow(content: generateMiniview(state: state, dispatch: dispatch)))
         

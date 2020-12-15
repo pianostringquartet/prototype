@@ -49,56 +49,84 @@ struct PortEdgeCreated: Action {
 //  then make this port the activePort
 // else:
 //  create an edge between this port and the existing activePort
-struct PortTapped: Action {
-    let port: PortIdentifier
-//    let isInput: Bool
-}
+//struct PortTapped: Action {
+//    let port: PortIdentifier
+////    let isInput: Bool
+//}
+//
+
+//
+//struct NodeMovedAction: Action {
+//    let graphId: Int
+//    let position: CGSize
+//    let node: Node
+//}
+//
+//struct NodeCommittedAction: Action {
+//    let graphId: Int
+//    let position: CGSize
+//    let node: Node
+//}
+//
+//struct NodeDeletedAction: Action {
+//    let graphId: Int
+//    let nodeId: Int
+//}
+//
+//struct GraphDeletedAction: Action {
+//    let graphId: Int
+//}
+//
+//struct EdgeAddedAction: Action {
+//    let graphId: Int
+//    let from: Int
+//    let to: Int
+//}
+//
+//struct EdgeRemovedAction: Action {
+//    let graphId: Int
+//    let from: Int
+//    let to: Int
+//}
 
 
 
-struct NodeMovedAction: Action {
-    let graphId: Int
-    let position: CGSize
-    let node: Node
-}
-
-struct NodeCommittedAction: Action {
-    let graphId: Int
-    let position: CGSize
-    let node: Node
-}
-
-struct NodeDeletedAction: Action {
-    let graphId: Int
-    let nodeId: Int
-}
-
-struct GraphDeletedAction: Action {
-    let graphId: Int
-}
-
-struct EdgeAddedAction: Action {
-    let graphId: Int
-    let from: Int
-    let to: Int
-}
-
-struct EdgeRemovedAction: Action {
-    let graphId: Int
-    let from: Int
-    let to: Int
-}
 
 
 /* ----------------------------------------------------------------
  Handlers: (State, Action, Effects) -> State
  ---------------------------------------------------------------- */
 
+func handleTextTappedMiniviewAction(state: AppState, textTapped: TextTappedMiniviewAction) -> AppState {
+    
+    log("handleTextTappedMiniviewAction called")
+    
+    var state = state
+    
+    let pi: PortIdentifier = PortIdentifier(nodeId: valNodeId3, portId: 1, isInput: false)
+    
+    let pm: PortModel = getPortModel(nodeModels: state.nodeModels, nodeId: valNodeId3, portId: 1)
+    
+    // e.g. toggle boolean value
+    let newValue: String = pm.value == "false" ? "true" : "false"
+    
+    log("handleTextTappedMiniviewAction newValue: \(newValue)")
+    
+    let updatedNode: NodeModel = updateNodePortModel(state: state, port: pi, newValue: newValue)
+    
+    let updatedNodes: [NodeModel] = replace(ts: state.nodeModels, t: updatedNode)
+    
+    state.nodeModels = updatedNodes
+    state = recalculateGraph(state: state)
+    
+    return state
+}
+
 
 // don't want to use PortModel.value, because the value could be outdated later?
 // ... using PM for ActivePort should be okay, because value is most recent?
 func handlePortTappedAction(state: AppState, action: PortTappedAction) -> AppState {
-    log("handling portTappedAction... state.activePort: \(state.activePM)")
+    log("handling portTappedAction... state.activePM: \(state.activePM)")
     
     var state: AppState = state // for easier mutation within function
     
@@ -634,130 +662,4 @@ func selfConsistency(state: AppState, nodes: [NodeModel]) -> AppState {
     return state
 }
 
-
-
-func getNodeTypeForPort(nodeModels: [NodeModel], nodeId: Int, portId: Int) -> NodeType {
-    let isDesiredNode = { (nm: NodeModel) -> Bool in nm.id == nodeId}
-    let isDesiredPort = { (pm: PortModel) -> Bool in pm.id == portId }
-    
-    let nodeModel: NodeModel = nodeModels.first { (nm: NodeModel) -> Bool in
-        nm.id == nodeId && nm.ports.contains(where: isDesiredPort)
-    }!
-    
-    return nodeModel.nodeType
-}
-
-
-// useful for retrieving values too
-// can be used for getting either input- OR output- ports, as long as you have the nodeId and portId
-func getPortModel(nodeModels: [NodeModel], nodeId: Int, portId: Int) -> PortModel {
-    log("getPortModel called")
-
-    let isDesiredNode = { (nm: NodeModel) -> Bool in nm.id == nodeId}
-    let isDesiredPort = { (pm: PortModel) -> Bool in pm.id == portId }
-
-    var node: NodeModel = nodeModels.first(where: isDesiredNode)!
-    return node.ports.first(where: isDesiredPort)!
-}
-
-
-
-// difference: don't have portID, just nodeID
-// ASSUMES there's only one output on a node
-func getOutputPortModel(nodeModels: [NodeModel], nodeId: Int) -> PortModel {
-    log("getOutputPortModel called")
-
-    let isDesiredNode = { (nm: NodeModel) -> Bool in nm.id == nodeId}
-    let isOutputPort = { (pm: PortModel) -> Bool in pm.portType == .output }
-    
-    var node: NodeModel = nodeModels.first(where: isDesiredNode)!
-    
-    return node.ports.first(where: isOutputPort)!
-}
-
-
-
-// returns a NodeModel with the port-specific PortModel.value updated to use newValue
-func updateNodePortModel(state: AppState,
-                         port: PortIdentifier,
-                         newValue: String) -> NodeModel {
-    log("updateNodePortModel called")
-    log("newValue: \(newValue)")
-
-    let isDesiredNode = { (nm: NodeModel) -> Bool in nm.id == port.nodeId}
-    let isDesiredPort = { (pm: PortModel) -> Bool in pm.id == port.portId }
-    
-    // Find the old port
-    // 1. find the desired node
-    // 2. then find the node's port
-
-    // ie must be able to find the node
-    var oldNode: NodeModel = state.nodeModels.first(where: isDesiredNode)!
-    
-    var oldPort: PortModel = getPortModel(nodeModels: state.nodeModels,
-                                          nodeId: port.nodeId,
-                                          portId: port.portId)
-    
-    
-    // Update the old port
-    
-    // .update is a Dart-style .copy method
-    let updatedPort = oldPort.update(value: newValue)
-    log("updateNodePortModel: updatedPort: \(updatedPort)")
-    
-//    return updatedPort
-    
-    
-    let updatedPorts: [PortModel] = replace(ts: oldNode.ports, t: updatedPort)
-    
-    let updatedNode: NodeModel = oldNode.update(ports: updatedPorts)
-    
-    return updatedNode
-}
-
-
-func updateNodeOutputPortModel(state: AppState,
-                         port: PortIdentifier,
-                         newValue: String) -> NodeModel {
-    log("updateNodeOutputPortModel called")
-    log("newValue: \(newValue)")
-
-    let isDesiredNode = { (nm: NodeModel) -> Bool in nm.id == port.nodeId}
-    let isDesiredPort = { (pm: PortModel) -> Bool in pm.id == port.portId }
-    
-    // Find the old port
-    // 1. find the desired node
-    // 2. then find the node's port
-
-    // ie must be able to find the node
-    var oldNode: NodeModel = state.nodeModels.first(where: isDesiredNode)!
-    
-    var oldPort: PortModel = getPortModel(nodeModels: state.nodeModels,
-                                          nodeId: port.nodeId,
-                                          portId: port.portId)
-    
-    
-    // Update the old port
-    
-    // .update is a Dart-style .copy method
-    let updatedPort = oldPort.update(value: newValue)
-    log("updateNodeOutputPortModel: updatedPort: \(updatedPort)")
-    
-//    return updatedPort
-    
-    
-    let updatedPorts: [PortModel] = replace(ts: oldNode.ports, t: updatedPort)
-    
-    let updatedNode: NodeModel = oldNode.update(ports: updatedPorts)
-    
-    return updatedNode
-}
-
-// given a nodeId and portID, retrieve that port's value
-//func getPV(nodeModels: [NodeModel], nodeId: Int, portId: Int) -> String {
-//
-//    nodeModels.
-//}
-
-// given a port identifier, get the port model
 
