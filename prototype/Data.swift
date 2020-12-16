@@ -58,41 +58,77 @@ enum NodeType: String, Codable {
 }
 
 
+// MARK: - NODES
+
+// val nodes have a single output
+func stringValNode(id: Int, value: String, label: String = "output: String") -> NodeModel {
+    
+    let valNodeOutput: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.output,
+                                             label: label,
+                                             value: StringPV(value))
+
+    return NodeModel(id: valNodeId, nodeType: NodeType.valNode, ports: [valNodeOutput])
+}
+
+func boolValNode(id: Int, value: Bool, label: String = "output: Bool") -> NodeModel {
+    
+    let valNodeOutput: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.output,
+                                             label: label,
+                                             value: BoolPV(value))
+
+    return NodeModel(id: valNodeId, nodeType: NodeType.valNode, ports: [valNodeOutput])
+}
+
+// viz nodes have only inputs (one or more)
+func stringVizNode(id: Int, value: String, previewElement: PreviewElement, label: String) -> NodeModel {
+
+    let vizNodeInput: PortModel = PortModel(id: 1, nodeId: vizNodeId, portType: PortType.input, label: label, value: StringPV(value))
+
+    return NodeModel(id: vizNodeId, nodeType: NodeType.vizNode, ports: [vizNodeInput], previewElement: previewElement)
+}
+
+// not used yet?
+func boolVizNode(id: Int, value: Bool, previewElement: PreviewElement, label: String) -> NodeModel {
+
+    let vizNodeInput: PortModel = PortModel(id: 1, nodeId: vizNodeId, portType: PortType.input, label: label, value: BoolPV(value))
+
+    return NodeModel(id: vizNodeId, nodeType: NodeType.vizNode, ports: [vizNodeInput], previewElement: previewElement)
+}
+
+
+
 
 // for CREATING BRAND NEW (CALC) NODE MODEL
 func uppercaseNodeModel(id: Int) -> NodeModel {
-    // a calc node whose operation is Uppercase
-    
-    // autogenerate node id too?
     
     let operation: Operation = Operation.uppercase
     
-    let input: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: "input: String", value: "")
+//    let input: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: "input: String", value: "")
+//
+//    let output: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.output, label: "output: String", value: "")
+    let input: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: "input: String", value: StringPV(""))
 
-    let output: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.output, label: "output: String", value: "")
+    let output: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.output, label: "output: String", value: StringPV(""))
     
     return NodeModel(id: id, nodeType: .calcNode, ports: [input, output], operation: operation)
 }
 
 
 func concatNodeModel(id: Int) -> NodeModel {
-    // a calc node whose operation is Uppercase
-    
-    // autogenerate node id too?
-    
     let operation: Operation = Operation.concat
-    
     
     // MUST have at least two inputs;
     // ideally, should allow as many as desired
     
-    let input: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: "input: String", value: "")
+//    let input: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: "input: String", value: "")
+//    let input2: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.input, label: "input: String", value: "")
+//    let output: PortModel = PortModel(id: 3, nodeId: id, portType: PortType.output, label: "output: String", value: "")
     
-    let input2: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.input, label: "input: String", value: "")
-
-    let output: PortModel = PortModel(id: 3, nodeId: id, portType: PortType.output, label: "output: String", value: "")
+    let input: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: "input: String", value: StringPV(""))
+    let input2: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.input, label: "input: String", value: StringPV(""))
+    let output: PortModel = PortModel(id: 3, nodeId: id, portType: PortType.output, label: "output: String", value: StringPV(""))
     
-    return NodeModel(id: id, nodeType: .calcNode, ports: [input, input2, output], operation: operation)
+    return NodeModel(id: id, nodeType: NodeType.calcNode, ports: [input, input2, output], operation: operation)
 }
 
 // need calcNode for Option picker
@@ -102,16 +138,25 @@ func optionPickerNodeModel(id: Int) -> NodeModel {
     let operation = Operation.optionPicker
     
     // for now, hardcoding these values; but normally should be user-editable
-    let input: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: "Bool", value: "false")
+//    let input: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: "Bool", value: "false")
+//
+//    let input2: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.input, label: "Color", value: "Green")
+//    let input3: PortModel = PortModel(id: 3, nodeId: id, portType: PortType.input, label: "Color", value: "Purple")
+//    let output: PortModel = PortModel(id: 4, nodeId: id, portType: PortType.output, label: "Color", value: "Purple")
     
-    let input2: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.input, label: "Color", value: "Green")
     
-    let input3: PortModel = PortModel(id: 3, nodeId: id, portType: PortType.input, label: "Color", value: "Purple")
+    let input: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: "Bool", value: BoolPV(false))
     
-    // we're gonna start out as green
-    let output: PortModel = PortModel(id: 4, nodeId: id, portType: PortType.output, label: "Color", value: "Purple")
+    let input2: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.input, label: "Color", value: StringPV("Green"))
+    let input3: PortModel = PortModel(id: 3, nodeId: id, portType: PortType.input, label: "Color", value: StringPV("Purple"))
+    let output: PortModel = PortModel(id: 4, nodeId: id, portType: PortType.output, label: "Color", value: StringPV("Purple"))
     
-    return NodeModel(id: id, nodeType: .calcNode, ports: [input, input2, input3, output], operation: operation)
+    
+//    let input2: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.input, label: "Color", value: Color.green)
+//    let input3: PortModel = PortModel(id: 3, nodeId: id, portType: PortType.input, label: "Color", value: Color.purple)
+//    let output: PortModel = PortModel(id: 4, nodeId: id, portType: PortType.output, label: "Color", value: Color.purple)
+    
+    return NodeModel(id: id, nodeType: NodeType.calcNode, ports: [input, input2, input3, output], operation: operation)
 
 }
 
@@ -119,9 +164,10 @@ func optionPickerNodeModel(id: Int) -> NodeModel {
 func pressInteractionNodeModel(id: Int) -> NodeModel {
     
     // this value never changes...; only flows to other nodes
-    let output: PortModel = PortModel(id: 1, nodeId: id, portType: .output, label: "Interaction", value: "false")
+//    let output: PortModel = PortModel(id: 1, nodeId: id, portType: .output, label: "Interaction", value: "false")
+    let output: PortModel = PortModel(id: 1, nodeId: id, portType: .output, label: "Interaction", value: BoolPV(false))
     
-    return NodeModel(id: id, nodeType: .valNode, ports: [output], previewInteraction: PreviewInteraction.press)
+    return NodeModel(id: id, nodeType: NodeType.valNode, ports: [output], previewInteraction: PreviewInteraction.press)
 }
 
 
@@ -178,7 +224,252 @@ enum PortType: String, Codable {
 // combo of PortIdentifier, PortValue, Cell
 // common to all types of nodes
 // anywhere you use PortIdentifier, you can use PortModel
+//struct PortModel: Identifiable, Codable, Equatable {
+//struct PortModel<T: Codable, Equatable>: Identifiable, Codable, Equatable {
+//struct PortModel<T: Codable, Equatable>: Identifiable, Codable, Equatable {
+
+
+//struct PortValue<T: Codable & Equatable>: Codable, Equatable {
+//
+//}
+
+
+class Vehicle {
+    var currentSpeed = 0.0
+    var description: String {
+        return "traveling at \(currentSpeed) miles per hour"
+    }
+    func makeNoise() {
+        // do nothing - an arbitrary vehicle doesn't necessarily make a noise
+    }
+}
+
+class Bicycle: Vehicle {
+    var hasBasket = false
+}
+
+
+class PM: Identifiable, Codable, Equatable {
+    
+    // is this true? -- two port models are the same if their port-ids and node-ids match?
+    // ... do I care about the values here?
+    static func == (lhs: PM, rhs: PM) -> Bool {
+        lhs.id == rhs.id && lhs.nodeId == rhs.nodeId
+    }
+    
+    let id: Int
+    let nodeId: Int
+    let portType: PortType // input or output
+    let label: String // port label
+    
+    // if I define value property here,
+    // then
+//    let value: Any
+
+//    let value: String // port value
+//    let value: T // port value
+    
+    // Any needs to be Codable and Equatable
+//    let value: Any // port value
+//    let value: <Codable & Equatable>
+    
+}
+
+class BoolPM: PM {
+    var value: Bool = false
+}
+
+
+//class PV {}
+//
+//class BoolPV: PV {
+//    var value: Bool = false
+//}
+
+//protocol PV: Equatable, Codable {
+//
+//}
+//
+//struct BoolPV: PV, Equatable, Codable {
+//    let value: Bool
+//}
+
+
+//protocol PV {
+//
+//}
+
+// if PV is struct (rather than protocol or class)
+
+// a struct can inherit from protocol or class, but not other structs
+//struct PV: Equatable, Codable {
+//
+//}
+
+
+
+//protocol PV {}
+//protocol PV: Equatable, Codable {}
+
+//struct BoolPV: PV, Equatable, Codable {
+//    let value: Bool
+//}
+
+//class BoolPV: PV, Equatable, Codable {
+//class BoolPV: PV {
+//struct BoolPV: PV, Equatable, Codable {
+//
+////    static func == (lhs: BoolPV, rhs: BoolPV) -> Bool {
+////        lhs.value == rhs.value
+////    }
+//
+//    let value: Bool
+////    var value: Bool = false
+//
+//    init(_ value: Bool) {
+//        self.value = value
+//
+//    }
+//
+//    required init(from decoder: Decoder) throws {
+//        fatalError("init(from:) has not been implemented")
+//    }
+//}
+//
+//struct StringPV: PV, Equatable, Codable {
+//    let value: String
+////    var value: String = ""
+//
+//    init(_ value: String) {
+//        self.value = value
+//    }
+//}
+//
+//let spv1 = StringPV("test")
+//let spv2 = StringPV("test")
+//
+//
+//func fn(pv: PV) -> Bool {
+//
+//    return pv is StringPV
+//
+////    return StringPV("test") is PV
+//
+////    return true
+//}
+
+//let x1: Bool = spv1 == spv2
+//let y1: Bool = StringPV("test")
+
+
+
+//
+class PV: Equatable, Codable {
+
+    // must implement this? ... but what does this even mean?
+    static func == (lhs: PV, rhs: PV) -> Bool {
+        return lhs == rhs
+    }
+}
+
+//class PV {}
+
+
+//class TPV<T: Equatable & Codable>: PV {
+//
+//    var value: T
+//
+//    required init(from decoder: Decoder) throws {
+//
+//    }
+//
+//    override func encode(to encoder: Encoder) throws {
+//
+//    };
+//}
+
+
+class StringPV: PV {
+//class StringPV: PV, Equatable, Codable {
+    
+    static func == (lhs: StringPV, rhs: StringPV) -> Bool {
+        lhs.value == rhs.value
+    }
+    
+//    let value: Bool
+    var value: String = ""
+    
+    let defaultValue: String = ""
+
+    init(_ value: String) {
+        self.value = value
+        super.init()
+    }
+
+    required init(from decoder: Decoder) throws {
+        fatalError("init(from:) has not been implemented")
+    }
+}
+
+class BoolPV: PV {
+//class BoolPV: PV, Equatable, Codable {
+    static func == (lhs: BoolPV, rhs: BoolPV) -> Bool {
+        lhs.value == rhs.value
+    }
+    
+//    let value: Bool
+    
+    
+    
+    var value: Bool = false
+    
+    let defaultValue: Bool = false
+
+    init(_ value: Bool) {
+        self.value = value
+        super.init()
+    }
+
+    required init(from decoder: Decoder) throws {
+        fatalError("init(from:) has not been implemented")
+    }
+}
+
+
+
+enum MPV: Codable {
+    init(from decoder: Decoder) throws {
+        fatalError("init(from:) has not been implemented")
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        fatalError("encode(to:) has not been implemented")
+    }
+    
+    case StringMPV(String)
+    case BoolMPV(Bool)
+    
+}
+
+
+
+// will T always be equatable? ... yes, for simple values yes
+//struct PortModel<T: Codable & Equatable>: Identifiable, Codable, Equatable {
 struct PortModel: Identifiable, Codable, Equatable {
+    
+    // also need to add
+//    static func == (lhs: PortModel, rhs: PortModel) -> Bool {
+//    }
+//
+    
+
+    
+//
+//    static func == (lhs: PortModel, rhs: PortModel) -> Bool {
+//        <#code#>
+//    }
+    
+    
     let id: Int
     let nodeId: Int
     // later: `let graphId: Int`
@@ -187,18 +478,37 @@ struct PortModel: Identifiable, Codable, Equatable {
      
     let label: String // port label
 
+    
     // later, should be "of type T"
-    let value: String // port value
+//    let value: String // port value
+//    let value: T // port value
+    
+    // if PV is just a protocol,
+    // then there's no guarantee that PV implements Codable, Equatable etc.
+    let value: PV
+//    let value: MPV
+    
+    
+    // Any needs to be Codable and Equatable
+//    let value: Any // port value
+//    let value: T<Codable & Equatable>
+    
     
     var defaultValue: String = ""
+//    var defaultValue: T? = nil
+//    var defaultValue: Any? = nil
     
-    func update(id: Int? = nil, nodeId: Int? = nil, portType: PortType? = nil, label: String? = nil, value: String? = nil) -> PortModel {
+    func update(id: Int? = nil, nodeId: Int? = nil, portType: PortType? = nil, label: String? = nil,
+//                value: String? = nil) -> PortModel {
+                value: PV? = nil) -> PortModel {
+//                value: T? = nil) -> PortModel {
         
         return PortModel(id: id ?? self.id,
                          nodeId: nodeId ?? self.nodeId,
                          portType: portType ?? self.portType,
                          label: label ?? self.label,
-                         value: value ?? self.value)
+                         value: value ?? self.value
+        )
     }
         
 }
@@ -269,12 +579,19 @@ enum Screens: String, Codable {
 // for redux graph hello world
 // AppState<View> not decodable...
 struct AppState: StateType, Codable {
+//struct AppState: StateType, Codable {
+
+// AppState does not conform to decodable
+//struct AppState<T: Codable & Equatable>: StateType, Codable {
         
     var nodeModels: [NodeModel] = []
     
     // ie the connectingPort
 //    var activePort: PortIdentifier? = nil
     
+//    var activePM<T: Codable & Equatable>: PortModel<T>? = nil
+
+//    var activePM: PortModel<T>? = nil
     var activePM: PortModel? = nil
     
     var edges: [PortEdge] = []
@@ -356,11 +673,11 @@ enum Operation: String, Codable {
 }
 
 // doesn't this mapping just reproduce the switch/case mapping in `calculateValue`?
-let operations: [Operation: Any] = [
-    Operation.uppercase: { (s: String) -> String in s.uppercased() },
-    Operation.concat: { (s1: String, s2: String) -> String in s1 + s2 },
-//    Operation.identity: { (x: T) -> T in x } // T not in scope?
-]
+//let operations: [Operation: Any] = [
+//    Operation.uppercase: { (s: String) -> String in s.uppercased() },
+//    Operation.concat: { (s1: String, s2: String) -> String in s1 + s2 },
+////    Operation.identity: { (x: T) -> T in x } // T not in scope?
+//]
 
 
 /* ----------------------------------------------------------------

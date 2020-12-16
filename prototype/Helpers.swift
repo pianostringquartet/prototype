@@ -25,7 +25,7 @@ func hasEdge(edges: [PortEdge], pm: PortModel, isInput: Bool) -> Bool {
 
 
 func getNodeTypeForPort(nodeModels: [NodeModel], nodeId: Int, portId: Int) -> NodeType {
-    let isDesiredNode = { (nm: NodeModel) -> Bool in nm.id == nodeId}
+//    let isDesiredNode = { (nm: NodeModel) -> Bool in nm.id == nodeId}
     let isDesiredPort = { (pm: PortModel) -> Bool in pm.id == portId }
     
     let nodeModel: NodeModel = nodeModels.first { (nm: NodeModel) -> Bool in
@@ -58,7 +58,7 @@ func getOutputPortModel(nodeModels: [NodeModel], nodeId: Int) -> PortModel {
     let isDesiredNode = { (nm: NodeModel) -> Bool in nm.id == nodeId}
     let isOutputPort = { (pm: PortModel) -> Bool in pm.portType == .output }
     
-    var node: NodeModel = nodeModels.first(where: isDesiredNode)!
+    let node: NodeModel = nodeModels.first(where: isDesiredNode)!
     
     return node.ports.first(where: isOutputPort)!
 }
@@ -68,12 +68,14 @@ func getOutputPortModel(nodeModels: [NodeModel], nodeId: Int) -> PortModel {
 // returns a NodeModel with the port-specific PortModel.value updated to use newValue
 func updateNodePortModel(state: AppState,
                          port: PortIdentifier,
-                         newValue: String) -> NodeModel {
+//                         newValue: String) -> NodeModel {
+                         // now have to use some PV
+                         newValue: PV) -> NodeModel {
     log("updateNodePortModel called")
     log("newValue: \(newValue)")
 
     let isDesiredNode = { (nm: NodeModel) -> Bool in nm.id == port.nodeId}
-    let isDesiredPort = { (pm: PortModel) -> Bool in pm.id == port.portId }
+//    let isDesiredPort = { (pm: PortModel) -> Bool in pm.id == port.portId }
     
     // Find the old port
     // 1. find the desired node
@@ -90,7 +92,10 @@ func updateNodePortModel(state: AppState,
     // Update the old port
     
     // .update is a Dart-style .copy method
+//    let updatedPort = oldPort.update(value: newValue)
     let updatedPort = oldPort.update(value: newValue)
+    
+    
     log("updateNodePortModel: updatedPort: \(updatedPort)")
     
 //    return updatedPort
@@ -106,12 +111,13 @@ func updateNodePortModel(state: AppState,
 
 func updateNodeOutputPortModel(state: AppState,
                          port: PortIdentifier,
-                         newValue: String) -> NodeModel {
+//                         newValue: String) -> NodeModel {
+                         newValue: PV) -> NodeModel {
     log("updateNodeOutputPortModel called")
     log("newValue: \(newValue)")
 
     let isDesiredNode = { (nm: NodeModel) -> Bool in nm.id == port.nodeId}
-    let isDesiredPort = { (pm: PortModel) -> Bool in pm.id == port.portId }
+//    let isDesiredPort = { (pm: PortModel) -> Bool in pm.id == port.portId }
     
     // Find the old port
     // 1. find the desired node

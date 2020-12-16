@@ -29,14 +29,14 @@ func reducer(action: Action, state: AppState?) -> AppState {
     switch action {
         
         case let portTapped as PortTappedAction:
-            var newState = handlePortTappedAction(state: state, action: portTapped)
+            state = handlePortTappedAction(state: state, action: portTapped)
 //            log("newState from PortTappedAction: \(newState)")
-            state = newState
+//            state = newState
         
         case let textTapped as TextTappedMiniviewAction:
-            var newState = handleTextTappedMiniviewAction(state: state, textTapped: textTapped)
+            state = handleTextTappedMiniviewAction(state: state, textTapped: textTapped)
 //            log("newState from TextTappedMiniviewAction: \(newState)")
-            state = newState
+//            state = newState
             
         default:
             break

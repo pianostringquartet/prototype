@@ -66,7 +66,6 @@ let portAndEdgeWidth: CGFloat = 30
 
 
 
-
 /* ----------------------------------------------------------------
  UI ELEMENTS: draggable nodes, drawn edges etc.
  ---------------------------------------------------------------- */
@@ -312,36 +311,58 @@ struct PortView: View {
 //            }
 //        }
 //
+//        var color: Color
+        
         if isActivePort {
             return edgeColor
         }
     
-        else if pm.value == "Green" {
-            return Color.green
+        // pm.value could be any type, e.g. String or Bool or Color etc.
+        
+        
+        // have to do this typecasting bc still using string to represent color
+        else if pm.value is StringPV {
+            log("we have a StringPV...")
+//            return pm.value == "Green"
+//            return pm.value as! StringPV == "Green"
+            switch (pm.value as! StringPV).value {
+                case "Green":
+                    return Color.green
+                case "Purple":
+                    return Color.green
+                default:
+                    return defaultColor
+            }   
         }
-        else if pm.value == "Purple" {
-            return Color.purple
+        
+        else if pm.value is BoolPV {
+            log("we have a BoolPV...")
+            return defaultColor
         }
+//
+//        else if pm.value == "Green" {
+//            return Color.green
+//        }
+//
+//        else if pm.value == "Purple" {
+//            return Color.purple
+//        }
+        
         else if (hasEdge || isActivePort) {
             return edgeColor
         }
         else {
             return defaultColor
         }
+        
     }
     
     var body: some View {
-
-//        let isActivePort: Bool = state.activePM?.nodeId == pm.nodeId && state.activePM?.id == pm.id
-//        log("PortView: isActivePort \(isActivePort)")
-        
-
         let portDot = Circle()
 //            .stroke(hasEdge ? edgeColor : Color.black)
 //            .fill((hasEdge || isActivePort) ? edgeColor : Color.white.opacity(1.0))
             .fill(fillColor(hasEdge: hasEdge, isInput: isInput, isOptionPicker: isOptionPicker))
 //            .fill((hasEdge || isActivePort) ? edgeColor : nodeEmptyPortColor)
-            
 //            .background(isActivePort ? edgeColor : Color.white.opacity(1.0))
             .clipShape(Circle())
 //            .frame(width: 30, height: 30)
@@ -357,10 +378,25 @@ struct PortView: View {
             .onTapGesture(count: 1, perform: {
                 log("PortView tap called: Node \(pm.nodeId), Port \(pm.id), Value: \(pm.value)")
                 dispatch(PortTappedAction(port: pm))
-
             })
         
-        let portValue = Text(pm.value)
+//        let portValue = Text(pm.value)
+        
+        // ie displayable value
+        // need util fn like "getDisplayableValue"? 
+        let displayablePortValue: String = pm.value is BoolPV
+            ? (pm.value as! BoolPV).value.description
+            : (pm.value as! StringPV).value
+        
+        // you've not implemented a toString method for PV or StringPV or BoolPV
+        // ... compiler doesn't know
+        
+        
+        
+        let portValue = Text(displayablePortValue)
+//        let portValue = Text("\(pm.value)")
+        
+//        let portValue = Text(pm.value)
         
         VStack (spacing: 10) {
 //            Text(pm.label)

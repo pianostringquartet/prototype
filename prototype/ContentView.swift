@@ -8,6 +8,7 @@
 import SwiftUI
 import AVFoundation
 import ReSwift
+//import ui
 
 
 /* ----------------------------------------------------------------
@@ -190,13 +191,16 @@ let vizNodeId = 7
 let vizNodeId2 = 8
 
 
-let valNodeOutput: PortModel = PortModel(id: 1, nodeId: valNodeId, portType: PortType.output, label: "output: String", value: "hello")
+//let valNodeOutput: PortModel = PortModel(id: 1, nodeId: valNodeId, portType: PortType.output, label: "output: String", value: "hello")
+//
+//let valNode: NodeModel = NodeModel(id: valNodeId, nodeType: NodeType.valNode, ports: [valNodeOutput])
 
-let valNode: NodeModel = NodeModel(id: valNodeId, nodeType: NodeType.valNode, ports: [valNodeOutput])
+let valNode = stringValNode(id: valNodeId, value: "hello")
+let valNode2 = stringValNode(id: valNodeId2, value: "world")
 
-let valNodeOutput2: PortModel = PortModel(id: 2, nodeId: valNodeId2, portType: PortType.output, label: "output: String", value: "world")
-
-let valNode2: NodeModel = NodeModel(id: valNodeId2, nodeType: NodeType.valNode, ports: [valNodeOutput2])
+//let valNodeOutput2: PortModel = PortModel(id: 2, nodeId: valNodeId2, portType: PortType.output, label: "output: String", value: "world")
+//
+//let valNode2: NodeModel = NodeModel(id: valNodeId2, nodeType: NodeType.valNode, ports: [valNodeOutput2])
 
 let valNode3: NodeModel = pressInteractionNodeModel(id: valNodeId3)
 
@@ -214,16 +218,22 @@ let calcNode3 = optionPickerNodeModel(id: calcNodeId3)
 
 
 
-let vizNodeInput: PortModel = PortModel(id: 1, nodeId: vizNodeId, portType: PortType.input, label: "Text", value: "")
+//let vizNodeInput: PortModel = PortModel(id: 1, nodeId: vizNodeId, portType: PortType.input, label: "Text", value: "")
+//
+//let vizNode: NodeModel = NodeModel(id: vizNodeId, nodeType: NodeType.vizNode, ports: [vizNodeInput], previewElement: PreviewElement.text)
 
-let vizNode: NodeModel = NodeModel(id: vizNodeId, nodeType: NodeType.vizNode, ports: [vizNodeInput], previewElement: PreviewElement.text)
+let vizNode: NodeModel = stringVizNode(id: vizNodeId, value: "", previewElement: PreviewElement.text, label: "TextLayer")
+
 
 // hard code color as a string right now FOR THE DISPLAY VALUE
 // i.e. this viz node is not taking any inputs right now
 // and when minipreview text clicked on, we dispatched an change color
-let vizNodeInput2: PortModel = PortModel(id: 1, nodeId: vizNodeId2, portType: PortType.input, label: "TypographyColor", value: "Purple")
 
-let vizNode2: NodeModel = NodeModel(id: vizNodeId2, nodeType: NodeType.vizNode, ports: [vizNodeInput2], previewElement: PreviewElement.typographyColor)
+//let vizNodeInput2: PortModel = PortModel(id: 1, nodeId: vizNodeId2, portType: PortType.input, label: "TypographyColor", value: "Purple")
+
+//let vizNode2: NodeModel = NodeModel(id: vizNodeId2, nodeType: NodeType.vizNode, ports: [vizNodeInput2], previewElement: PreviewElement.typographyColor)
+
+let vizNode2: NodeModel = stringVizNode(id: vizNodeId, value: "Purple", previewElement: PreviewElement.typographyColor, label: "TypographyColor")
 
 
 //let hwState = AppState(nodeModels: [valNode, valNode2, valNode3, calcNode, calcNode2, calcNode3, vizNode, vizNode2])
@@ -240,10 +250,7 @@ struct ContentView: View {
     var body: some View {
         let dispatcher: Dispatch = { state.dispatch($0) }
         
-        return GraphEditorView(dispatch: dispatcher,
-                                // careful -- is this updated enough?
-                                state: state.current
-               )
+        return GraphEditorView(dispatch: dispatcher, state: state.current)
     }
 }
 

@@ -97,6 +97,7 @@ struct PortEdgeCreated: Action {
  Handlers: (State, Action, Effects) -> State
  ---------------------------------------------------------------- */
 
+// ALL OF THIS IS HARDCODED RIGHT NOW TO USE THE SPECIFIC `valNode3`
 func handleTextTappedMiniviewAction(state: AppState, textTapped: TextTappedMiniviewAction) -> AppState {
     
     log("handleTextTappedMiniviewAction called")
@@ -105,10 +106,19 @@ func handleTextTappedMiniviewAction(state: AppState, textTapped: TextTappedMiniv
     
     let pi: PortIdentifier = PortIdentifier(nodeId: valNodeId3, portId: 1, isInput: false)
     
+    // with a fn like getPortModel... with just the portid and nodeid, you would not know the type
+    // of the port's value
+    
     let pm: PortModel = getPortModel(nodeModels: state.nodeModels, nodeId: valNodeId3, portId: 1)
     
     // e.g. toggle boolean value
-    let newValue: String = pm.value == "false" ? "true" : "false"
+//    let newValue: String = pm.value == "false" ? "true" : "false"
+    
+    // should not be hardcoded? ... basically, want to toggle the value
+    
+    // this is not good -- doing all this downcasting...
+    let newValue: BoolPV = (pm.value as! BoolPV).value == false ? BoolPV(true) : BoolPV(false)
+    
     
     log("handleTextTappedMiniviewAction newValue: \(newValue)")
     
@@ -173,7 +183,12 @@ func handlePortTappedAction(state: AppState, action: PortTappedAction) -> AppSta
                                            to: toPort)
         let edgeAlreadyExists = state.edges.contains(newEdge)
         
-        let flowValue: String = state.activePM!.value
+//        let flowValue: String = state.activePM!.value
+        
+        // the value that will flow could be a bool OR a string
+        // ... so the flowValue should just be PV
+        let flowValue: PV = state.activePM!.value
+            
         
         
         if edgeAlreadyExists { // will remove edge and update ports
@@ -182,6 +197,7 @@ func handlePortTappedAction(state: AppState, action: PortTappedAction) -> AppSta
             // prev: was updating calc-node, removing old node and adding updated node
             
 //            return removeEdgeAndUpdateNodes(state: state, newEdge: newEdge)
+            
             state = removeEdgeAndUpdateNodes(state: state, newEdge: newEdge)
         }
         
@@ -298,7 +314,11 @@ func generateMiniview(state: AppState, dispatch: @escaping Dispatch) -> AnyView 
     if baseVn.previewElement! == .text {
 
 //        let text: some View = Text(baseVn.ports.first!.value) // defaults to empty string?
-        let text = Text(baseVn.ports.first!.value) // defaults to empty string?
+//        let text = Text(baseVn.ports.first!.value) // defaults to empty string?
+        
+        let display: String = (baseVn.ports.first!.value as! StringPV).value
+        
+        let text = Text(display) // defaults to empty string?
             .font(.largeTitle)
             
             // long press
@@ -326,7 +346,8 @@ func generateMiniview(state: AppState, dispatch: @escaping Dispatch) -> AnyView 
 
 //            let color: Color = modifierVn.ports.first!.value == "Green" ? Color.green : Color.purple
             var color: Color
-            switch modifierVn.ports.first!.value {
+//            switch modifierVn.ports.first!.value {
+            switch (modifierVn.ports.first!.value as! StringPV).value {
                 case "Green":
                     color = Color.green
                 case "Purple":
@@ -368,7 +389,15 @@ func generateMiniview(state: AppState, dispatch: @escaping Dispatch) -> AnyView 
 // probably shares some overlap with addEdgeAndUpdateNodes,
 // in the updating nodes part
 // NOTE: flowValue is more like 'default value'
-func removeEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: String = "") -> AppState {
+
+
+//func removeEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: String = "") -> AppState {
+//func removeEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge) -> AppState {
+
+// SHOULD IMPLEMENT defaultValue on each PortValue type
+func removeEdgeAndUpdateNodes(state: AppState,
+                              newEdge: PortEdge,
+                              flowValue: PV = StringPV("default...")) -> AppState {
     log("removeEdgeAndUpdateNodes: edge exists; will remove it")
     
     var state = state
@@ -423,7 +452,8 @@ func removeEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: Str
 }
 
 
-func addEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: String, toPort: PortIdentifier) -> AppState { // ie edge does not already exist; will add it and update ports
+//func addEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: String, toPort: PortIdentifier) -> AppState { // ie edge does not already exist; will add it and update ports
+func addEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: PV, toPort: PortIdentifier) -> AppState { // ie edge does not already exist; will add it and update ports
     log("addEdgeAndUpdateNodes: edge does not exist; will add it")
     
     var state = state
@@ -498,7 +528,8 @@ func addEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: String
 
 
 // ASSUMES: nodeType is .calcNode, and CALLED AFTER WE'VE UPDATED NODE'S INPUTS
-func calculateValue(nm: NodeModel, op: Operation, flowValue: String) -> String {
+//func calculateValue(nm: NodeModel, op: Operation, flowValue: String) -> String {
+func calculateValue(nm: NodeModel, op: Operation, flowValue: PV) -> PV {
     log("calculateValue called")
     
     let ascending = { (pm1: PortModel, pm2: PortModel) -> Bool in
@@ -523,31 +554,44 @@ func calculateValue(nm: NodeModel, op: Operation, flowValue: String) -> String {
             // will always have at least 2 inputs;
             // though their values may be empty-strings etc.
             
-            let s1: String = inputs[0].value
-            let s2: String = inputs[1].value
+//            let s1: String = inputs[0].value
+//            let s2: String = inputs[1].value
+            let s1: String = (inputs[0].value as! StringPV).value
+            let s2: String = (inputs[1].value as! StringPV).value
             if (s1 == "") || (s2 == "") {
-                return "" // ie don't calculate yet
+//                return "" // ie don't calculate yet
+                log("will not concat...")
+                return StringPV("")
             }
             else {
-                log("...will return: \(inputs[0].value + inputs[1].value)")
-                return inputs[0].value + inputs[1].value
+//                log("...will return: \(inputs[0].value + inputs[1].value)")
+                log("will concat...")
+                return StringPV(s1 + s2)
+//                return inputs[0].value + inputs[1].value
             }
             
 //            log("...will return: \(inputs[0].value + inputs[1].value)")
 //            return inputs[0].value + inputs[1].value
             
         case .uppercase:
-            log("matched on .uppercase, will return: \(inputs[0].value.uppercased())")
-            return inputs[0].value.uppercased()
+//            log("matched on .uppercase, will return: \(inputs[0].value.uppercased())")
+            log("matched on .uppercase")
+//            return inputs[0].value.uppercased()
+            return StringPV((inputs[0].value as! StringPV).value.uppercased())
             
 
         case .optionPicker:
             log("matched on .optionPicker")
             // ie flip the value
             log("inputs: \(inputs)")
-            let boolPort = inputs[0].value
+//            let boolPort = inputs[0].value
+            let boolPort: Bool = (inputs[0].value as! BoolPV).value
             log("boolPort: \(boolPort)")
-            let calculatedColor: String = boolPort == "true" ? inputs[1].value : inputs[2].value
+//            let calculatedColor: String = boolPort == "true" ? inputs[1].value : inputs[2].value
+            
+            // technically, you know this can be BoolPV;
+            // but the type of inputs[1].value is not known by the compiler...
+            let calculatedColor: PV = boolPort ? inputs[1].value : inputs[2].value
             log("calculatedColor: \(calculatedColor)")
             return calculatedColor
     }
@@ -631,7 +675,8 @@ func selfConsistency(state: AppState, nodes: [NodeModel]) -> AppState {
             let output: PortModel = node.ports.first { $0.portType == .output && $0.nodeId == node.id }!
             
             // `inputs[0].value` is just some simple default value
-            let newOutputValue: String = calculateValue(nm: node, op: node.operation!, flowValue: inputs[0].value)
+//            let newOutputValue: String = calculateValue(nm: node, op: node.operation!, flowValue: inputs[0].value)
+            let newOutputValue: PV = calculateValue(nm: node, op: node.operation!, flowValue: inputs[0].value)
             
             let updatedNode2: NodeModel = updateNodePortModel(
                 state: state,
