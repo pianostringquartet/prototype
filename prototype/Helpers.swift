@@ -10,6 +10,23 @@ import ReSwift
 import SwiftUI
 
 
+// can instead be method on MPV type?
+func getDisplayablePortValue(mpv: MPV) -> String {
+    var displayablePortValue: String
+    
+    switch mpv {
+        case .StringMPV(let x):
+            displayablePortValue = x
+        case .BoolMPV(let x):
+            displayablePortValue = x.description
+    }
+    
+    log("displayablePortValue: \(displayablePortValue)")
+    return displayablePortValue;
+}
+
+
+
 
 // does this output/input port have an edge coming out of / into it?
 func hasEdge(edges: [PortEdge], pm: PortModel, isInput: Bool) -> Bool {
@@ -40,10 +57,13 @@ func getNodeTypeForPort(nodeModels: [NodeModel], nodeId: Int, portId: Int) -> No
 // can be used for getting either input- OR output- ports, as long as you have the nodeId and portId
 func getPortModel(nodeModels: [NodeModel], nodeId: Int, portId: Int) -> PortModel {
     log("getPortModel called")
+    log("getPortModel: nodeId \(nodeId), portId \(portId)")
+    log("getPortModel nodeModels: \(nodeModels)")
 
     let isDesiredNode = { (nm: NodeModel) -> Bool in nm.id == nodeId}
     let isDesiredPort = { (pm: PortModel) -> Bool in pm.id == portId }
 
+    
     var node: NodeModel = nodeModels.first(where: isDesiredNode)!
     return node.ports.first(where: isDesiredPort)!
 }

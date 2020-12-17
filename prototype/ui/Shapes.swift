@@ -281,6 +281,9 @@ struct SinglePortTypeView: View {
 let commonSpacing: CGFloat = 10
 
 
+//func fillColor(hasEdge: Bool)
+
+
 struct PortView: View {
 
     let pm: PortModel
@@ -295,10 +298,40 @@ struct PortView: View {
 
     let isOptionPicker: Bool
     
+    // needs to be a REAL fn
     func fillColor(hasEdge: Bool, isInput: Bool, isOptionPicker: Bool) -> Color {
         
         let isActivePort: Bool = state.activePM?.nodeId == pm.nodeId && state.activePM?.id == pm.id
         let defaultColor: Color = Color.white.opacity(1.0)
+        
+        
+        // if there is a color, use that
+        
+        // else if hasEdge or isActive, use edgeColor
+        
+        // else, use defaultColor
+        
+        // but what if I also want to destructure the values?
+//        if case .StringMPV = pm.value {
+        if case .StringMPV(let x) = pm.value {
+            log("fillColor: we have a StringMPV with x: \(x)")
+            
+            // still using strings for color at the moment
+            switch x {
+                case "Green": return Color.green
+                case "Purple": return Color.purple
+                default: return defaultColor
+            }
+        }
+        
+        else if (hasEdge || isActivePort) {
+            log("fillColor: hasEdge or isActivePort")
+            return edgeColor
+        }
+        else {
+            log("fillColor: default")
+            return defaultColor
+        }
         
         
         // it's not "if it's an option picker" but rather "is the value a color?"
@@ -368,6 +401,9 @@ struct PortView: View {
         
     }
     
+    
+    
+    
     var body: some View {
         let portDot = Circle()
 //            .stroke(hasEdge ? edgeColor : Color.black)
@@ -399,16 +435,15 @@ struct PortView: View {
 //            ? (pm.value as! BoolPV).value.description
 //            : (pm.value as! StringPV).value
         
-        let displayablePortValue: String = "fill me in.."
+//        let displayablePortValue: String = "fill me in.."
         
-        // you've not implemented a toString method for PV or StringPV or BoolPV
-        // ... compiler doesn't know
+//        let displayablePortValue: String = pm.value
         
         
+        
+        let displayablePortValue: String = getDisplayablePortValue(mpv: pm.value)
         
         let portValue = Text(displayablePortValue)
-//        let portValue = Text("\(pm.value)")
-        
 //        let portValue = Text(pm.value)
         
         VStack (spacing: 10) {

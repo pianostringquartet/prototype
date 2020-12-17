@@ -68,7 +68,7 @@ func stringValNode(id: Int, value: String, label: String = "output: String") -> 
                                              value: MPV.StringMPV(value))
 //                                             value: StringPV(value))
 
-    return NodeModel(id: valNodeId, nodeType: NodeType.valNode, ports: [valNodeOutput])
+    return NodeModel(id: id, nodeType: NodeType.valNode, ports: [valNodeOutput])
 }
 
 func boolValNode(id: Int, value: Bool, label: String = "output: Bool") -> NodeModel {
