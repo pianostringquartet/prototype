@@ -233,7 +233,7 @@ let vizNode: NodeModel = stringVizNode(id: vizNodeId, value: "", previewElement:
 
 //let vizNode2: NodeModel = NodeModel(id: vizNodeId2, nodeType: NodeType.vizNode, ports: [vizNodeInput2], previewElement: PreviewElement.typographyColor)
 
-let vizNode2: NodeModel = stringVizNode(id: vizNodeId, value: "Purple", previewElement: PreviewElement.typographyColor, label: "TypographyColor")
+let vizNode2: NodeModel = stringVizNode(id: vizNodeId2, value: "Purple", previewElement: PreviewElement.typographyColor, label: "TypographyColor")
 
 
 //let hwState = AppState(nodeModels: [valNode, valNode2, valNode3, calcNode, calcNode2, calcNode3, vizNode, vizNode2])

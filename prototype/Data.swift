@@ -51,10 +51,12 @@ struct Cell: Identifiable, Codable {
 
 // need `String` and string vals for it to be codable?
 // and need codable to be serializable?
+//enum NodeType: String, Codable {
 enum NodeType: String, Codable {
-    case valNode = "valNode"
-    case calcNode = "calcNode"
-    case vizNode = "vizNode"
+    case valNode, calcNode, vizNode
+//    case valNode = "valNode"
+//    case calcNode = "calcNode"
+//    case vizNode = "vizNode"
 }
 
 
@@ -65,18 +67,20 @@ func stringValNode(id: Int, value: String, label: String = "output: String") -> 
     
     let valNodeOutput: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.output,
                                              label: label,
-                                             value: MPV.StringMPV(value))
-//                                             value: StringPV(value))
+                                             value: MPV.StringMPV(value),
+                                             defaultValue: .StringMPV(value))
 
     return NodeModel(id: id, nodeType: NodeType.valNode, ports: [valNodeOutput])
 }
+
 
 func boolValNode(id: Int, value: Bool, label: String = "output: Bool") -> NodeModel {
     
     let valNodeOutput: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.output,
                                              label: label,
-                                             value: MPV.BoolMPV(value))
-//                                             value: BoolPV(value))
+                                             value: MPV.BoolMPV(value),
+                                             defaultValue: .BoolMPV(value))
+
 
     return NodeModel(id: valNodeId, nodeType: NodeType.valNode, ports: [valNodeOutput])
 }
@@ -84,21 +88,18 @@ func boolValNode(id: Int, value: Bool, label: String = "output: Bool") -> NodeMo
 // viz nodes have only inputs (one or more)
 func stringVizNode(id: Int, value: String, previewElement: PreviewElement, label: String) -> NodeModel {
 
-    let vizNodeInput: PortModel = PortModel(id: 1, nodeId: vizNodeId, portType: PortType.input, label: label,
-//                                            value: StringPV(value))
-                                            value: MPV.StringMPV(value))
+    let vizNodeInput: PortModel = PortModel(id: 1, nodeId: vizNodeId, portType: PortType.input, label: label, value: MPV.StringMPV(value), defaultValue: .StringMPV(value))
 
-    return NodeModel(id: vizNodeId, nodeType: NodeType.vizNode, ports: [vizNodeInput], previewElement: previewElement)
+    return NodeModel(id: id, nodeType: NodeType.vizNode, ports: [vizNodeInput], previewElement: previewElement)
 }
+
 
 // not used yet?
 func boolVizNode(id: Int, value: Bool, previewElement: PreviewElement, label: String) -> NodeModel {
 
-    let vizNodeInput: PortModel = PortModel(id: 1, nodeId: vizNodeId, portType: PortType.input, label: label,
-//                                            value: BoolPV(value))
-                                            value: MPV.BoolMPV(value))
+    let vizNodeInput: PortModel = PortModel(id: 1, nodeId: vizNodeId, portType: PortType.input, label: label, value: MPV.BoolMPV(value), defaultValue: .BoolMPV(value))
 
-    return NodeModel(id: vizNodeId, nodeType: NodeType.vizNode, ports: [vizNodeInput], previewElement: previewElement)
+    return NodeModel(id: id, nodeType: NodeType.vizNode, ports: [vizNodeInput], previewElement: previewElement)
 }
 
 
@@ -109,16 +110,9 @@ func uppercaseNodeModel(id: Int) -> NodeModel {
     
     let operation: Operation = Operation.uppercase
     
-//    let input: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: "input: String", value: "")
-//
-//    let output: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.output, label: "output: String", value: "")
-    let input: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: "input: String",
-//                                     value: StringPV(""))
-                                     value: MPV.StringMPV(""))
+    let input: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: "input: String", value: MPV.StringMPV(""), defaultValue: MPV.StringMPV(""))
 
-    let output: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.output, label: "output: String",
-//                                      value: StringPV(""))
-                                      value: MPV.StringMPV(""))
+    let output: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.output, label: "output: String", value: MPV.StringMPV(""), defaultValue: MPV.StringMPV(""))
     
     return NodeModel(id: id, nodeType: .calcNode, ports: [input, output], operation: operation)
 }
@@ -126,19 +120,10 @@ func uppercaseNodeModel(id: Int) -> NodeModel {
 
 func concatNodeModel(id: Int) -> NodeModel {
     let operation: Operation = Operation.concat
-    
-    // MUST have at least two inputs;
-    // ideally, should allow as many as desired
-    
-//    let input: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: "input: String", value: "")
-//    let input2: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.input, label: "input: String", value: "")
-//    let output: PortModel = PortModel(id: 3, nodeId: id, portType: PortType.output, label: "output: String", value: "")
-    
-    let input: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: "input: String", value: MPV.StringMPV(""))
-    let input2: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.input, label: "input: String", value: MPV.StringMPV(""))
-    let output: PortModel = PortModel(id: 3, nodeId: id, portType: PortType.output, label: "output: String",
-//                                      value: StringPV(""))
-                                      value: MPV.StringMPV(""))
+        
+    let input: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: "input: String", value: MPV.StringMPV(""), defaultValue: MPV.StringMPV(""))
+    let input2: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.input, label: "input: String", value: MPV.StringMPV(""), defaultValue: MPV.StringMPV(""))
+    let output: PortModel = PortModel(id: 3, nodeId: id, portType: PortType.output, label: "output: String", value: MPV.StringMPV(""), defaultValue: MPV.StringMPV(""))
     
     return NodeModel(id: id, nodeType: NodeType.calcNode, ports: [input, input2, output], operation: operation)
 }
@@ -149,25 +134,12 @@ func optionPickerNodeModel(id: Int) -> NodeModel {
     // binaryOption picker; receives bool / 1-or-0
     let operation = Operation.optionPicker
     
-    // for now, hardcoding these values; but normally should be user-editable
-//    let input: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: "Bool", value: "false")
-//
-//    let input2: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.input, label: "Color", value: "Green")
-//    let input3: PortModel = PortModel(id: 3, nodeId: id, portType: PortType.input, label: "Color", value: "Purple")
-//    let output: PortModel = PortModel(id: 4, nodeId: id, portType: PortType.output, label: "Color", value: "Purple")
+    let input: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: "Bool", value: MPV.BoolMPV(false), defaultValue: MPV.BoolMPV(false))
     
-    
-    let input: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: "Bool", value: MPV.BoolMPV(false))
-    
-    let input2: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.input, label: "Color", value: MPV.StringMPV("Green"))
-    let input3: PortModel = PortModel(id: 3, nodeId: id, portType: PortType.input, label: "Color", value: MPV.StringMPV("Purple"))
-    let output: PortModel = PortModel(id: 4, nodeId: id, portType: PortType.output, label: "Color", value: MPV.StringMPV("Purple"))
-    
-    
-//    let input2: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.input, label: "Color", value: Color.green)
-//    let input3: PortModel = PortModel(id: 3, nodeId: id, portType: PortType.input, label: "Color", value: Color.purple)
-//    let output: PortModel = PortModel(id: 4, nodeId: id, portType: PortType.output, label: "Color", value: Color.purple)
-    
+    let input2: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.input, label: "Color", value: MPV.StringMPV("Green"), defaultValue: MPV.StringMPV("Green"))
+    let input3: PortModel = PortModel(id: 3, nodeId: id, portType: PortType.input, label: "Color", value: MPV.StringMPV("Purple"), defaultValue: MPV.StringMPV("Pruple"))
+    let output: PortModel = PortModel(id: 4, nodeId: id, portType: PortType.output, label: "Color", value: MPV.StringMPV("Purple"), defaultValue: MPV.StringMPV("Purple"))
+        
     return NodeModel(id: id, nodeType: NodeType.calcNode, ports: [input, input2, input3, output], operation: operation)
 
 }
@@ -175,23 +147,10 @@ func optionPickerNodeModel(id: Int) -> NodeModel {
 // need valNode for "Interaction" (only outputs)
 func pressInteractionNodeModel(id: Int) -> NodeModel {
     
-    // this value never changes...; only flows to other nodes
-//    let output: PortModel = PortModel(id: 1, nodeId: id, portType: .output, label: "Interaction", value: "false")
-    let output: PortModel = PortModel(id: 1, nodeId: id, portType: .output, label: "Interaction", value: MPV.BoolMPV(false))
+    let output: PortModel = PortModel(id: 1, nodeId: id, portType: .output, label: "Interaction", value: MPV.BoolMPV(false), defaultValue: MPV.BoolMPV(false))
     
     return NodeModel(id: id, nodeType: NodeType.valNode, ports: [output], previewInteraction: PreviewInteraction.press)
 }
-
-
-
-
-
-
-// vizmodel would contain things like Color
-//struct PreviewElement: Identifiable, Codable {
-//    let id: Int // viz model id
-//    let element: PreviewElements
-//}
 
 
 
@@ -491,45 +450,14 @@ enum MPV: Equatable, Codable {
             self = .BoolMPV(value)
             return
         } else {
-//            throw EncodingError.dataCorrupted
-//            throw EncodingError.invalidValue("Something bad...", EncodingError.Context)
+//            throw EncodingError.dataCorrupted // not found?
             throw fatalError("decoding MPV failed...")
         }
     }
 }
 
-
-// Coding Keys
-//extension MPV {
-//    enum CodingKeys: String, CodingKey {
-//        case StringMPV, BoolMPV
-//    }
-//}
-
-//extension MPV: Codable {
-//    init(from decoder: Decoder) throws {
-//        <#code#>
-//    }
-//
-//    func encode(to encoder: Encoder) throws {
-//        <#code#>
-//    }
-//
-//
-//}
-//
-
-
-
-
-// will T always be equatable? ... yes, for simple values yes
-//struct PortModel<T: Codable & Equatable>: Identifiable, Codable, Equatable {
 struct PortModel: Identifiable, Codable, Equatable {
     
-    // also need to add
-//    static func == (lhs: PortModel, rhs: PortModel) -> Bool {
-//    }
-//
     let id: Int
     let nodeId: Int
     // later: `let graphId: Int`
@@ -538,37 +466,19 @@ struct PortModel: Identifiable, Codable, Equatable {
      
     let label: String // port label
 
-    
-    // later, should be "of type T"
-//    let value: String // port value
-//    let value: T // port value
-    
-    // if PV is just a protocol,
-    // then there's no guarantee that PV implements Codable, Equatable etc.
-//    let value: PV
+    // alternatively, use `var` since these can be changed during use? 
     let value: MPV
     
-    
-    // Any needs to be Codable and Equatable
-//    let value: Any // port value
-//    let value: T<Codable & Equatable>
-    
-    
-    var defaultValue: String = ""
-//    var defaultValue: T? = nil
-//    var defaultValue: Any? = nil
-    
-    func update(id: Int? = nil, nodeId: Int? = nil, portType: PortType? = nil, label: String? = nil,
-//                value: String? = nil) -> PortModel {
-//                value: PV? = nil) -> PortModel {
-                value: MPV? = nil) -> PortModel {
-//                value: T? = nil) -> PortModel {
+    let defaultValue: MPV // not needed?
+        
+    func update(id: Int? = nil, nodeId: Int? = nil, portType: PortType? = nil, label: String? = nil, value: MPV? = nil, defaultValue: MPV? = nil) -> PortModel {
         
         return PortModel(id: id ?? self.id,
                          nodeId: nodeId ?? self.nodeId,
                          portType: portType ?? self.portType,
                          label: label ?? self.label,
-                         value: value ?? self.value
+                         value: value ?? self.value,
+                         defaultValue: defaultValue ?? self.defaultValue
         )
     }
         

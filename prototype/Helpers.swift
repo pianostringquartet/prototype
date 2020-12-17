@@ -10,6 +10,20 @@ import ReSwift
 import SwiftUI
 
 
+func getColorFromStringMPV(mpv: MPV, defaultColor: Color = Color.black.opacity(0.5) ) -> Color {
+    log("getColorFromStringMPV called")
+    
+    if case .StringMPV(let x) = mpv {
+        switch x {
+            case "Green": return Color.green
+            case "Purple": return Color.purple
+            default: return defaultColor
+        }
+    } else {
+        return defaultColor
+    }
+}
+
 // can instead be method on MPV type?
 func getDisplayablePortValue(mpv: MPV) -> String {
     var displayablePortValue: String

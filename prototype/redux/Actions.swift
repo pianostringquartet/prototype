@@ -314,21 +314,13 @@ func generateMiniview(state: AppState, dispatch: @escaping Dispatch) -> AnyView 
 //            return nil
 //    }
     
-//    // retrieve the correct base UI...
-
+    // retrieve the correct base UI...
     if baseVn.previewElement! == .text {
-
-//        let text: some View = Text(baseVn.ports.first!.value) // defaults to empty string?
-//        let text = Text(baseVn.ports.first!.value) // defaults to empty string?
         
-//        let display: String = (baseVn.ports.first!.value as! StringPV).value
-        let display: String = "hardcoded TextLayer"
+        let display: String = getDisplayablePortValue(mpv: baseVn.ports.first!.value)
         
-        let text = Text(display) // defaults to empty string?
+        let text = Text(display)
             .font(.largeTitle)
-            
-            // long press
-//            .gesture(LongPressGesture()
             .gesture(DragGesture(minimumDistance: 0)
                         .onChanged { _ in
                             log("onChanged inside generateMiniview")
@@ -342,29 +334,12 @@ func generateMiniview(state: AppState, dispatch: @escaping Dispatch) -> AnyView 
                         }
             )
 
-//            .onTapGesture(count: 1) {
-//                log("onTapGesture inside generateMiniview")
-//                dispatch(TextTappedMiniviewAction())
-//            }
-
         // add any potential modifiers...
         if modifierVn.previewElement! == .typographyColor {
 
 //            let color: Color = modifierVn.ports.first!.value == "Green" ? Color.green : Color.purple
-//            var color: Color
-            var color: Color = Color.red
-//            switch modifierVn.ports.first!.value {
-//            switch (modifierVn.ports.first!.value as! StringPV).value {
-//                case "Green":
-//                    color = Color.green
-//                case "Purple":
-//                    color = Color.purple
-//                default:
-//                    color = Color.red
-//            }
-//
-
-//            return text.foregroundColor(color).padding()
+            let color: Color = getColorFromStringMPV(mpv: modifierVn.ports.first!.value)
+        
             return AnyView(text.foregroundColor(color).padding())
         }
 
@@ -384,9 +359,7 @@ func generateMiniview(state: AppState, dispatch: @escaping Dispatch) -> AnyView 
     // other modifiers obviously only apply to Image
         
     // FOR NOW?: assume one Base (Text) and one modifier (Color)
-    
-    
-//    return TouchableText(text: text, color: color, dispatch: dispatch).padding()
+  
 }
 
 
@@ -561,54 +534,50 @@ func calculateValue(nm: NodeModel, op: Operation, flowValue: MPV) -> MPV {
         // TODO: should be a reduce option; can take arbitrarily many inputs
         case .concat:
             log("matched on .concat")
-            log("doing nothing!")
-            return MPV.StringMPV("implement me...")
-//
-//            // will always have at least 2 inputs;
-//            // though their values may be empty-strings etc.
-//
-////            let s1: String = inputs[0].value
-////            let s2: String = inputs[1].value
-////            let s1: String = (inputs[0].value as! StringPV).value
-////            let s2: String = (inputs[1].value as! StringPV).value
-//
-////            let s1: String = (inputs[0].value as! MPV.StringMPV).value
-////            let s2: String = (inputs[1].value as! MPV.StringMPV).value
-//
-//            let s1: String = (inputs[0].value).value as! String
-//            let s2: String = (inputs[1].value as! MPV.StringMPV).value
-//
-//
-//            if (s1 == "") || (s2 == "") {
-////                return "" // ie don't calculate yet
-//                log("will not concat...")
-////                return StringPV("")
-//                return MPV.StringMPV("")
-//            }
-//            else {
-////                log("...will return: \(inputs[0].value + inputs[1].value)")
-//                log("will concat...")
-//                //                return MPV.StringMPV(s1 + s2)
-//                return MPV.StringMPV(s1 + s2)
-////                return inputs[0].value + inputs[1].value
-//            }
-//
-////            log("...will return: \(inputs[0].value + inputs[1].value)")
-////            return inputs[0].value + inputs[1].value
-//
-//        case .uppercase:
-////            log("matched on .uppercase, will return: \(inputs[0].value.uppercased())")
-//            log("matched on .uppercase")
-////            return inputs[0].value.uppercased()
-////            return StringPV((inputs[0].value as! StringPV).value.uppercased())
-//            return MPV.StringMPV((inputs[0].value as! MPV.StringMPV).value.uppercased())
-//
-//
-//
+            
+            switch (inputs[0].value, inputs[1].value) {
+                case (.StringMPV(let s1), .StringMPV(let s2)):
+                    if (s1 == "") || (s2 == "") {
+                        log("will not concat...")
+                        return MPV.StringMPV("")
+                    }
+                    else {
+                        log("will concat...")
+                        return MPV.StringMPV(s1 + s2)
+                    }
+                default:
+                    return MPV.StringMPV("")
+            }
+            
+            
+        case .uppercase:
+            log("matched on .uppercase")
+            switch inputs[0].value {
+                case .StringMPV(let x):
+                    return .StringMPV(x.uppercased())
+                default:
+                    return .StringMPV("")
+//                case .BoolMPV(let x): // SHOULD NOT HAVE THIS CASE...
+//                    return .StringMPV("Bad Bool")
+            }
+            
+
+
+            // do i need to return bool here, or a color?
+        // it looks like I was returning a color
         case .optionPicker:
             log("matched on .optionPicker")
             log("doing nothing...")
             return MPV.StringMPV("Purple")
+            switch inputs[0].value {
+                case .BoolMPV(let x):
+                    return .StringMPV(x == true ? "Green" : "Purple")
+                default:
+                    log(".optionPicker default...")
+                    return .StringMPV("Purple")
+            }
+            
+            
             
 //            // ie flip the value
 //            log("inputs: \(inputs)")
@@ -625,15 +594,7 @@ func calculateValue(nm: NodeModel, op: Operation, flowValue: MPV) -> MPV {
 //            log("calculatedColor: \(calculatedColor)")
 //            return calculatedColor
         
-        case .uppercase:
-            log("revised: matched on .uppercase")
-            return MPV.StringMPV("UPPERCASE CALLED")
-//            switch inputs.first!.value {
-//                case <#pattern#>:
-//                    <#code#>
-//                default:
-//                    <#code#>
-//            }
+
     }
 }
 
@@ -737,14 +698,5 @@ func selfConsistency(state: AppState, nodes: [NodeModel]) -> AppState {
     
     
     
-    // gr
-//    the input port models for just this node
-    
-    
-    
-    
-    
     return state
 }
-
-
