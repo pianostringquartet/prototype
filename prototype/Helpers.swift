@@ -86,7 +86,7 @@ func getPortModel(nodeModels: [NodeModel], nodeId: Int, portId: Int) -> PortMode
     let isDesiredPort = { (pm: PortModel) -> Bool in pm.id == portId }
 
     
-    var node: NodeModel = nodeModels.first(where: isDesiredNode)!
+    let node: NodeModel = nodeModels.first(where: isDesiredNode)!
     return node.ports.first(where: isDesiredPort)!
 }
 
@@ -126,24 +126,17 @@ func updateNodePortModel(state: AppState,
     // 2. then find the node's port
 
     // ie must be able to find the node
-    var oldNode: NodeModel = state.nodeModels.first(where: isDesiredNode)!
+    let oldNode: NodeModel = state.nodeModels.first(where: isDesiredNode)!
     
-    var oldPort: PortModel = getPortModel(nodeModels: state.nodeModels,
+    let oldPort: PortModel = getPortModel(nodeModels: state.nodeModels,
                                           nodeId: port.nodeId,
                                           portId: port.portId)
     
     
     // Update the old port
-    
-    // .update is a Dart-style .copy method
-//    let updatedPort = oldPort.update(value: newValue)
     let updatedPort = oldPort.update(value: newValue)
     
-    
     log("updateNodePortModel: updatedPort: \(updatedPort)")
-    
-//    return updatedPort
-    
     
     let updatedPorts: [PortModel] = replace(ts: oldNode.ports, t: updatedPort)
     
@@ -155,8 +148,6 @@ func updateNodePortModel(state: AppState,
 
 func updateNodeOutputPortModel(state: AppState,
                          port: PortIdentifier,
-//                         newValue: String) -> NodeModel {
-//                         newValue: PV) -> NodeModel {
                          newValue: MPV) -> NodeModel {
     log("updateNodeOutputPortModel called")
     log("newValue: \(newValue)")
@@ -169,9 +160,9 @@ func updateNodeOutputPortModel(state: AppState,
     // 2. then find the node's port
 
     // ie must be able to find the node
-    var oldNode: NodeModel = state.nodeModels.first(where: isDesiredNode)!
+    let oldNode: NodeModel = state.nodeModels.first(where: isDesiredNode)!
     
-    var oldPort: PortModel = getPortModel(nodeModels: state.nodeModels,
+    let oldPort: PortModel = getPortModel(nodeModels: state.nodeModels,
                                           nodeId: port.nodeId,
                                           portId: port.portId)
     
@@ -181,9 +172,6 @@ func updateNodeOutputPortModel(state: AppState,
     // .update is a Dart-style .copy method
     let updatedPort = oldPort.update(value: newValue)
     log("updateNodeOutputPortModel: updatedPort: \(updatedPort)")
-    
-//    return updatedPort
-    
     
     let updatedPorts: [PortModel] = replace(ts: oldNode.ports, t: updatedPort)
     
