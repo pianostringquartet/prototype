@@ -14,39 +14,10 @@ import ReSwift
  Domain: representation common to graph and visualization view
  ---------------------------------------------------------------- */
 
-func identity<T>(x: T) -> T {
-    return x
-}
+//func identity<T>(x: T) -> T {
+//    return x
+//}
 
-// a redux-state representation of calculation graph
-struct StateGraph {
-    
-}
-
-// basic unit of computation: inputs + a function
-// both inputs and outputs ports are cells
-// input-port cell = value + identity function
-// output-port cell = value + non-identity function
-
-// a cell might be reused / displayed in multiple UI contexts
-struct Cell: Identifiable, Codable {
-    
-//struct Cell<A>: Identifiable, Codable {
-
-    // a cell is tied to a specific port?
-    
-    var id: Int
-    
-//    let value: A
-    let value: String
-    
-    // for now, no operation;
-    // need e.g. either `let operation: (A) -> B`
-    // or: `let operation: Action.type`
-    
-//    func result = operation(value)
-    
-}
 
 
 // need `String` and string vals for it to be codable?
@@ -88,7 +59,7 @@ func boolValNode(id: Int, value: Bool, label: String = "output: Bool") -> NodeMo
 // viz nodes have only inputs (one or more)
 func stringVizNode(id: Int, value: String, previewElement: PreviewElement, label: String) -> NodeModel {
 
-    let vizNodeInput: PortModel = PortModel(id: 1, nodeId: vizNodeId, portType: PortType.input, label: label, value: MPV.StringMPV(value), defaultValue: .StringMPV(value))
+    let vizNodeInput: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: label, value: MPV.StringMPV(value), defaultValue: .StringMPV(value))
 
     return NodeModel(id: id, nodeType: NodeType.vizNode, ports: [vizNodeInput], previewElement: previewElement)
 }
@@ -97,7 +68,7 @@ func stringVizNode(id: Int, value: String, previewElement: PreviewElement, label
 // not used yet?
 func boolVizNode(id: Int, value: Bool, previewElement: PreviewElement, label: String) -> NodeModel {
 
-    let vizNodeInput: PortModel = PortModel(id: 1, nodeId: vizNodeId, portType: PortType.input, label: label, value: MPV.BoolMPV(value), defaultValue: .BoolMPV(value))
+    let vizNodeInput: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: label, value: MPV.BoolMPV(value), defaultValue: .BoolMPV(value))
 
     return NodeModel(id: id, nodeType: NodeType.vizNode, ports: [vizNodeInput], previewElement: previewElement)
 }
@@ -192,220 +163,6 @@ enum PortType: String, Codable {
     case output = "output"
 }
 
-// combo of PortIdentifier, PortValue, Cell
-// common to all types of nodes
-// anywhere you use PortIdentifier, you can use PortModel
-//struct PortModel: Identifiable, Codable, Equatable {
-//struct PortModel<T: Codable, Equatable>: Identifiable, Codable, Equatable {
-//struct PortModel<T: Codable, Equatable>: Identifiable, Codable, Equatable {
-
-
-//struct PortValue<T: Codable & Equatable>: Codable, Equatable {
-//
-//}
-
-
-class Vehicle {
-    var currentSpeed = 0.0
-    var description: String {
-        return "traveling at \(currentSpeed) miles per hour"
-    }
-    func makeNoise() {
-        // do nothing - an arbitrary vehicle doesn't necessarily make a noise
-    }
-}
-
-class Bicycle: Vehicle {
-    var hasBasket = false
-}
-
-
-class PM: Identifiable, Codable, Equatable {
-    
-    // is this true? -- two port models are the same if their port-ids and node-ids match?
-    // ... do I care about the values here?
-    static func == (lhs: PM, rhs: PM) -> Bool {
-        lhs.id == rhs.id && lhs.nodeId == rhs.nodeId
-    }
-    
-    let id: Int
-    let nodeId: Int
-    let portType: PortType // input or output
-    let label: String // port label
-    
-    // if I define value property here,
-    // then
-//    let value: Any
-
-//    let value: String // port value
-//    let value: T // port value
-    
-    // Any needs to be Codable and Equatable
-//    let value: Any // port value
-//    let value: <Codable & Equatable>
-    
-}
-
-class BoolPM: PM {
-    var value: Bool = false
-}
-
-
-//class PV {}
-//
-//class BoolPV: PV {
-//    var value: Bool = false
-//}
-
-//protocol PV: Equatable, Codable {
-//
-//}
-//
-//struct BoolPV: PV, Equatable, Codable {
-//    let value: Bool
-//}
-
-
-//protocol PV {
-//
-//}
-
-// if PV is struct (rather than protocol or class)
-
-// a struct can inherit from protocol or class, but not other structs
-//struct PV: Equatable, Codable {
-//
-//}
-
-
-
-//protocol PV {}
-//protocol PV: Equatable, Codable {}
-
-//struct BoolPV: PV, Equatable, Codable {
-//    let value: Bool
-//}
-
-//class BoolPV: PV, Equatable, Codable {
-//class BoolPV: PV {
-//struct BoolPV: PV, Equatable, Codable {
-//
-////    static func == (lhs: BoolPV, rhs: BoolPV) -> Bool {
-////        lhs.value == rhs.value
-////    }
-//
-//    let value: Bool
-////    var value: Bool = false
-//
-//    init(_ value: Bool) {
-//        self.value = value
-//
-//    }
-//
-//    required init(from decoder: Decoder) throws {
-//        fatalError("init(from:) has not been implemented")
-//    }
-//}
-//
-//struct StringPV: PV, Equatable, Codable {
-//    let value: String
-////    var value: String = ""
-//
-//    init(_ value: String) {
-//        self.value = value
-//    }
-//}
-//
-//let spv1 = StringPV("test")
-//let spv2 = StringPV("test")
-//
-//
-//func fn(pv: PV) -> Bool {
-//
-//    return pv is StringPV
-//
-////    return StringPV("test") is PV
-//
-////    return true
-//}
-
-//let x1: Bool = spv1 == spv2
-//let y1: Bool = StringPV("test")
-
-
-
-//
-class PV: Equatable, Codable {
-
-    // must implement this? ... but what does this even mean?
-    static func == (lhs: PV, rhs: PV) -> Bool {
-        return lhs == rhs
-    }
-}
-
-//class PV {}
-
-
-//class TPV<T: Equatable & Codable>: PV {
-//
-//    var value: T
-//
-//    required init(from decoder: Decoder) throws {
-//
-//    }
-//
-//    override func encode(to encoder: Encoder) throws {
-//
-//    };
-//}
-
-
-class StringPV: PV {
-//class StringPV: PV, Equatable, Codable {
-    
-    static func == (lhs: StringPV, rhs: StringPV) -> Bool {
-        lhs.value == rhs.value
-    }
-    
-//    let value: Bool
-    var value: String = ""
-    
-    let defaultValue: String = ""
-
-    init(_ value: String) {
-        self.value = value
-        super.init()
-    }
-
-    required init(from decoder: Decoder) throws {
-        fatalError("init(from:) has not been implemented")
-    }
-}
-
-class BoolPV: PV {
-//class BoolPV: PV, Equatable, Codable {
-    static func == (lhs: BoolPV, rhs: BoolPV) -> Bool {
-        lhs.value == rhs.value
-    }
-    
-//    let value: Bool
-    
-    
-    
-    var value: Bool = false
-    
-    let defaultValue: Bool = false
-
-    init(_ value: Bool) {
-        self.value = value
-        super.init()
-    }
-
-    required init(from decoder: Decoder) throws {
-        fatalError("init(from:) has not been implemented")
-    }
-}
-
 
 
 // are these genuinely equatable?
@@ -429,7 +186,7 @@ enum MPV: Equatable, Codable {
     }
     
     func encode(to encoder: Encoder) throws {
-        log("MPV encode called")
+//        log("MPV encode called")
         var container = encoder.container(keyedBy: CodingKeys.self)
         switch self {
             case .StringMPV(let value):

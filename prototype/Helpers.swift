@@ -10,8 +10,16 @@ import ReSwift
 import SwiftUI
 
 
+//func toggleBoolMPB(bmpv: MPV.) -> BoolMPV {
+//
+//}
+
+func toggleBool(_ bool: Bool) -> Bool {
+    return bool ? false : true
+}
+
 func getColorFromStringMPV(mpv: MPV, defaultColor: Color = Color.black.opacity(0.5) ) -> Color {
-    log("getColorFromStringMPV called")
+//    log("getColorFromStringMPV called")
     
     if case .StringMPV(let x) = mpv {
         switch x {
@@ -35,7 +43,7 @@ func getDisplayablePortValue(mpv: MPV) -> String {
             displayablePortValue = x.description
     }
     
-    log("displayablePortValue: \(displayablePortValue)")
+//    log("displayablePortValue: \(displayablePortValue)")
     return displayablePortValue;
 }
 
@@ -71,8 +79,8 @@ func getNodeTypeForPort(nodeModels: [NodeModel], nodeId: Int, portId: Int) -> No
 // can be used for getting either input- OR output- ports, as long as you have the nodeId and portId
 func getPortModel(nodeModels: [NodeModel], nodeId: Int, portId: Int) -> PortModel {
     log("getPortModel called")
-    log("getPortModel: nodeId \(nodeId), portId \(portId)")
-    log("getPortModel nodeModels: \(nodeModels)")
+//    log("getPortModel: nodeId \(nodeId), portId \(portId)")
+//    log("getPortModel nodeModels: \(nodeModels)")
 
     let isDesiredNode = { (nm: NodeModel) -> Bool in nm.id == nodeId}
     let isDesiredPort = { (pm: PortModel) -> Bool in pm.id == portId }
@@ -107,6 +115,7 @@ func updateNodePortModel(state: AppState,
 //                         newValue: PV) -> NodeModel {
                          newValue: MPV) -> NodeModel {
     log("updateNodePortModel called")
+    log("port: \(port)")
     log("newValue: \(newValue)")
 
     let isDesiredNode = { (nm: NodeModel) -> Bool in nm.id == port.nodeId}

@@ -439,3 +439,52 @@ struct BallPreferenceKey: PreferenceKey {
 //    }
 //}
 //
+
+
+
+
+
+// a port was tapped;
+// if NOT exists activePort/connectingPort,
+//  then make this port the activePort
+// else:
+//  create an edge between this port and the existing activePort
+//struct PortTapped: Action {
+//    let port: PortIdentifier
+////    let isInput: Bool
+//}
+//
+
+//
+//struct NodeMovedAction: Action {
+//    let graphId: Int
+//    let position: CGSize
+//    let node: Node
+//}
+//
+//struct NodeCommittedAction: Action {
+//    let graphId: Int
+//    let position: CGSize
+//    let node: Node
+//}
+//
+//struct NodeDeletedAction: Action {
+//    let graphId: Int
+//    let nodeId: Int
+//}
+//
+//struct GraphDeletedAction: Action {
+//    let graphId: Int
+//}
+//
+//struct EdgeAddedAction: Action {
+//    let graphId: Int
+//    let from: Int
+//    let to: Int
+//}
+//
+//struct EdgeRemovedAction: Action {
+//    let graphId: Int
+//    let from: Int
+//    let to: Int
+//}

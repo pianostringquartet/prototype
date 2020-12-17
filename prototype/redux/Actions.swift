@@ -22,6 +22,12 @@ struct TextTappedMiniviewAction: Action {
 }
 
 
+struct TextMovedMiniviewAction: Action {
+    let textLayerId: Int // the specific TextLayer that was moved
+    let newPosition: CGFloat
+    let oldPosition: CGFloat
+}
+
 
 /* ----------------------------------------------------------------
  Graph Actions
@@ -44,54 +50,6 @@ struct PortEdgeCreated: Action {
 }
 
 
-// a port was tapped;
-// if NOT exists activePort/connectingPort,
-//  then make this port the activePort
-// else:
-//  create an edge between this port and the existing activePort
-//struct PortTapped: Action {
-//    let port: PortIdentifier
-////    let isInput: Bool
-//}
-//
-
-//
-//struct NodeMovedAction: Action {
-//    let graphId: Int
-//    let position: CGSize
-//    let node: Node
-//}
-//
-//struct NodeCommittedAction: Action {
-//    let graphId: Int
-//    let position: CGSize
-//    let node: Node
-//}
-//
-//struct NodeDeletedAction: Action {
-//    let graphId: Int
-//    let nodeId: Int
-//}
-//
-//struct GraphDeletedAction: Action {
-//    let graphId: Int
-//}
-//
-//struct EdgeAddedAction: Action {
-//    let graphId: Int
-//    let from: Int
-//    let to: Int
-//}
-//
-//struct EdgeRemovedAction: Action {
-//    let graphId: Int
-//    let from: Int
-//    let to: Int
-//}
-
-
-
-
 
 /* ----------------------------------------------------------------
  Handlers: (State, Action, Effects) -> State
@@ -101,39 +59,38 @@ struct PortEdgeCreated: Action {
 func handleTextTappedMiniviewAction(state: AppState, textTapped: TextTappedMiniviewAction) -> AppState {
     
     log("handleTextTappedMiniviewAction called")
-    log("doing NOTHING")
-    return state
+
+    //    log("doing NOTHING")
+//    return state
     
-//
-//
-//    var state = state
-//
-//    let pi: PortIdentifier = PortIdentifier(nodeId: valNodeId3, portId: 1, isInput: false)
-//
-//    // with a fn like getPortModel... with just the portid and nodeid, you would not know the type
-//    // of the port's value
-//
-//    let pm: PortModel = getPortModel(nodeModels: state.nodeModels, nodeId: valNodeId3, portId: 1)
-//
-//    // e.g. toggle boolean value
-////    let newValue: String = pm.value == "false" ? "true" : "false"
-//
-//    // should not be hardcoded? ... basically, want to toggle the value
-//
-//    // this is not good -- doing all this downcasting...
-//    let newValue: BoolPV = (pm.value as! BoolPV).value == false ? BoolPV(true) : BoolPV(false)
-//
-//
-//    log("handleTextTappedMiniviewAction newValue: \(newValue)")
-//
+    
+    var state = state
+
+    
+    // HARDCODED -- the port-identifier for the `press` interaction node
+    let pi: PortIdentifier = PortIdentifier(nodeId: valNodeId3, portId: 1, isInput: false)
+
+    // retrieving the port from state
+    let pm: PortModel = getPortModel(nodeModels: state.nodeModels, nodeId: valNodeId3, portId: 1)
+    
+    if case .BoolMPV(let x) = pm.value {
+        let newValue: MPV = .BoolMPV(toggleBool(x))
+        
+        log("handleTextTappedMiniviewAction newValue: \(newValue)")
+        let updatedNode: NodeModel = updateNodePortModel(state: state, port: pi, newValue: newValue)
+        let updatedNodes: [NodeModel] = replace(ts: state.nodeModels, t: updatedNode)
+        state.nodeModels = updatedNodes
+        state = recalculateGraph(state: state)
+    }
+    
+    
+
 //    let updatedNode: NodeModel = updateNodePortModel(state: state, port: pi, newValue: newValue)
-//
 //    let updatedNodes: [NodeModel] = replace(ts: state.nodeModels, t: updatedNode)
-//
 //    state.nodeModels = updatedNodes
 //    state = recalculateGraph(state: state)
-//
-//    return state
+
+    return state
 }
 
 
@@ -160,7 +117,6 @@ func handlePortTappedAction(state: AppState, action: PortTappedAction) -> AppSta
     
     // otherwise, we're adding or removing edges
     
-    
     // disallowed edges
     else if (state.activePM!.nodeId == action.port.nodeId) || (state.activePM!.portType == PortType.input && action.port.portType == PortType.input ) {
         log("tried to create illegal edge")
@@ -178,6 +134,7 @@ func handlePortTappedAction(state: AppState, action: PortTappedAction) -> AppSta
                                                       portId: state.activePM!.id,
                                                       isInput: state.activePM!.portType == PortType.input)
         
+        // for typography color text layer ONLY, the toPort nodeId is wrong
         let toPort: PortIdentifier = PortIdentifier(nodeId: action.port.nodeId,
                                                     portId: action.port.id,
                                                     isInput: action.port.portType == PortType.input)
@@ -185,6 +142,7 @@ func handlePortTappedAction(state: AppState, action: PortTappedAction) -> AppSta
         
         let newEdge: PortEdge = PortEdge(from: fromPort,
                                            to: toPort)
+        
         let edgeAlreadyExists = state.edges.contains(newEdge)
         
 //        let flowValue: String = state.activePM!.value
@@ -437,7 +395,7 @@ func removeEdgeAndUpdateNodes(state: AppState,
 //func addEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: PV, toPort: PortIdentifier) -> AppState { // ie edge does not already exist; will add it and update ports
 func addEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: MPV, toPort: PortIdentifier) -> AppState { // ie edge does not already exist; will add it and update ports
 
-    log("addEdgeAndUpdateNodes: edge does not exist; will add it")
+    log("addEdgeAndUpdateNodes: edge does not exist; will add it: newEdge: \(newEdge)")
     
     var state = state
     
@@ -567,8 +525,8 @@ func calculateValue(nm: NodeModel, op: Operation, flowValue: MPV) -> MPV {
         // it looks like I was returning a color
         case .optionPicker:
             log("matched on .optionPicker")
-            log("doing nothing...")
-            return MPV.StringMPV("Purple")
+//            log("doing nothing...")
+//            return MPV.StringMPV("Purple")
             switch inputs[0].value {
                 case .BoolMPV(let x):
                     return .StringMPV(x == true ? "Green" : "Purple")

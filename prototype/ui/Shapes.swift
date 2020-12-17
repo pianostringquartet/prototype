@@ -300,105 +300,38 @@ struct PortView: View {
     
     // needs to be a REAL fn
     func fillColor(hasEdge: Bool, isInput: Bool, isOptionPicker: Bool) -> Color {
+//        log("fillColor called for node \(pm.nodeId), port \(pm.id)")
         
         let isActivePort: Bool = state.activePM?.nodeId == pm.nodeId && state.activePM?.id == pm.id
         let defaultColor: Color = Color.white.opacity(1.0)
+
         
-        
-        // if there is a color, use that
-        
-        // else if hasEdge or isActive, use edgeColor
-        
-        // else, use defaultColor
-        
-        // but what if I also want to destructure the values?
-//        if case .StringMPV = pm.value {
-        if case .StringMPV(let x) = pm.value {
-            log("fillColor: we have a StringMPV with x: \(x)")
-            
+        if isActivePort {
+            return edgeColor // active port always looks like this...
+        }
+        else if case .StringMPV(let x) = pm.value {
+//            log("fillColor: we have a StringMPV with x: \(x)")
+
             // still using strings for color at the moment
             switch x {
                 case "Green": return Color.green
                 case "Purple": return Color.purple
-                default: return defaultColor
+                default:
+//                    // if the String is e.g. "Hello", then we want to check
+//                    break // can't just 'break'?
+//                    return defaultColor
+                    return (hasEdge || isActivePort) ? edgeColor : defaultColor
             }
         }
         
         else if (hasEdge || isActivePort) {
-            log("fillColor: hasEdge or isActivePort")
+//            log("fillColor: hasEdge or isActivePort")
             return edgeColor
         }
         else {
-            log("fillColor: default")
+//            log("fillColor: default")
             return defaultColor
         }
-        
-        
-        // it's not "if it's an option picker" but rather "is the value a color?"
-//        if isOptionPicker {
-////            return pm.value == "Green" ? Color.green : Color.purple
-//            switch pm.value {
-//                case "Green": return Color.green
-//                case "Purple": return Color.purple
-//                default: return defaultColor
-//            }
-//        }
-//
-//        var color: Color
-        
-//        if isActivePort {
-//            return edgeColor
-//        }
-    
-        // pm.value could be any type, e.g. String or Bool or Color etc.
-        
-        
-        // have to do this typecasting bc still using string to represent color
-//        else if pm.value is StringPV {
-//        else if pm.value is MPV {
-//            log("we have a StringPV...")
-//            return pm.value == "Green"
-//            return pm.value as! StringPV == "Green"
-//            switch (pm.value as! StringPV).value {
-//                case "Green":
-//                    return Color.green
-//                case "Purple":
-//                    return Color.green
-//                default:
-//                    return defaultColor
-//            }
-//            switch pm.value {
-//                case let s as .StringMPV:
-////
-//                    return Color.green
-//                case "Purple":
-//                    return Color.green
-//                default:
-//                    return defaultColor
-//            }
-//        }
-        
-//        else if pm.value is BoolPV {
-//            log("we have a BoolPV...")
-//            return defaultColor
-//        }
-//
-//        else if pm.value == "Green" {
-//            return Color.green
-//        }
-//
-//        else if pm.value == "Purple" {
-//            return Color.purple
-//        }
-        
-        if (hasEdge || isActivePort) {
-            return edgeColor
-        }
-        else {
-            return defaultColor
-        }
-        
-        
     }
     
     
@@ -424,6 +357,10 @@ struct PortView: View {
 
             .onTapGesture(count: 1, perform: {
                 log("PortView tap called: Node \(pm.nodeId), Port \(pm.id), Value: \(pm.value)")
+                log("PortView tap called: current pm is: \(state.activePM)")
+                
+                
+                
                 dispatch(PortTappedAction(port: pm))
             })
         
