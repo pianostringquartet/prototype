@@ -10,45 +10,38 @@ import ReSwift
 import SwiftUI
 
 
-//func toggleBoolMPB(bmpv: MPV.) -> BoolMPV {
-//
-//}
-
 func toggleBool(_ bool: Bool) -> Bool {
     return bool ? false : true
 }
 
-func getColorFromStringMPV(mpv: PortValue, defaultColor: Color = Color.black.opacity(0.5) ) -> Color {
-    
-    if case .string(let x) = mpv {
-        switch x {
-            case "Green": return Color.green
-            case "Purple": return Color.purple
-            default: return defaultColor
-        }
-    } else {
-        return defaultColor
+func colorFromString(_ s: String) -> Color {
+    switch s {
+        case greenColorString:
+            return Color.green
+        case purpleColorString:
+            return Color.purple
+        default:
+            log("colorFromString default...")
+            return Color.gray
     }
 }
+
 
 // can instead be method on MPV type?
 func getDisplayablePortValue(mpv: PortValue) -> String {
-    var displayablePortValue: String
-    
     switch mpv {
         case .string(let x):
-            displayablePortValue = x
+            return x
         case .bool(let x):
-            displayablePortValue = x.description
+            return x.description
         case .color(let x):
             // what IS a description for a color?
-            displayablePortValue = x.description
+            return x.description
+//            return x.color.description
+        case .int(let x):
+            return x.description
     }
-    
-    return displayablePortValue;
 }
-
-
 
 
 // does this output/input port have an edge coming out of / into it?
@@ -80,12 +73,9 @@ func getNodeTypeForPort(nodeModels: [NodeModel], nodeId: Int, portId: Int) -> No
 // can be used for getting either input- OR output- ports, as long as you have the nodeId and portId
 func getPortModel(nodeModels: [NodeModel], nodeId: Int, portId: Int) -> PortModel {
     log("getPortModel called")
-//    log("getPortModel: nodeId \(nodeId), portId \(portId)")
-//    log("getPortModel nodeModels: \(nodeModels)")
 
     let isDesiredNode = { (nm: NodeModel) -> Bool in nm.id == nodeId}
     let isDesiredPort = { (pm: PortModel) -> Bool in pm.id == portId }
-
     
     let node: NodeModel = nodeModels.first(where: isDesiredNode)!
     return node.ports.first(where: isDesiredPort)!
@@ -153,7 +143,6 @@ func updateNodeOutputPortModel(state: AppState,
     log("newValue: \(newValue)")
 
     let isDesiredNode = { (nm: NodeModel) -> Bool in nm.id == port.nodeId}
-//    let isDesiredPort = { (pm: PortModel) -> Bool in pm.id == port.portId }
     
     // Find the old port
     // 1. find the desired node

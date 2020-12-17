@@ -72,27 +72,49 @@ enum PortType: String, Codable {
 }
 
 
+// Temporary: wrapper type
+struct Color2: Equatable, Codable {
+    var r: Double = 0.0
+    var g: Double = 0.0
+    var b: Double = 0.0
+    var opacity: Double = 1.0
+
+    var color: Color {
+        return Color(red: r, green: g, blue: b, opacity: opacity)
+
+    }
+}
 
 
 enum PortValue: Equatable, Codable {
+    
     case string(String)
     case bool(Bool)
-    case color(Color)
+    case color(String)
+//    case color(Color)
+//    case color(Color2)
+    case int(Int)
     
     enum CodingKeys: CodingKey {
-        case string, bool, color
+        case string, bool, color, int
     }
     
     func encode(to encoder: Encoder) throws {
-//        log("MPV encode called")
+        log("PortValue encode called")
         var container = encoder.container(keyedBy: CodingKeys.self)
         switch self {
             case .string(let value):
+                log("PortValue encoder: .string")
                 try container.encode(value, forKey: .string)
             case .bool(let value):
+                log("PortValue encoder: .bool")
                 try container.encode(value, forKey: .bool)
             case .color(let value):
+                log("PortValue encoder: .color")
                 try container.encode(value, forKey: .color)
+            case .int(let value):
+                log("PortValue encoder: .int")
+                try container.encode(value, forKey: .int)
                 
         }
         // don't need to return anything?
@@ -100,22 +122,53 @@ enum PortValue: Equatable, Codable {
     
     
     init(from decoder: Decoder) throws {
+//        log("PortValue: init(from decoder: Decoder) called")
         let values = try decoder.container(keyedBy: CodingKeys.self)
+        
         if let value = try? values.decode(String.self, forKey: .string) {
+            log("PortValue decoder: .string")
             self = .string(value)
             return
         } else if let value = try? values.decode(Bool.self, forKey: .bool) {
+            log("PortValue decoder: .bool")
             self = .bool(value)
             return
-        } else if let value = try? values.decode(Color.self, forKey: .color) {
-            self = .color(value)
+        } else if let value = try? values.decode(Int.self, forKey: .int) {
+            log("PortValue decoder: .int")
+            self = .int(value)
             return
         } else {
-//            throw EncodingError.dataCorrupted // not found?
-            throw fatalError("decoding MPV failed...")
+            log("... may try to decode Color...")
+//            if let value = try? values.decode(Color.self, forKey: .color) {
+//            if let value = try? values.decode(Color2.self, forKey: .color) {
+            if let value = try? values.decode(String.self, forKey: .color) {
+                log("PortValue decoder: .color")
+                self = .color(value)
+                return
+            }
+            else {
+                log("will throw fatal decoding error...")
+                throw fatalError("decoding MPV failed...")
+            }
         }
     }
+        
+            
+//        } else if let value = try? values.decode(Color.self, forKey: .color) {
+//            log("PortValue decoder: .color")
+//            self = .color(value)
+//            return
+////        } else if let value = try? values.decode(Int.self, forKey: .int) {
+////            self = .int(value)
+////            return
+//        } else {
+////            throw EncodingError.dataCorrupted // not found?
+//            throw fatalError("decoding MPV failed...")
+//        }
+        
+//    }
 }
+
 
 struct PortModel: Identifiable, Codable, Equatable {
     
@@ -309,7 +362,15 @@ func boolValNode(id: Int, value: Bool, label: String = "output: Bool") -> NodeMo
 // viz nodes have only inputs (one or more)
 func stringVizNode(id: Int, value: String, previewElement: PreviewElement, label: String) -> NodeModel {
 
-    let vizNodeInput: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: label, value: PortValue.string(value), defaultValue: .string(value))
+    let vizNodeInput: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: label, value: .string(value), defaultValue: .string(value))
+
+    return NodeModel(id: id, nodeType: NodeType.vizNode, ports: [vizNodeInput], previewElement: previewElement)
+}
+
+
+func colorVizNode(id: Int, value: String, previewElement: PreviewElement, label: String) -> NodeModel {
+
+    let vizNodeInput: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: label, value: .color(value), defaultValue: .color(value))
 
     return NodeModel(id: id, nodeType: NodeType.vizNode, ports: [vizNodeInput], previewElement: previewElement)
 }
@@ -318,7 +379,7 @@ func stringVizNode(id: Int, value: String, previewElement: PreviewElement, label
 // not used yet?
 func boolVizNode(id: Int, value: Bool, previewElement: PreviewElement, label: String) -> NodeModel {
 
-    let vizNodeInput: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: label, value: PortValue.bool(value), defaultValue: .bool(value))
+    let vizNodeInput: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: label, value: .bool(value), defaultValue: .bool(value))
 
     return NodeModel(id: id, nodeType: NodeType.vizNode, ports: [vizNodeInput], previewElement: previewElement)
 }
@@ -331,9 +392,9 @@ func uppercaseNodeModel(id: Int) -> NodeModel {
     
     let operation: Operation = Operation.uppercase
     
-    let input: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: "input: String", value: PortValue.string(""), defaultValue: PortValue.string(""))
+    let input: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: "input: String", value: .string(""), defaultValue: .string(""))
 
-    let output: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.output, label: "output: String", value: PortValue.string(""), defaultValue: PortValue.string(""))
+    let output: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.output, label: "output: String", value: .string(""), defaultValue: .string(""))
     
     return NodeModel(id: id, nodeType: .calcNode, ports: [input, output], operation: operation)
 }
@@ -357,9 +418,13 @@ func optionPickerNodeModel(id: Int) -> NodeModel {
     
     let input: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: "Bool", value: PortValue.bool(false), defaultValue: PortValue.bool(false))
     
-    let input2: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.input, label: "Color", value: PortValue.string("Green"), defaultValue: PortValue.string("Green"))
-    let input3: PortModel = PortModel(id: 3, nodeId: id, portType: PortType.input, label: "Color", value: PortValue.string("Purple"), defaultValue: PortValue.string("Pruple"))
-    let output: PortModel = PortModel(id: 4, nodeId: id, portType: PortType.output, label: "Color", value: PortValue.string("Purple"), defaultValue: PortValue.string("Purple"))
+//    let input2: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.input, label: "Color", value: PortValue.string("Green"), defaultValue: PortValue.string("Green"))
+//    let input3: PortModel = PortModel(id: 3, nodeId: id, portType: PortType.input, label: "Color", value: PortValue.string("Purple"), defaultValue: PortValue.string("Pruple"))
+//    let output: PortModel = PortModel(id: 4, nodeId: id, portType: PortType.output, label: "Color", value: PortValue.string("Purple"), defaultValue: PortValue.string("Purple"))
+    
+    let input2: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.input, label: "Color", value: .color(trueColorString), defaultValue: .color(trueColorString))
+    let input3: PortModel = PortModel(id: 3, nodeId: id, portType: PortType.input, label: "Color", value: .color(falseColorString), defaultValue: .color(falseColorString))
+    let output: PortModel = PortModel(id: 4, nodeId: id, portType: PortType.output, label: "Color", value: .color(falseColorString), defaultValue: .color(falseColorString))
         
     return NodeModel(id: id, nodeType: NodeType.calcNode, ports: [input, input2, input3, output], operation: operation)
 

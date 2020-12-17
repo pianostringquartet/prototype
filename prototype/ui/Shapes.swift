@@ -16,8 +16,11 @@ import ReSwift
 
 // COLORS
 
-// from Adam's prototype
 
+
+
+
+// from Adam's prototype
 
 //let edgeColor: Color = Color(red: 122 / 255, green: 237 / 255, blue: 175 / 255)
 let edgeColor: Color = Color(red: 80 / 255, green: 250 / 255, blue: 200 / 255, opacity: 0.8)
@@ -170,8 +173,10 @@ struct NodeView: View {
                 case .valNode:
                     SinglePortTypeView(ports: outputs, state: state, dispatch: dispatch, isInput: false)
                 case .calcNode:
-                    DualPortTypeView(inputs: inputs, outputs: outputs, state: state, dispatch: dispatch,
-                                     isOptionPicker: nodeModel.operation! == .optionPicker)
+                    DualPortTypeView(inputs: inputs,
+                                     outputs: outputs,
+                                     state: state,
+                                     dispatch: dispatch)
                 case .vizNode:
                     SinglePortTypeView(ports: inputs, state: state, dispatch: dispatch, isInput: true)
             }
@@ -190,7 +195,6 @@ struct NodeView: View {
                         self.localPreviousPosition = self.localPosition
                     })
         .animation(.spring(response: 0.3, dampingFraction: 0.65, blendDuration: 4))
-//        .shadow(radius: 15)
         .frame(maxHeight: 600)
 //        .shadow(radius: 15)
     }
@@ -207,11 +211,6 @@ struct DualPortTypeView: View {
     let state: AppState
     let dispatch: Dispatch
     
-    
-    // option picker is this type
-    
-    let isOptionPicker: Bool
-    
     let spacing: CGFloat = 10
     
     var body: some View {
@@ -225,8 +224,7 @@ struct DualPortTypeView: View {
                           dispatch: dispatch,
                           state: state,
                           isInput: true,
-                          hasEdge: hasEdge(edges: state.edges, pm: input, isInput: true),
-                          isOptionPicker: isOptionPicker)
+                          hasEdge: hasEdge(edges: state.edges, pm: input, isInput: true))
                 }
             }
             
@@ -238,8 +236,7 @@ struct DualPortTypeView: View {
                              dispatch: dispatch,
                              state: state,
                              isInput: false,
-                             hasEdge: hasEdge(edges: state.edges, pm: output, isInput: false),
-                             isOptionPicker: isOptionPicker)
+                             hasEdge: hasEdge(edges: state.edges, pm: output, isInput: false))
 
                 }
             }
@@ -257,8 +254,6 @@ struct SinglePortTypeView: View {
     
     let spacing: CGFloat = 20
     
-    
-    
     var body: some View {
         // output or inputs
         VStack (spacing: spacing) {
@@ -268,20 +263,50 @@ struct SinglePortTypeView: View {
                          dispatch: dispatch,
                          state: state,
                          isInput: isInput,
-                         hasEdge: hasEdge(edges: state.edges, pm: port, isInput: isInput),
-                         // optionPickers always have two ports
-                         isOptionPicker: false)
+                         hasEdge: hasEdge(edges: state.edges, pm: port, isInput: isInput))
             }
         }
     }
 }
 
 
-
 let commonSpacing: CGFloat = 10
 
 
-//func fillColor(hasEdge: Bool)
+// fill port's color
+func fillColor(hasEdge: Bool, thisPM: PortModel, activePM: PortModel?) -> Color {
+//        log("fillColor called for node \(pm.nodeId), port \(pm.id)")
+    
+    let isActivePort: Bool = activePM?.nodeId == thisPM.nodeId && activePM?.id == thisPM.id
+    
+    let defaultColor: Color = Color.white.opacity(1.0)
+
+    // Arranged by color priority:
+    // activePort: highest priority
+    // coloredPorts
+    // hasEdge
+    // default: lowest priority
+    
+    if isActivePort {
+        return edgeColor // active port always looks like this...
+    }
+    else if case .color(let x) = thisPM.value {
+//        return x.color
+        switch x {
+            case greenColorString: return Color.green
+            case purpleColorString: return Color.purple
+            default: return defaultColor // temporary...
+        }
+            
+        
+    }
+    else if hasEdge {
+        return edgeColor
+    }
+    else {
+        return defaultColor
+    }
+}
 
 
 struct PortView: View {
@@ -296,52 +321,15 @@ struct PortView: View {
     // is this specific port CURRENTLY either the origin or the target for an edge?
     let hasEdge: Bool
 
-    let isOptionPicker: Bool
+//    let isOptionPicker: Bool
     
-    // needs to be a REAL fn
-    func fillColor(hasEdge: Bool, isInput: Bool, isOptionPicker: Bool) -> Color {
-//        log("fillColor called for node \(pm.nodeId), port \(pm.id)")
-        
-        let isActivePort: Bool = state.activePM?.nodeId == pm.nodeId && state.activePM?.id == pm.id
-        let defaultColor: Color = Color.white.opacity(1.0)
+    
 
-        
-        if isActivePort {
-            return edgeColor // active port always looks like this...
-        }
-        else if case .StringMPV(let x) = pm.value {
-//            log("fillColor: we have a StringMPV with x: \(x)")
-
-            // still using strings for color at the moment
-            switch x {
-                case "Green": return Color.green
-                case "Purple": return Color.purple
-                default:
-//                    // if the String is e.g. "Hello", then we want to check
-//                    break // can't just 'break'?
-//                    return defaultColor
-                    return (hasEdge || isActivePort) ? edgeColor : defaultColor
-            }
-        }
-        
-        else if (hasEdge || isActivePort) {
-//            log("fillColor: hasEdge or isActivePort")
-            return edgeColor
-        }
-        else {
-//            log("fillColor: default")
-            return defaultColor
-        }
-    }
-    
-    
-    
-    
     var body: some View {
         let portDot = Circle()
 //            .stroke(hasEdge ? edgeColor : Color.black)
 //            .fill((hasEdge || isActivePort) ? edgeColor : Color.white.opacity(1.0))
-            .fill(fillColor(hasEdge: hasEdge, isInput: isInput, isOptionPicker: isOptionPicker))
+            .fill(fillColor(hasEdge: hasEdge, thisPM: pm, activePM: state.activePM))
 //            .fill((hasEdge || isActivePort) ? edgeColor : nodeEmptyPortColor)
 //            .background(isActivePort ? edgeColor : Color.white.opacity(1.0))
             .clipShape(Circle())
@@ -359,33 +347,14 @@ struct PortView: View {
                 log("PortView tap called: Node \(pm.nodeId), Port \(pm.id), Value: \(pm.value)")
                 log("PortView tap called: current pm is: \(state.activePM)")
                 
-                
-                
                 dispatch(PortTappedAction(port: pm))
             })
-        
-//        let portValue = Text(pm.value)
-        
-        // ie displayable value
-        // need util fn like "getDisplayableValue"? 
-//        let displayablePortValue: String = pm.value is BoolPV
-//            ? (pm.value as! BoolPV).value.description
-//            : (pm.value as! StringPV).value
-        
-//        let displayablePortValue: String = "fill me in.."
-        
-//        let displayablePortValue: String = pm.value
-        
-        
-        
+                
         let displayablePortValue: String = getDisplayablePortValue(mpv: pm.value)
         
         let portValue = Text(displayablePortValue)
-//        let portValue = Text(pm.value)
         
         VStack (spacing: 10) {
-//            Text(pm.label)
-            
             Text("Port \(pm.id)") // for debug, really
             
             if isInput == true {

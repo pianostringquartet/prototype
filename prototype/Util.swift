@@ -38,42 +38,60 @@ func replace<T: Identifiable>(ts: [T], t: T) -> [T] {
  Utility extensions
  ---------------------------------------------------------------- */
 
-extension Color: Codable {
-    enum CodingKeys: String, CodingKey {
-        case red, green, blue
-    }
-    
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        let r = try container.decode(Double.self, forKey: .red)
-        let g = try container.decode(Double.self, forKey: .green)
-        let b = try container.decode(Double.self, forKey: .blue)
-        
-        self.init(red: r, green: g, blue: b)
-    }
+// TODO: Debug why this is failing
 
-    public func encode(to encoder: Encoder) throws {
-        guard let cgColor = self.cgColor,
-              let colorSpace = cgColor.colorSpace,
-              let components = cgColor.components else {
-            
-            return
-        }
-        
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        
-        let model = colorSpace.model
-        
-        switch model {
-        case .rgb:
-            try container.encode(components[0], forKey: .red)
-            try container.encode(components[1], forKey: .green)
-            try container.encode(components[2], forKey: .blue)
-        default:
-            fatalError("Consider implementing other models")
-        }
-    }
-}
+//extension Color: Codable {
+//    enum CodingKeys: String, CodingKey {
+//        case red, green, blue
+//    }
+//
+//    public init(from decoder: Decoder) throws {
+//        log("Color: Codable: decoder")
+//
+//        // this is causing problems
+//
+//        let container = try decoder.container(keyedBy: CodingKeys.self)
+//        log("container: \(container)")
+//
+//        // ^^ we can get here, but not below
+//
+//        let r = try container.decode(Double.self, forKey: .red)
+//        log("r: \(r)")
+//
+//        let g = try container.decode(Double.self, forKey: .green)
+//        log("g: \(g)")
+//
+//        let b = try container.decode(Double.self, forKey: .blue)
+//        log("b: \(b)")
+//
+//        log("r, g, b: \(r), \(g), \(b)")
+//
+//        self.init(red: r, green: g, blue: b)
+//    }
+//
+//    public func encode(to encoder: Encoder) throws {
+//        log("Color: Codable: encoder")
+//        guard let cgColor = self.cgColor,
+//              let colorSpace = cgColor.colorSpace,
+//              let components = cgColor.components else {
+//
+//            return
+//        }
+//
+//        var container = encoder.container(keyedBy: CodingKeys.self)
+//
+//        let model = colorSpace.model
+//
+//        switch model {
+//        case .rgb:
+//            try container.encode(components[0], forKey: .red)
+//            try container.encode(components[1], forKey: .green)
+//            try container.encode(components[2], forKey: .blue)
+//        default:
+//            fatalError("Consider implementing other models")
+//        }
+//    }
+//}
 
 
 /* ----------------------------------------------------------------

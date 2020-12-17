@@ -84,12 +84,6 @@ func handleTextTappedMiniviewAction(state: AppState, textTapped: TextTappedMiniv
     }
     
     
-
-//    let updatedNode: NodeModel = updateNodePortModel(state: state, port: pi, newValue: newValue)
-//    let updatedNodes: [NodeModel] = replace(ts: state.nodeModels, t: updatedNode)
-//    state.nodeModels = updatedNodes
-//    state = recalculateGraph(state: state)
-
     return state
 }
 
@@ -139,17 +133,8 @@ func handlePortTappedAction(state: AppState, action: PortTappedAction) -> AppSta
                                                     portId: action.port.id,
                                                     isInput: action.port.portType == PortType.input)
         
-        
-        let newEdge: PortEdge = PortEdge(from: fromPort,
-                                           to: toPort)
-        
+        let newEdge: PortEdge = PortEdge(from: fromPort, to: toPort)
         let edgeAlreadyExists = state.edges.contains(newEdge)
-        
-//        let flowValue: String = state.activePM!.value
-        
-        // the value that will flow could be a bool OR a string
-        // ... so the flowValue should just be PV
-//        let flowValue: PV = state.activePM!.value
         let flowValue: PortValue = state.activePM!.value
             
         
@@ -157,41 +142,20 @@ func handlePortTappedAction(state: AppState, action: PortTappedAction) -> AppSta
         if edgeAlreadyExists { // will remove edge and update ports
             log("handlePortTappedAction: edge already exists; will remove it")
             
-            // prev: was updating calc-node, removing old node and adding updated node
             
-//            return removeEdgeAndUpdateNodes(state: state, newEdge: newEdge)
-            
+            // if we remove an edge,
             state = removeEdgeAndUpdateNodes(state: state, newEdge: newEdge)
         }
         
         else { // ie edge does not already exist; will add it and update ports
             log("handlePortTappedAction: edge does not exist; will add it")
             
-//            return addEdgeAndUpdateNodes(state: state, newEdge: newEdge, flowValue: flowValue, toPort: toPort)
             state = addEdgeAndUpdateNodes(state: state, newEdge: newEdge, flowValue: flowValue, toPort: toPort)
         }
     }
     
-    
     log("returning final state...")
     
-    // only return final state here
-    //
-    
-    // THINGS WE HAVE TO DO ANYTIME AN EDGE WAS ADDED OR REMOVED
-    
-    // since we've removed an edge, we need to flow the values
-//    state = flowValues(state: state, nodes: state.nodeModels, edges: state.edges)
-//
-//    state = selfConsistency(state: state,
-//                            nodes: state.nodeModels.filter({ (n: NodeModel) -> Bool in
-//                                n.nodeType == .calcNode }))
-//
-//    // need to reflow again because selfConsistency may have changed a node's inputs and outputs
-//    state = flowValues(state: state, nodes: state.nodeModels, edges: state.edges)
-//
-//
-//    state.activePM = nil
     state = recalculateGraph(state: state)
     
     return state
@@ -215,10 +179,7 @@ func recalculateGraph(state: AppState) -> AppState {
     return state
 }
 
-// generate a miniview View from the viz nodes in the most updated graph
-// AppState needs to be able to contain a SwiftUI View
 
-// if we assume state can't hold
 
 func isBasePreviewElement(pe: PreviewElement) -> Bool {
     log("isBasePreviewElement called")
@@ -235,6 +196,9 @@ func isBasePreviewElement(pe: PreviewElement) -> Bool {
 // for some reason, when if baseVn.previewElement! etc. is added,
 // we get "Function declares an opaque return type, but the return statements in its body do not have matching underlying types"
 //func generateMiniview(state: AppState, dispatch: @escaping Dispatch) -> some View {
+
+// `some View` is a specific view-type;
+// instead, use `AnyView` since the view-type returned is dynamic
 func generateMiniview(state: AppState, dispatch: @escaping Dispatch) -> AnyView {
     log("generateMiniview called")
     
@@ -294,11 +258,11 @@ func generateMiniview(state: AppState, dispatch: @escaping Dispatch) -> AnyView 
 
         // add any potential modifiers...
         if modifierVn.previewElement! == .typographyColor {
-
-//            let color: Color = modifierVn.ports.first!.value == "Green" ? Color.green : Color.purple
-            let color: Color = getColorFromStringMPV(mpv: modifierVn.ports.first!.value)
-        
-            return AnyView(text.foregroundColor(color).padding())
+            
+            if case .color(let x) = modifierVn.ports.first!.value {
+                return AnyView(text.foregroundColor(colorFromString(x)).padding())
+//                return AnyView(text.foregroundColor(x.color).padding())
+            }
         }
 
         return AnyView(text.padding())
@@ -321,22 +285,12 @@ func generateMiniview(state: AppState, dispatch: @escaping Dispatch) -> AnyView 
 }
 
 
-// you have to be able
-
-
-// probably shares some overlap with addEdgeAndUpdateNodes,
-// in the updating nodes part
-// NOTE: flowValue is more like 'default value'
-
-
-//func removeEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: String = "") -> AppState {
-//func removeEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge) -> AppState {
-
-// SHOULD IMPLEMENT defaultValue on each PortValue type
 func removeEdgeAndUpdateNodes(state: AppState,
-                              newEdge: PortEdge,
-//                              flowValue: PV = StringPV("default...")) -> AppState {
-                              flowValue: PortValue = PortValue..string("default...")) -> AppState {
+                              newEdge: PortEdge
+//                              ,
+//                              flowValue: PortValue = .string("default...")
+//                              flowValue: PortValue
+) -> AppState {
     log("removeEdgeAndUpdateNodes: edge exists; will remove it")
     
     var state = state
@@ -345,47 +299,36 @@ func removeEdgeAndUpdateNodes(state: AppState,
         edge == newEdge
     })
     
-    let toPortIdentifier: PortIdentifier = newEdge.to
+    // Origami nodes' inputs do not change a connecting edge is removed
+    
+//    let toPortIdentifier: PortIdentifier = newEdge.to
+//
+//    let updatedNode: NodeModel = updateNodePortModel(state: state, port: toPortIdentifier, newValue: flowValue)
+//
+//    let updatedNodes: [NodeModel] = replace(ts: state.nodeModels, t: updatedNode)
+//
+//    state.nodeModels = updatedNodes
+//
+//    let nodeType: NodeType = getNodeTypeForPort(nodeModels: state.nodeModels, nodeId: toPortIdentifier.nodeId, portId: toPortIdentifier.portId)
+//
+//    if nodeType == .calcNode {
+//        log("removeEdgeAndUpdateNodes: will update a calcNode's output too")
+//
+//        // don't know a priori the PortIdent for the output
+//        let outputPM: PortModel = getOutputPortModel(nodeModels: state.nodeModels, nodeId: toPortIdentifier.nodeId)
+//
+//        // node model with updated output
+//        let updatedNode2: NodeModel = updateNodePortModel(
+//            state: state,
+//            port: PortIdentifier(nodeId: outputPM.nodeId, portId: outputPM.id, isInput: false),
+//            newValue: flowValue) // NO OPERATION
+//
+//        let updatedNodes2: [NodeModel] = replace(ts: state.nodeModels, t: updatedNode2)
+//
+//        state.nodeModels = updatedNodes2
+//    }
+    
 
-    let updatedNode: NodeModel = updateNodePortModel(state: state, port: toPortIdentifier, newValue: flowValue)
-    
-    let updatedNodes: [NodeModel] = replace(ts: state.nodeModels, t: updatedNode)
-    
-    state.nodeModels = updatedNodes
-        
-    let nodeType: NodeType = getNodeTypeForPort(nodeModels: state.nodeModels, nodeId: toPortIdentifier.nodeId, portId: toPortIdentifier.portId)
-    
-    if nodeType == .calcNode {
-        log("removeEdgeAndUpdateNodes: will update a calcNode's output too")
-        
-        // don't know a priori the PortIdent for the output
-        let outputPM: PortModel = getOutputPortModel(nodeModels: state.nodeModels, nodeId: toPortIdentifier.nodeId)
-        
-        // node model with updated output
-        let updatedNode2: NodeModel = updateNodePortModel(
-            state: state,
-            port: PortIdentifier(nodeId: outputPM.nodeId, portId: outputPM.id, isInput: false),
-            newValue: flowValue) // NO OPERATION
-        
-        let updatedNodes2: [NodeModel] = replace(ts: state.nodeModels, t: updatedNode2)
-        
-        state.nodeModels = updatedNodes2
-    }
-    
-    
-//    // since we've removed an edge, we need to flow the values
-//    state = flowValues(state: state, nodes: state.nodeModels, edges: state.edges)
-//
-//    state = selfConsistency(state: state,
-//                            nodes: state.nodeModels.filter({ (n: NodeModel) -> Bool in
-//                                n.nodeType == .calcNode }))
-//
-//    // need to reflow again because selfConsistency may have changed a node's inputs and outputs
-//    state = flowValues(state: state, nodes: state.nodeModels, edges: state.edges)
-//
-//
-//    state.activePM = nil
-    
     
     return state
 }
@@ -494,65 +437,48 @@ func calculateValue(nm: NodeModel, op: Operation, flowValue: PortValue) -> PortV
             log("matched on .concat")
             
             switch (inputs[0].value, inputs[1].value) {
-                case (..string(let s1), ..string(let s2)):
+                case (.string(let s1), .string(let s2)):
                     if (s1 == "") || (s2 == "") {
                         log("will not concat...")
-                        return PortValue..string("")
+                        return PortValue.string("")
                     }
                     else {
                         log("will concat...")
-                        return PortValue..string(s1 + s2)
+                        return PortValue.string(s1 + s2)
                     }
                 default:
-                    return PortValue..string("")
+                    return PortValue.string("")
             }
             
             
         case .uppercase:
             log("matched on .uppercase")
             switch inputs[0].value {
-                case ..string(let x):
-                    return ..string(x.uppercased())
+                case .string(let x):
+                    return .string(x.uppercased())
                 default:
-                    return ..string("")
-//                case .BoolMPV(let x): // SHOULD NOT HAVE THIS CASE...
-//                    return .StringMPV("Bad Bool")
+                    return .string("")
             }
             
 
-
-            // do i need to return bool here, or a color?
-        // it looks like I was returning a color
+        // .optionPickers need to be generalized --
+        // e.g. for Ints, Colors, Strings, etc. -- not just any
+        // optionPicker should be of type MPV (PortValue)
         case .optionPicker:
             log("matched on .optionPicker")
-//            log("doing nothing...")
 //            return MPV.StringMPV("Purple")
             switch inputs[0].value {
                 case .bool(let x):
-                    return ..string(x == true ? "Green" : "Purple")
+//                    return .string(x == true ? "Green" : "Purple")
+                    return .color(x == true ? trueColorString : falseColorString)
+//                    return .color(x == true ? trueColor2 : falseColor2)
                 default:
                     log(".optionPicker default...")
-                    return ..string("Purple")
+//                    return .string("Purple")
+//                    return .color(falseColor)
+//                    return .color(falseColor2)
+                    return .color(falseColorString)
             }
-            
-            
-            
-//            // ie flip the value
-//            log("inputs: \(inputs)")
-////            let boolPort = inputs[0].value
-////            let boolPort: Bool = (inputs[0].value as! BoolPV).value
-//            let boolPort: Bool = (inputs[0].value as! MPV.BoolMPV).value
-//            log("boolPort: \(boolPort)")
-////            let calculatedColor: String = boolPort == "true" ? inputs[1].value : inputs[2].value
-//
-//            // technically, you know this can be BoolPV;
-//            // but the type of inputs[1].value is not known by the compiler...
-////            let calculatedColor: PV = boolPort ? inputs[1].value : inputs[2].value
-//            let calculatedColor: MPV = boolPort ? inputs[1].value : inputs[2].value
-//            log("calculatedColor: \(calculatedColor)")
-//            return calculatedColor
-        
-
     }
 }
 
@@ -618,9 +544,7 @@ func selfConsistency(state: AppState, nodes: [NodeModel]) -> AppState {
     log("selfConsistency called")
     
     var state = state
-    
-//    let node: NodeModel = nodes.first!
-    
+        
     nodes.forEach { (node: NodeModel) in
         
         log("selfConsistency: node.id \(node.id), node type \(node.nodeType)")
@@ -630,23 +554,20 @@ func selfConsistency(state: AppState, nodes: [NodeModel]) -> AppState {
             
             let inputs: [PortModel] = node.ports.filter { $0.portType == .input && $0.nodeId == node.id }
             
-            // assumes single output; output port modl for just this node
+            // assumes single output; output port model for just this node
             let output: PortModel = node.ports.first { $0.portType == .output && $0.nodeId == node.id }!
             
             // `inputs[0].value` is just some simple default value
-//            let newOutputValue: String = calculateValue(nm: node, op: node.operation!, flowValue: inputs[0].value)
             let newOutputValue: PortValue = calculateValue(nm: node, op: node.operation!, flowValue: inputs[0].value)
             
             let updatedNode2: NodeModel = updateNodePortModel(
                 state: state,
                 port: PortIdentifier(nodeId: output.nodeId, portId: output.id, isInput: false),
                 newValue: newOutputValue)
-    //            newValue: operation(flowValue))
-            
+    
             let updatedNodes2: [NodeModel] = replace(ts: state.nodeModels, t: updatedNode2)
             
             state.nodeModels = updatedNodes2
-            
             
         } else {
             log("selfConsistency: encountered a non-calc node?!: \(node)")
