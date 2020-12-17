@@ -70,7 +70,8 @@ func updateNodePortModel(state: AppState,
                          port: PortIdentifier,
 //                         newValue: String) -> NodeModel {
                          // now have to use some PV
-                         newValue: PV) -> NodeModel {
+//                         newValue: PV) -> NodeModel {
+                         newValue: MPV) -> NodeModel {
     log("updateNodePortModel called")
     log("newValue: \(newValue)")
 
@@ -112,7 +113,8 @@ func updateNodePortModel(state: AppState,
 func updateNodeOutputPortModel(state: AppState,
                          port: PortIdentifier,
 //                         newValue: String) -> NodeModel {
-                         newValue: PV) -> NodeModel {
+//                         newValue: PV) -> NodeModel {
+                         newValue: MPV) -> NodeModel {
     log("updateNodeOutputPortModel called")
     log("newValue: \(newValue)")
 

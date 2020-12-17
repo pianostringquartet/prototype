@@ -313,32 +313,42 @@ struct PortView: View {
 //
 //        var color: Color
         
-        if isActivePort {
-            return edgeColor
-        }
+//        if isActivePort {
+//            return edgeColor
+//        }
     
         // pm.value could be any type, e.g. String or Bool or Color etc.
         
         
         // have to do this typecasting bc still using string to represent color
-        else if pm.value is StringPV {
-            log("we have a StringPV...")
+//        else if pm.value is StringPV {
+//        else if pm.value is MPV {
+//            log("we have a StringPV...")
 //            return pm.value == "Green"
 //            return pm.value as! StringPV == "Green"
-            switch (pm.value as! StringPV).value {
-                case "Green":
-                    return Color.green
-                case "Purple":
-                    return Color.green
-                default:
-                    return defaultColor
-            }   
-        }
+//            switch (pm.value as! StringPV).value {
+//                case "Green":
+//                    return Color.green
+//                case "Purple":
+//                    return Color.green
+//                default:
+//                    return defaultColor
+//            }
+//            switch pm.value {
+//                case let s as .StringMPV:
+////
+//                    return Color.green
+//                case "Purple":
+//                    return Color.green
+//                default:
+//                    return defaultColor
+//            }
+//        }
         
-        else if pm.value is BoolPV {
-            log("we have a BoolPV...")
-            return defaultColor
-        }
+//        else if pm.value is BoolPV {
+//            log("we have a BoolPV...")
+//            return defaultColor
+//        }
 //
 //        else if pm.value == "Green" {
 //            return Color.green
@@ -348,12 +358,13 @@ struct PortView: View {
 //            return Color.purple
 //        }
         
-        else if (hasEdge || isActivePort) {
+        if (hasEdge || isActivePort) {
             return edgeColor
         }
         else {
             return defaultColor
         }
+        
         
     }
     
@@ -384,9 +395,11 @@ struct PortView: View {
         
         // ie displayable value
         // need util fn like "getDisplayableValue"? 
-        let displayablePortValue: String = pm.value is BoolPV
-            ? (pm.value as! BoolPV).value.description
-            : (pm.value as! StringPV).value
+//        let displayablePortValue: String = pm.value is BoolPV
+//            ? (pm.value as! BoolPV).value.description
+//            : (pm.value as! StringPV).value
+        
+        let displayablePortValue: String = "fill me in.."
         
         // you've not implemented a toString method for PV or StringPV or BoolPV
         // ... compiler doesn't know
