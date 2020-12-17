@@ -73,8 +73,8 @@ func handleTextTappedMiniviewAction(state: AppState, textTapped: TextTappedMiniv
     // retrieving the port from state
     let pm: PortModel = getPortModel(nodeModels: state.nodeModels, nodeId: valNodeId3, portId: 1)
     
-    if case .BoolMPV(let x) = pm.value {
-        let newValue: MPV = .BoolMPV(toggleBool(x))
+    if case .bool(let x) = pm.value {
+        let newValue: PortValue = .bool(toggleBool(x))
         
         log("handleTextTappedMiniviewAction newValue: \(newValue)")
         let updatedNode: NodeModel = updateNodePortModel(state: state, port: pi, newValue: newValue)
@@ -150,7 +150,7 @@ func handlePortTappedAction(state: AppState, action: PortTappedAction) -> AppSta
         // the value that will flow could be a bool OR a string
         // ... so the flowValue should just be PV
 //        let flowValue: PV = state.activePM!.value
-        let flowValue: MPV = state.activePM!.value
+        let flowValue: PortValue = state.activePM!.value
             
         
         
@@ -336,7 +336,7 @@ func generateMiniview(state: AppState, dispatch: @escaping Dispatch) -> AnyView 
 func removeEdgeAndUpdateNodes(state: AppState,
                               newEdge: PortEdge,
 //                              flowValue: PV = StringPV("default...")) -> AppState {
-                              flowValue: MPV = MPV.StringMPV("default...")) -> AppState {
+                              flowValue: PortValue = PortValue..string("default...")) -> AppState {
     log("removeEdgeAndUpdateNodes: edge exists; will remove it")
     
     var state = state
@@ -393,7 +393,7 @@ func removeEdgeAndUpdateNodes(state: AppState,
 
 //func addEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: String, toPort: PortIdentifier) -> AppState { // ie edge does not already exist; will add it and update ports
 //func addEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: PV, toPort: PortIdentifier) -> AppState { // ie edge does not already exist; will add it and update ports
-func addEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: MPV, toPort: PortIdentifier) -> AppState { // ie edge does not already exist; will add it and update ports
+func addEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: PortValue, toPort: PortIdentifier) -> AppState { // ie edge does not already exist; will add it and update ports
 
     log("addEdgeAndUpdateNodes: edge does not exist; will add it: newEdge: \(newEdge)")
     
@@ -471,7 +471,7 @@ func addEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: MPV, t
 // ASSUMES: nodeType is .calcNode, and CALLED AFTER WE'VE UPDATED NODE'S INPUTS
 //func calculateValue(nm: NodeModel, op: Operation, flowValue: String) -> String {
 //func calculateValue(nm: NodeModel, op: Operation, flowValue: PV) -> PV {
-func calculateValue(nm: NodeModel, op: Operation, flowValue: MPV) -> MPV {
+func calculateValue(nm: NodeModel, op: Operation, flowValue: PortValue) -> PortValue {
     log("calculateValue called")
     
     let ascending = { (pm1: PortModel, pm2: PortModel) -> Bool in
@@ -494,27 +494,27 @@ func calculateValue(nm: NodeModel, op: Operation, flowValue: MPV) -> MPV {
             log("matched on .concat")
             
             switch (inputs[0].value, inputs[1].value) {
-                case (.StringMPV(let s1), .StringMPV(let s2)):
+                case (..string(let s1), ..string(let s2)):
                     if (s1 == "") || (s2 == "") {
                         log("will not concat...")
-                        return MPV.StringMPV("")
+                        return PortValue..string("")
                     }
                     else {
                         log("will concat...")
-                        return MPV.StringMPV(s1 + s2)
+                        return PortValue..string(s1 + s2)
                     }
                 default:
-                    return MPV.StringMPV("")
+                    return PortValue..string("")
             }
             
             
         case .uppercase:
             log("matched on .uppercase")
             switch inputs[0].value {
-                case .StringMPV(let x):
-                    return .StringMPV(x.uppercased())
+                case ..string(let x):
+                    return ..string(x.uppercased())
                 default:
-                    return .StringMPV("")
+                    return ..string("")
 //                case .BoolMPV(let x): // SHOULD NOT HAVE THIS CASE...
 //                    return .StringMPV("Bad Bool")
             }
@@ -528,11 +528,11 @@ func calculateValue(nm: NodeModel, op: Operation, flowValue: MPV) -> MPV {
 //            log("doing nothing...")
 //            return MPV.StringMPV("Purple")
             switch inputs[0].value {
-                case .BoolMPV(let x):
-                    return .StringMPV(x == true ? "Green" : "Purple")
+                case .bool(let x):
+                    return ..string(x == true ? "Green" : "Purple")
                 default:
                     log(".optionPicker default...")
-                    return .StringMPV("Purple")
+                    return ..string("Purple")
             }
             
             
@@ -635,7 +635,7 @@ func selfConsistency(state: AppState, nodes: [NodeModel]) -> AppState {
             
             // `inputs[0].value` is just some simple default value
 //            let newOutputValue: String = calculateValue(nm: node, op: node.operation!, flowValue: inputs[0].value)
-            let newOutputValue: MPV = calculateValue(nm: node, op: node.operation!, flowValue: inputs[0].value)
+            let newOutputValue: PortValue = calculateValue(nm: node, op: node.operation!, flowValue: inputs[0].value)
             
             let updatedNode2: NodeModel = updateNodePortModel(
                 state: state,

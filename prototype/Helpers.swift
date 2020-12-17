@@ -18,10 +18,9 @@ func toggleBool(_ bool: Bool) -> Bool {
     return bool ? false : true
 }
 
-func getColorFromStringMPV(mpv: MPV, defaultColor: Color = Color.black.opacity(0.5) ) -> Color {
-//    log("getColorFromStringMPV called")
+func getColorFromStringMPV(mpv: PortValue, defaultColor: Color = Color.black.opacity(0.5) ) -> Color {
     
-    if case .StringMPV(let x) = mpv {
+    if case .string(let x) = mpv {
         switch x {
             case "Green": return Color.green
             case "Purple": return Color.purple
@@ -33,17 +32,19 @@ func getColorFromStringMPV(mpv: MPV, defaultColor: Color = Color.black.opacity(0
 }
 
 // can instead be method on MPV type?
-func getDisplayablePortValue(mpv: MPV) -> String {
+func getDisplayablePortValue(mpv: PortValue) -> String {
     var displayablePortValue: String
     
     switch mpv {
-        case .StringMPV(let x):
+        case .string(let x):
             displayablePortValue = x
-        case .BoolMPV(let x):
+        case .bool(let x):
+            displayablePortValue = x.description
+        case .color(let x):
+            // what IS a description for a color?
             displayablePortValue = x.description
     }
     
-//    log("displayablePortValue: \(displayablePortValue)")
     return displayablePortValue;
 }
 
@@ -113,13 +114,12 @@ func updateNodePortModel(state: AppState,
 //                         newValue: String) -> NodeModel {
                          // now have to use some PV
 //                         newValue: PV) -> NodeModel {
-                         newValue: MPV) -> NodeModel {
+                         newValue: PortValue) -> NodeModel {
     log("updateNodePortModel called")
     log("port: \(port)")
     log("newValue: \(newValue)")
 
     let isDesiredNode = { (nm: NodeModel) -> Bool in nm.id == port.nodeId}
-//    let isDesiredPort = { (pm: PortModel) -> Bool in pm.id == port.portId }
     
     // Find the old port
     // 1. find the desired node
@@ -148,7 +148,7 @@ func updateNodePortModel(state: AppState,
 
 func updateNodeOutputPortModel(state: AppState,
                          port: PortIdentifier,
-                         newValue: MPV) -> NodeModel {
+                         newValue: PortValue) -> NodeModel {
     log("updateNodeOutputPortModel called")
     log("newValue: \(newValue)")
 

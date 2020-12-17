@@ -21,21 +21,58 @@ func identity<T>(t: T) -> T {
     return t
 }
 
-//func ascending(x: Identifiable, y: Identifiable) -> Bool {
-//    x.id < y.id
+// can't quite get this to work...
+//func ascending<T: Comparable & Identifiable>(x: T, y: T) -> Bool {
+//    return x.id < y.id
 //}
 
 func replace<T: Identifiable>(ts: [T], t: T) -> [T] {
     var ts = ts
-    
-//    log("replace: ts was: \(ts)")
-    
     ts.removeAll { $0.id == t.id }
     ts.append(t)
-    
-//    log("replace: ts is now: \(ts)")
-    
     return ts
+}
+
+
+/* ----------------------------------------------------------------
+ Utility extensions
+ ---------------------------------------------------------------- */
+
+extension Color: Codable {
+    enum CodingKeys: String, CodingKey {
+        case red, green, blue
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let r = try container.decode(Double.self, forKey: .red)
+        let g = try container.decode(Double.self, forKey: .green)
+        let b = try container.decode(Double.self, forKey: .blue)
+        
+        self.init(red: r, green: g, blue: b)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        guard let cgColor = self.cgColor,
+              let colorSpace = cgColor.colorSpace,
+              let components = cgColor.components else {
+            
+            return
+        }
+        
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        
+        let model = colorSpace.model
+        
+        switch model {
+        case .rgb:
+            try container.encode(components[0], forKey: .red)
+            try container.encode(components[1], forKey: .green)
+            try container.encode(components[2], forKey: .blue)
+        default:
+            fatalError("Consider implementing other models")
+        }
+    }
 }
 
 
