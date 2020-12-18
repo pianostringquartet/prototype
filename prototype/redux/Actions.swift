@@ -26,9 +26,9 @@ struct TextTappedMiniviewAction: Action {
 
 // for dragging
 struct TextMovedMiniviewAction: Action {
-    let textLayerId: Int // the specific TextLayer that was moved
-    let newPosition: CGFloat
-    let oldPosition: CGFloat
+    let textLayerId: Int // the id of the specific TextLayer viz node that was moved
+    let position: CGSize
+    let previousPosition: CGSize
 }
 
 
@@ -58,15 +58,19 @@ struct PortEdgeCreated: Action {
  Handlers: (State, Action, Effects) -> State
  ---------------------------------------------------------------- */
 
-// ALL OF THIS IS HARDCODED RIGHT NOW TO USE THE SPECIFIC `valNode3`
+
+
+/* ----------------------------------------------------------------
+ Handlers: Preview actions
+ ---------------------------------------------------------------- */
+
 func handleTextTappedMiniviewAction(state: AppState, textTapped: TextTappedMiniviewAction) -> AppState {
     
     log("handleTextTappedMiniviewAction called")
     log("textTapped.nodeId: \(textTapped.nodeId)")
     
     var state = state
-    
-    
+        
     let interactionNode: NodeModel = getInteractionNode(nodes: state.nodeModels,
                                                         vizNodeId: textTapped.nodeId,
                                                         // `press`, since this is text TAPPED
@@ -76,8 +80,7 @@ func handleTextTappedMiniviewAction(state: AppState, textTapped: TextTappedMiniv
     let pi: PortIdentifier = PortIdentifier(nodeId: interactionNode.id, portId: 1, isInput: false)
     let pm: PortModel = getPortModel(nodeModels: state.nodeModels, nodeId: interactionNode.id, portId: 1)
     
-    
-    
+
     log("handleTextTappedMiniviewAction pm: \(pm)") // ought to be 3...
     
     if case .bool(let x) = pm.value {
@@ -94,6 +97,74 @@ func handleTextTappedMiniviewAction(state: AppState, textTapped: TextTappedMiniv
     return state
 }
 
+
+// previously you maintained local state in the node view, which updated immediately;
+// and you had a 'node moved' action, which updated the node's position in state
+// ie `Node` is now `NodeModel`; `Ball` is now `NodeView`
+
+// now, position will be on previewModel
+// so updating a position will mean finding and updating a specific previewModel (on a given viz node)
+
+func handleTextMovedMiniviewAction(state: AppState, textMoved: TextMovedMiniviewAction) -> AppState {
+    log("handleTextMovedMiniviewAction called")
+    
+    var state = state
+    
+    
+    let textLayerId: Int = textMoved.textLayerId
+    
+    var previewModelId: Int // the id of the previewModel to be updated
+    
+    /// HARDCODED to look for .drag
+    // also need the .drag interaction val Node
+    let interactionNode: NodeModel = getInteractionNode(nodes: state.nodeModels,
+                                                        vizNodeId: textLayerId,
+                                                        // `press`, since this is text TAPPED
+                                                        previewInteraction: PreviewInteraction.drag)
+    
+    // still HARDCODED the portId -- assumes that `drag` val nodes only have single port...
+    let pi: PortIdentifier = PortIdentifier(nodeId: interactionNode.id, portId: 1, isInput: false)
+    let pm: PortModel = getPortModel(nodeModels: state.nodeModels, nodeId: interactionNode.id, portId: 1)
+    
+    var vizNode: NodeModel = state.nodeModels.first { $0.id == textLayerId }!
+    
+//    vizNode.previewModel!.position = textMoved.position
+//    vizNode.previewModel!.previousPosition = textMoved.previousPosition
+    
+    let updatedPreviewModel: PreviewModel = vizNode.previewModel!.updatePosition(
+        position: textMoved.position,
+        previousPosition: textMoved.previousPosition)
+    
+    vizNode.previewModel = updatedPreviewModel
+    
+    let updatedNode = vizNode
+    
+    log("handleTextMovedMiniviewAction: updatedNode: \(updatedNode)")
+    
+//    let updatedNode = updateVizNodePreviewModel(
+//        state: state,
+//        node: vizNode,
+//        previewModel: updatedPreviewModel)
+//
+    
+    let updatedNodes: [NodeModel] = replace(ts: state.nodeModels, t: updatedNode)
+    state.nodeModels = updatedNodes
+    state = recalculateGraph(state: state)
+    
+    
+    return state
+}
+
+
+
+
+
+
+
+
+/* ----------------------------------------------------------------
+ Handlers: Graph actions
+ ---------------------------------------------------------------- */
 
 
 // don't want to use PortModel.value, because the value could be outdated later?

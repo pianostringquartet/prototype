@@ -55,7 +55,9 @@ let valNode = stringValNode(id: valNodeId, value: "hello")
 //let valNode2 = stringValNode(id: valNodeId2, value: "world")
 
 // TWO interactions nodes
-let valNode2 = pressInteractionNodeModel(id: valNodeId2, forNodeId: vizNodeId)
+//let valNode2 = pressInteractionNodeModel(id: valNodeId2, forNodeId: vizNodeId)
+
+let valNode2 = dragInteractionNodeModel(id: valNodeId2, forNodeId: vizNodeId)
 
 //let valNode3 = pressInteractionNodeModel(id: valNodeId3)
 

@@ -10,6 +10,10 @@ import ReSwift
 import SwiftUI
 
 
+let ascending = { (pm1: PortModel, pm2: PortModel) -> Bool in
+    pm1.id < pm2.id
+}
+
 func toggleBool(_ bool: Bool) -> Bool {
     return bool ? false : true
 }
@@ -42,6 +46,8 @@ func getDisplayablePortValue(mpv: PortValue) -> String {
 //            return x.color.description
         case .int(let x):
             return x.description
+        case .cgSize(let x):
+            return x.debugDescription
     }
 }
 
@@ -86,6 +92,18 @@ func getInteractionNode(nodes: [NodeModel], vizNodeId: Int, previewInteraction: 
 }
 
 
+//// suppose we have a viz layer node, and want to do know whether it has any interactions
+//func getInteractionsForNode(node) -> PreviewInteraction {
+//
+//    return nodes.first {
+//        $0.nodeType == .valNode
+//        && $0.interactionModel != nil
+//        && $0.interactionModel!.previewInteraction == previewInteraction
+//        && $0.interactionModel!.forNodeId == vizNodeId
+//    }!
+//}
+
+
 // useful for retrieving values too
 // can be used for getting either input- OR output- ports, as long as you have the nodeId and portId
 func getPortModel(nodeModels: [NodeModel], nodeId: Int, portId: Int) -> PortModel {
@@ -114,6 +132,19 @@ func getOutputPortModel(nodeModels: [NodeModel], nodeId: Int) -> PortModel {
     
     return node.ports.first(where: isOutputPort)!
 }
+
+
+// swap out old viz node preview model for updated viz node preview model
+func updateVizNodePreviewModel(state: AppState, node: NodeModel, previewModel: PreviewModel) -> NodeModel {
+    //
+    var node = node
+    
+    
+    
+    return node
+}
+
+
 
 
 
@@ -371,7 +402,13 @@ func buildPreview(state: AppState, vns: [NodeModel], dispatch: @escaping Dispatc
             
             // for now, assume one base layer
             let base: NodeModel = bases.first!
-            viewFromBasePreviewModel(node: base, preview: base.previewModel!, dispatch: dispatch)
+            viewFromBasePreviewModel(nodes: state.nodeModels,
+                                     node: base,
+                                     preview: base.previewModel!,
+                                     dispatch: dispatch)
+            
+            // HARDCODED: for demo purposes
+            Text("Example").offset(x: 50, y: 50)
             
         }
         
@@ -382,19 +419,27 @@ func buildPreview(state: AppState, vns: [NodeModel], dispatch: @escaping Dispatc
 
 // assume no modifier viz nodes for now
 // given a preview model, get a view
-func viewFromBasePreviewModel(node: NodeModel, preview: PreviewModel, dispatch: @escaping Dispatch) -> AnyView {
+func viewFromBasePreviewModel(nodes: [NodeModel], // all nodes from state
+                              node: NodeModel, // ie the base node ie the viz layer node
+                              preview: PreviewModel,
+                              dispatch: @escaping Dispatch) -> AnyView {
 
     log("viewFromBasePreviewModel called")
     
     // must be sorted consistently
     let ports: [PortModel] = node.ports.sorted(by: ascending)
     
+    // HARDCODED .drag
+    let interaction: InteractionModel = getInteractionNode(nodes: nodes,
+                       vizNodeId: node.id,
+                       previewInteraction: .drag).interactionModel!
+    
     switch preview.previewElement {
         
         
         // TextLayer's have string input and color input
         case .text:
-                        
+            log("viewFromBasePreviewModel: matched on .text")
             let display: String = getDisplayablePortValue(mpv: ports[0].value)
             
             var color: Color = Color.black
@@ -402,26 +447,24 @@ func viewFromBasePreviewModel(node: NodeModel, preview: PreviewModel, dispatch: 
                 color = colorFromString(x)
             }
             
+            
             let text = Text(display)
                 .font(.largeTitle)
-                
-                // this is only for a press-interactions?
-                .gesture(DragGesture(minimumDistance: 0)
-                            .onChanged { _ in
-                                log("onChanged inside generateMiniview")
-                                dispatch(TextTappedMiniviewAction(nodeId: node.id))
-
-                            }
-                            .onEnded { _ in
-                                log("onEnded inside generateMiniview")
-                                dispatch(TextTappedMiniviewAction(nodeId: node.id))
-
-                            }
-                )
+                // .gesture // originally
                 .foregroundColor(color).padding()
+                
+                // offset shold be contained within the previewModel?
+//                .offset(x: -60, y: -60)
+                .offset(x: preview.position.width, y: preview.position.height)
             
             
-            return AnyView(text)
+//            return AnyView(text)
+            return AnyView(addTextLayerInteraction(text: AnyView(text), // text as! AnyView,
+                                                   node: node,
+                                                   preview: preview,
+                                                   // where to get the interaction?
+                                                   interaction: interaction,
+                                                   dispatch: dispatch))
 
         case .imageLayer:
             return AnyView(Text("Please implement Image..."))
@@ -432,6 +475,69 @@ func viewFromBasePreviewModel(node: NodeModel, preview: PreviewModel, dispatch: 
 }
 
 
-let ascending = { (pm1: PortModel, pm2: PortModel) -> Bool in
-    pm1.id < pm2.id
+func addTextLayerInteraction(text: AnyView, // Text,
+                             node: NodeModel, // the vizlayer node for this preview text
+                             preview: PreviewModel,
+                             interaction: InteractionModel,
+                             dispatch: @escaping Dispatch) -> some View {
+    
+    log("addTextLayerInteraction called")
+    
+    switch interaction.previewInteraction {
+        case .press:
+            return text
+                .gesture(DragGesture(minimumDistance: 0)
+                            .onChanged { _ in
+                                log(".press onChanged inside generateMiniview")
+                                dispatch(TextTappedMiniviewAction(nodeId: node.id))
+                                
+                            }
+                            .onEnded { _ in
+                                log(".press onEnded inside generateMiniview")
+                                dispatch(TextTappedMiniviewAction(nodeId: node.id))
+                            }
+                )
+        
+        
+        
+        // for now, don't
+        case .drag:
+            log("addTextLayerInteraction: matched on .drag")
+            return text
+                .gesture(DragGesture()
+                            .onChanged {
+                                log(".drag onChanged inside generateMiniview")
+//                                self.localPosition = updatePosition(value: $0, position: self.localPreviousPosition)
+//
+                                var localPreviousPosition: CGSize = preview.position
+                                var localPosition: CGSize = updatePosition(value: $0,
+                                                                   position: localPreviousPosition)
+                                
+                                dispatch(TextMovedMiniviewAction(textLayerId: node.id,
+                                                                 position: localPosition,
+                                                                 previousPosition: localPreviousPosition))
+                            }
+                            .onEnded {
+                                log(".drag onEnded inside generateMiniview")
+                                // i.e. no anchoring for now
+//                                self.localPreviousPosition = self.localPosition
+                                
+                                var localPreviousPosition: CGSize = preview.position
+                                var localPosition: CGSize = updatePosition(value: $0,
+                                                                   position: localPreviousPosition)
+                     
+                                dispatch(TextMovedMiniviewAction(textLayerId: node.id,
+                                                                 position: localPosition,
+                                                                 previousPosition: localPreviousPosition))
+                            }
+                ) // .gesture
+        
+        default:
+            Text("Failed to add interaction to TextLayer")
+    }
+    
+
 }
+
+
+

@@ -128,8 +128,9 @@ struct NodeView: View {
     let spacing: CGFloat = 20
     
     var body: some View {
-        let ascending = { (pm1: PortModel, pm2: PortModel) -> Bool in pm1.id < pm2.id }
-        
+    
+//        let ascending = { (pm1: PortModel, pm2: PortModel) -> Bool in pm1.id < pm2.id }
+//
         let inputs: [PortModel] = nodeModel
             .ports
             .filter { $0.portType == PortType.input }

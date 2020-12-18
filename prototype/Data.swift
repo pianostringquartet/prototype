@@ -89,9 +89,10 @@ enum PortValue: Equatable, Codable {
     case color(String)
 //    case color(Color)
     case int(Int)
+    case cgSize(CGSize)
     
     enum CodingKeys: CodingKey {
-        case string, bool, color, int
+        case string, bool, color, int, cgSize
     }
     
     func encode(to encoder: Encoder) throws {
@@ -105,6 +106,8 @@ enum PortValue: Equatable, Codable {
                 try container.encode(value, forKey: .color)
             case .int(let value):
                 try container.encode(value, forKey: .int)
+            case .cgSize(let value):
+                try container.encode(value, forKey: .cgSize)
         }
         // don't need to return anything?
     } // encode
@@ -124,6 +127,9 @@ enum PortValue: Equatable, Codable {
             return
         } else if let value = try? values.decode(String.self, forKey: .color) {
             self = .color(value)
+            return
+        } else if let value = try? values.decode(CGSize.self, forKey: .cgSize) {
+            self = .cgSize(value)
             return
         } else {
 //            if let value = try? values.decode(Color.self, forKey: .color) {
@@ -262,6 +268,13 @@ struct PreviewModel: Equatable, Codable {
     // modify these upon instantiation
     var position: CGSize = CGSize.zero
     var previousPosition: CGSize = CGSize.zero
+    
+    func updatePosition(position: CGSize? = nil, previousPosition: CGSize? = nil) -> PreviewModel {
+        
+        log("PreviewModel updatePosition called")
+        
+        return PreviewModel(id: self.id, nodeId: self.nodeId, previewElement: self.previewElement, position: position ?? self.position, previousPosition: previousPosition ?? self.previousPosition)
+    }
 }
 
 // string is user displayable?
@@ -397,7 +410,16 @@ func pressInteractionNodeModel(id: Int, forNodeId: Int) -> NodeModel {
 // Adam's example has a uiLayer with a position input; can add that to TextLayer etc.
 func dragInteractionNodeModel(id: Int, forNodeId: Int) -> NodeModel {
     
-    let output: PortModel = PortModel(id: 1, nodeId: id, portType: .output, label: "Interaction", value: PortValue.bool(false), defaultValue: PortValue.bool(false))
+    // these values will actually need to be Positions
+    let output: PortModel = PortModel(id: 1, nodeId: id,
+                                      portType: .output,
+                                      label: "Interaction",
+//                                      value: PortValue.bool(false),
+//                                      defaultValue: PortValue.bool(false)
+                                      value: PortValue.cgSize(CGSize.zero),
+                                      defaultValue: PortValue.cgSize(CGSize.zero)
+//                                      value: .int(<#T##Int#>)
+    )
     
     return NodeModel(id: id, nodeType: NodeType.valNode, ports: [output],
                      interactionModel: InteractionModel(id: 1, // in

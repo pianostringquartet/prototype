@@ -37,6 +37,9 @@ func reducer(action: Action, state: AppState?) -> AppState {
             state = handleTextTappedMiniviewAction(state: state, textTapped: textTapped)
 //            log("newState from TextTappedMiniviewAction: \(newState)")
 //            state = newState
+        
+        case let textMoved as TextMovedMiniviewAction:
+            state = handleTextMovedMiniviewAction(state: state, textMoved: textMoved)
             
         default:
             break
