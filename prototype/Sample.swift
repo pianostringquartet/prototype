@@ -18,14 +18,9 @@ let trueColor = Color.green
 let greenColorString = "green"
 let trueColorString = greenColorString
 
-//let trueColor2 = Color2(g: 1.0)
-
-
-
 let falseColor = Color.purple
 let purpleColorString = "purple"
 let falseColorString = purpleColorString
-//let falseColor2 = Color2(r: 0.5, b: 0.5)
 
 
 
@@ -46,33 +41,79 @@ let calcNodeId3 = 6 // option picker
 
 let vizNodeId = 7
 let vizNodeId2 = 8
+let vizNodeId3 = 9
 
+
+
+let previewModelId = 1
+let previewModelId2 = 2
+let previewModelId3 = 3
 
 // nodes
 
 let valNode = stringValNode(id: valNodeId, value: "hello")
-let valNode2 = stringValNode(id: valNodeId2, value: "world")
-let valNode3: NodeModel = pressInteractionNodeModel(id: valNodeId3)
+//let valNode2 = stringValNode(id: valNodeId2, value: "world")
+
+// TWO interactions nodes
+let valNode2 = pressInteractionNodeModel(id: valNodeId2, forNodeId: vizNodeId)
+
+//let valNode3 = pressInteractionNodeModel(id: valNodeId3)
 
 
 let calcNode = concatNodeModel(id: calcNodeId)
-let calcNode2 = uppercaseNodeModel(id: calcNodeId2)
+//let calcNode2 = uppercaseNodeModel(id: calcNodeId2)
+
+// TWO color option pickers
+let calcNode2 = optionPickerNodeModel(id: calcNodeId2)
+
 let calcNode3 = optionPickerNodeModel(id: calcNodeId3)
 
 
-let vizNode: NodeModel = stringVizNode(id: vizNodeId, value: "", previewElement: PreviewElement.text, label: "TextLayer")
+//let vizNode: NodeModel = stringVizNode(id: vizNodeId, value: "",
+//                                       previewModel: PreviewModel(id: previewModelId,
+//                                                                  nodeId: vizNodeId,
+//                                                                  previewElement: PreviewElement.text),
+//                                       label: "TextLayer")
+
+
+let vizNode: NodeModel = textLayerVizNode(nodeId: vizNodeId, previewModelId: previewModelId)
+
+
 
 //let vizNode2: NodeModel = stringVizNode(id: vizNodeId2, value: "Purple", previewElement: PreviewElement.typographyColor, label: "TypographyColor")
 
-let vizNode2: NodeModel = colorVizNode(id: vizNodeId2,
-                                       value: falseColorString,
-                                       previewElement: PreviewElement.typographyColor, label: "TypographyColor")
+//let vizNode2: NodeModel = colorVizNode(id: vizNodeId2,
+//                                       value: falseColorString,
+//                                       previewModel: PreviewModel(id: previewModelId2,
+//                                                                  nodeId: vizNodeId2,
+//                                                                  previewElement: PreviewElement.typographyColor),
+//                                       label: "TypographyColor")
+
+
+// a second text layer
+//let vizNode3: NodeModel = stringVizNode(id: vizNodeId3, value: "",
+//                                       previewModel: PreviewModel(id: previewModelId3,
+//                                                                  nodeId: vizNodeId3,
+//                                                                  previewElement: PreviewElement.text),
+//                                       label: "TextLayer")
+
 
 
 // state
 
 // REMOVED CONCAT FOR NOW
-let hwState = AppState(nodeModels: [valNode, valNode2, valNode3, calcNode2, calcNode3, vizNode, vizNode2])
+//let hwState = AppState(nodeModels: [valNode, valNode2, valNode3, calcNode2, calcNode3, vizNode, vizNode2])
+
+let hwState = AppState(nodeModels: [valNode,
+                                    valNode2,
+//                                    valNode3,
+//                                    calcNode2,
+                                    calcNode3,
+                                    vizNode,
+//                                    vizNode2 // don't use color viz node
+//                                    vizNode3 // additional text layer
+])
+
 
 let sampleStore = Store<AppState>(
     reducer: reducer,

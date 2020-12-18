@@ -27,7 +27,8 @@ func isValNode(nm: NodeModel) -> Bool {
 }
 
 func isValInteractionNode(nm: NodeModel) -> Bool {
-    return nm.nodeType == .valNode && nm.previewInteraction != nil
+//    return nm.nodeType == .valNode && nm.previewInteraction != nil
+    return nm.nodeType == .valNode && nm.interactionModel != nil
 }
 
 func isCalcNode(nm: NodeModel) -> Bool {
@@ -35,7 +36,8 @@ func isCalcNode(nm: NodeModel) -> Bool {
 }
 
 func isVizNode(nm: NodeModel) -> Bool {
-    return nm.nodeType == .vizNode && nm.previewElement != nil
+//    return nm.nodeType == .vizNode && nm.previewElement != nil
+    return nm.nodeType == .vizNode && nm.previewModel != nil
 }
 
 
@@ -51,17 +53,25 @@ struct NodeModel: Identifiable, Codable {
     // assuming, for now, one previewElement per VizNode
     // ... if need to keep track of specifically-embodied PreviewElement,
     // can use the PreviewElement struct with the id instead?
-    var previewElement: PreviewElement? = nil // only for viz-nodes
     
-    var previewInteraction: PreviewInteraction? = nil // only for interaction val-nodes
+//    var previewElement: PreviewElement? = nil // only for viz-nodes
+    var previewModel: PreviewModel? = nil
     
-    func update(id: Int? = nil, nodeType: NodeType? = nil, ports: [PortModel]? = nil, operation: Operation? = nil, previewElement: PreviewElement? = nil, previewInteraction: PreviewInteraction? = nil) -> NodeModel {
+//    var previewInteraction: PreviewInteraction? = nil // only for interaction val-nodes
+    var interactionModel: InteractionModel? = nil // only for interaction val-nodes
+    
+    func update(id: Int? = nil, nodeType: NodeType? = nil, ports: [PortModel]? = nil, operation: Operation? = nil,
+//                previewElement: PreviewElement? = nil,
+                previewModel: PreviewModel? = nil,
+                interactionModel: InteractionModel? = nil
+    ) -> NodeModel {
         return NodeModel(id: id ?? self.id,
                          nodeType: nodeType ?? self.nodeType,
                          ports: ports ?? self.ports,
                          operation: operation ?? self.operation,
-                         previewElement: previewElement ?? self.previewElement,
-                         previewInteraction: previewInteraction ?? self.previewInteraction
+//                         previewElement: previewElement ?? self.previewElement,
+                         previewModel: previewModel ?? self.previewModel,
+                         interactionModel: interactionModel ?? self.interactionModel
         )
     }
 }
@@ -72,27 +82,12 @@ enum PortType: String, Codable {
 }
 
 
-// Temporary: wrapper type
-struct Color2: Equatable, Codable {
-    var r: Double = 0.0
-    var g: Double = 0.0
-    var b: Double = 0.0
-    var opacity: Double = 1.0
-
-    var color: Color {
-        return Color(red: r, green: g, blue: b, opacity: opacity)
-
-    }
-}
-
-
 enum PortValue: Equatable, Codable {
     
     case string(String)
     case bool(Bool)
     case color(String)
 //    case color(Color)
-//    case color(Color2)
     case int(Int)
     
     enum CodingKeys: CodingKey {
@@ -100,56 +95,48 @@ enum PortValue: Equatable, Codable {
     }
     
     func encode(to encoder: Encoder) throws {
-        log("PortValue encode called")
         var container = encoder.container(keyedBy: CodingKeys.self)
         switch self {
             case .string(let value):
-                log("PortValue encoder: .string")
                 try container.encode(value, forKey: .string)
             case .bool(let value):
-                log("PortValue encoder: .bool")
                 try container.encode(value, forKey: .bool)
             case .color(let value):
-                log("PortValue encoder: .color")
                 try container.encode(value, forKey: .color)
             case .int(let value):
-                log("PortValue encoder: .int")
                 try container.encode(value, forKey: .int)
-                
         }
         // don't need to return anything?
     } // encode
     
     
     init(from decoder: Decoder) throws {
-//        log("PortValue: init(from decoder: Decoder) called")
         let values = try decoder.container(keyedBy: CodingKeys.self)
         
         if let value = try? values.decode(String.self, forKey: .string) {
-            log("PortValue decoder: .string")
             self = .string(value)
             return
         } else if let value = try? values.decode(Bool.self, forKey: .bool) {
-            log("PortValue decoder: .bool")
             self = .bool(value)
             return
         } else if let value = try? values.decode(Int.self, forKey: .int) {
-            log("PortValue decoder: .int")
             self = .int(value)
             return
+        } else if let value = try? values.decode(String.self, forKey: .color) {
+            self = .color(value)
+            return
         } else {
-            log("... may try to decode Color...")
 //            if let value = try? values.decode(Color.self, forKey: .color) {
 //            if let value = try? values.decode(Color2.self, forKey: .color) {
-            if let value = try? values.decode(String.self, forKey: .color) {
-                log("PortValue decoder: .color")
-                self = .color(value)
-                return
-            }
-            else {
+//            if let value = try? values.decode(String.self, forKey: .color) {
+//                log("PortValue decoder: .color")
+//                self = .color(value)
+//                return
+//            }
+//            else {
                 log("will throw fatal decoding error...")
                 throw fatalError("decoding MPV failed...")
-            }
+//            }
         }
     }
         
@@ -267,15 +254,36 @@ struct AppState: StateType, Codable {
  `Viz-layer -> miniviewer` models
  ---------------------------------------------------------------- */
 
+struct PreviewModel: Equatable, Codable {
+    let id: Int // ui element's id
+    let nodeId: Int // node id for
+    let previewElement: PreviewElement // eg TextLayer, ImageLayer etc.
+    
+    // modify these upon instantiation
+    var position: CGSize = CGSize.zero
+    var previousPosition: CGSize = CGSize.zero
+}
+
 // string is user displayable?
 // and then these get matched in a gigantic
 enum PreviewElement: String, Codable {
-    case text = "Text"
-    case typographyColor = "Typography Color"
+    case text = "TextLayer"
+    case typographyColor = "TypographyColor"
+    case imageLayer = "ImageLayer"
 }
+
+
+struct InteractionModel: Equatable, Codable {
+    let id: Int
+    let nodeId: Int // node id on which interaction resides
+    let forNodeId: Int // node id (viz node) which the interaction is FOR
+    let previewInteraction: PreviewInteraction
+}
+
 
 enum PreviewInteraction: String, Codable {
     case press = "Press"
+    case drag = "Drag"
 }
 
 
@@ -293,12 +301,13 @@ enum Operation: String, Codable {
     case uppercase, concat, optionPicker, identity
 }
 
+
 // doesn't this mapping just reproduce the switch/case mapping in `calculateValue`?
-let operations: [Operation: Any] = [
-    Operation.uppercase: { (s: String) -> String in s.uppercased() },
-    Operation.concat: { (s1: String, s2: String) -> String in s1 + s2 },
-//    Operation.identity: { (x: T) -> T in x } // T not in scope?
-]
+//let operations: [Operation: Any] = [
+//    Operation.uppercase: { (s: String) -> String in s.uppercased() },
+//    Operation.concat: { (s1: String, s2: String) -> String in s1 + s2 },
+////    Operation.identity: { (x: T) -> T in x } // T not in scope?
+//]
 
 
 // MARK: - PREFERENCE DATA
@@ -332,7 +341,7 @@ struct PortPreferenceKey: PreferenceKey {
 // MARK: - HELPERS
 
 /* ----------------------------------------------------------------
- Helpers
+ Helpers: val node types
  ---------------------------------------------------------------- */
 
 
@@ -359,35 +368,91 @@ func boolValNode(id: Int, value: Bool, label: String = "output: Bool") -> NodeMo
     return NodeModel(id: valNodeId, nodeType: NodeType.valNode, ports: [valNodeOutput])
 }
 
+
+/* ----------------------------------------------------------------
+ Helpers: val interaction node types
+ ---------------------------------------------------------------- */
+
+// need valNode for "Interaction" (only outputs)
+//func pressInteractionNodeModel(id: Int) -> NodeModel {
+func pressInteractionNodeModel(id: Int, forNodeId: Int) -> NodeModel {
+    
+    
+    let output: PortModel = PortModel(id: 1, nodeId: id, portType: .output, label: "Interaction", value: PortValue.bool(false), defaultValue: PortValue.bool(false))
+    
+    return NodeModel(id: id,
+                     nodeType: NodeType.valNode,
+                     ports: [output],
+//                     previewInteraction: PreviewInteraction.press
+                     interactionModel: InteractionModel(id: 1, // in
+                                                        nodeId: id,
+                                                        forNodeId: forNodeId,
+                                                        previewInteraction: PreviewInteraction.press)
+    )
+}
+
+
+
+// in Origami Studio, how do you actually get a TextLayer to have a specific position?
+// Adam's example has a uiLayer with a position input; can add that to TextLayer etc.
+func dragInteractionNodeModel(id: Int, forNodeId: Int) -> NodeModel {
+    
+    let output: PortModel = PortModel(id: 1, nodeId: id, portType: .output, label: "Interaction", value: PortValue.bool(false), defaultValue: PortValue.bool(false))
+    
+    return NodeModel(id: id, nodeType: NodeType.valNode, ports: [output],
+                     interactionModel: InteractionModel(id: 1, // in
+                                                        nodeId: id,
+                                                        forNodeId: forNodeId,
+                                                        previewInteraction: PreviewInteraction.drag))
+}
+
+
+
+/* ----------------------------------------------------------------
+ Helpers: viz node types
+ ---------------------------------------------------------------- */
+
 // viz nodes have only inputs (one or more)
-func stringVizNode(id: Int, value: String, previewElement: PreviewElement, label: String) -> NodeModel {
+func stringVizNode(id: Int, value: String, previewModel: PreviewModel, label: String) -> NodeModel {
 
     let vizNodeInput: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: label, value: .string(value), defaultValue: .string(value))
 
-    return NodeModel(id: id, nodeType: NodeType.vizNode, ports: [vizNodeInput], previewElement: previewElement)
+    return NodeModel(id: id, nodeType: NodeType.vizNode, ports: [vizNodeInput], previewModel: previewModel)
 }
 
 
-func colorVizNode(id: Int, value: String, previewElement: PreviewElement, label: String) -> NodeModel {
+func isTextLayerVizNode(node: NodeModel) -> Bool {
+    return node.nodeType == .vizNode && node.previewModel!.previewElement == .text
+}
+
+func textLayerVizNode(nodeId: Int, previewModelId: Int, value: String = "", label: String = "TextLayer", colorValue: String = falseColorString) -> NodeModel {
+    
+    let textInput = PortModel(id: 1, nodeId: nodeId, portType: PortType.input, label: label, value: .string(value), defaultValue: .string(value))
+    
+    let colorInput = PortModel(id: 2, nodeId: nodeId, portType: PortType.input, label: label, value: .color(colorValue), defaultValue: .color(colorValue))
+
+    let previewModel = PreviewModel(id: previewModelId,
+                                    nodeId: nodeId,
+                                    previewElement: PreviewElement.text)
+    
+    return NodeModel(id: nodeId, nodeType: NodeType.vizNode, ports: [textInput, colorInput], previewModel: previewModel)
+}
+
+
+
+// NO LONGER USED?
+func colorVizNode(id: Int, value: String, previewModel: PreviewModel, label: String) -> NodeModel {
 
     let vizNodeInput: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: label, value: .color(value), defaultValue: .color(value))
 
-    return NodeModel(id: id, nodeType: NodeType.vizNode, ports: [vizNodeInput], previewElement: previewElement)
+    return NodeModel(id: id, nodeType: NodeType.vizNode, ports: [vizNodeInput], previewModel: previewModel)
 }
 
 
-// not used yet?
-func boolVizNode(id: Int, value: Bool, previewElement: PreviewElement, label: String) -> NodeModel {
+/* ----------------------------------------------------------------
+ Helpers: calc node types
+ ---------------------------------------------------------------- */
 
-    let vizNodeInput: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: label, value: .bool(value), defaultValue: .bool(value))
-
-    return NodeModel(id: id, nodeType: NodeType.vizNode, ports: [vizNodeInput], previewElement: previewElement)
-}
-
-
-
-
-// for CREATING BRAND NEW (CALC) NODE MODEL
 func uppercaseNodeModel(id: Int) -> NodeModel {
     
     let operation: Operation = Operation.uppercase
@@ -417,24 +482,11 @@ func optionPickerNodeModel(id: Int) -> NodeModel {
     let operation = Operation.optionPicker
     
     let input: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: "Bool", value: PortValue.bool(false), defaultValue: PortValue.bool(false))
-    
-//    let input2: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.input, label: "Color", value: PortValue.string("Green"), defaultValue: PortValue.string("Green"))
-//    let input3: PortModel = PortModel(id: 3, nodeId: id, portType: PortType.input, label: "Color", value: PortValue.string("Purple"), defaultValue: PortValue.string("Pruple"))
-//    let output: PortModel = PortModel(id: 4, nodeId: id, portType: PortType.output, label: "Color", value: PortValue.string("Purple"), defaultValue: PortValue.string("Purple"))
-    
     let input2: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.input, label: "Color", value: .color(trueColorString), defaultValue: .color(trueColorString))
     let input3: PortModel = PortModel(id: 3, nodeId: id, portType: PortType.input, label: "Color", value: .color(falseColorString), defaultValue: .color(falseColorString))
     let output: PortModel = PortModel(id: 4, nodeId: id, portType: PortType.output, label: "Color", value: .color(falseColorString), defaultValue: .color(falseColorString))
         
     return NodeModel(id: id, nodeType: NodeType.calcNode, ports: [input, input2, input3, output], operation: operation)
 
-}
-
-// need valNode for "Interaction" (only outputs)
-func pressInteractionNodeModel(id: Int) -> NodeModel {
-    
-    let output: PortModel = PortModel(id: 1, nodeId: id, portType: .output, label: "Interaction", value: PortValue.bool(false), defaultValue: PortValue.bool(false))
-    
-    return NodeModel(id: id, nodeType: NodeType.valNode, ports: [output], previewInteraction: PreviewInteraction.press)
 }
 

@@ -155,15 +155,19 @@ struct NodeView: View {
                 : nil
   
             
-            nodeModel.previewElement != nil ?
-                Text("\(nodeModel.previewElement!.rawValue)")
+//            nodeModel.previewElement != nil ?
+            nodeModel.previewModel != nil ?
+//                Text("\(nodeModel.previewElement!.rawValue)")
+                Text("\(nodeModel.previewModel!.previewElement.rawValue)")
                     .padding(5)
                     .background(Color.gray.opacity(0.4))
                 : nil
             
             
-            nodeModel.previewInteraction != nil ?
-                Text("\(nodeModel.previewInteraction!.rawValue)")
+//            nodeModel.previewInteraction != nil ?
+            nodeModel.interactionModel != nil ?
+//                Text("\(nodeModel.interactionModel!.rawValue)")
+                Text("\(nodeModel.interactionModel!.previewInteraction.rawValue) for node \(nodeModel.interactionModel!.forNodeId)")
                     .padding(5)
                     .background(Color.gray.opacity(0.4))
                 : nil

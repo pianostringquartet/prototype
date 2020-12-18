@@ -19,9 +19,12 @@ import SwiftUI
 
 // should change color in redux state, which flow to
 struct TextTappedMiniviewAction: Action {
+    // when a text layer is tapped, you're also tapped a text layer NODE
+    let nodeId: Int // viz node that was tapped
 }
 
 
+// for dragging
 struct TextMovedMiniviewAction: Action {
     let textLayerId: Int // the specific TextLayer that was moved
     let newPosition: CGFloat
@@ -59,19 +62,23 @@ struct PortEdgeCreated: Action {
 func handleTextTappedMiniviewAction(state: AppState, textTapped: TextTappedMiniviewAction) -> AppState {
     
     log("handleTextTappedMiniviewAction called")
-
-    //    log("doing NOTHING")
-//    return state
-    
+    log("textTapped.nodeId: \(textTapped.nodeId)")
     
     var state = state
-
     
-    // HARDCODED -- the port-identifier for the `press` interaction node
-    let pi: PortIdentifier = PortIdentifier(nodeId: valNodeId3, portId: 1, isInput: false)
-
-    // retrieving the port from state
-    let pm: PortModel = getPortModel(nodeModels: state.nodeModels, nodeId: valNodeId3, portId: 1)
+    
+    let interactionNode: NodeModel = getInteractionNode(nodes: state.nodeModels,
+                                                        vizNodeId: textTapped.nodeId,
+                                                        // `press`, since this is text TAPPED
+                                                        previewInteraction: PreviewInteraction.press)
+    
+    // still HARDCODED the portId -- assumes that `press` val nodes only have single port...
+    let pi: PortIdentifier = PortIdentifier(nodeId: interactionNode.id, portId: 1, isInput: false)
+    let pm: PortModel = getPortModel(nodeModels: state.nodeModels, nodeId: interactionNode.id, portId: 1)
+    
+    
+    
+    log("handleTextTappedMiniviewAction pm: \(pm)") // ought to be 3...
     
     if case .bool(let x) = pm.value {
         let newValue: PortValue = .bool(toggleBool(x))
@@ -86,6 +93,7 @@ func handleTextTappedMiniviewAction(state: AppState, textTapped: TextTappedMiniv
     
     return state
 }
+
 
 
 // don't want to use PortModel.value, because the value could be outdated later?
@@ -162,135 +170,9 @@ func handlePortTappedAction(state: AppState, action: PortTappedAction) -> AppSta
 }
 
 // stuff we do anytime we add or remove an edge
-func recalculateGraph(state: AppState) -> AppState {
-    var state = state
-    
-    state = flowValues(state: state, nodes: state.nodeModels, edges: state.edges)
-    
-    state = selfConsistency(state: state,
-                            nodes: state.nodeModels.filter({ (n: NodeModel) -> Bool in
-                                n.nodeType == .calcNode }))
-    
-    // need to reflow again because selfConsistency may have changed a node's inputs and outputs
-    state = flowValues(state: state, nodes: state.nodeModels, edges: state.edges)
-    
-    state.activePM = nil
-    
-    return state
-}
 
 
-
-func isBasePreviewElement(pe: PreviewElement) -> Bool {
-    log("isBasePreviewElement called")
-    switch pe {
-        case .text:
-            return true
-        case .typographyColor:
-            return false
-    }
-}
-
-
-
-// for some reason, when if baseVn.previewElement! etc. is added,
-// we get "Function declares an opaque return type, but the return statements in its body do not have matching underlying types"
-//func generateMiniview(state: AppState, dispatch: @escaping Dispatch) -> some View {
-
-// `some View` is a specific view-type;
-// instead, use `AnyView` since the view-type returned is dynamic
-func generateMiniview(state: AppState, dispatch: @escaping Dispatch) -> AnyView {
-    log("generateMiniview called")
-    
-    // state would contain these values?
-    // iterate through vizModels/uiElems in state,
-    // iterate through the (input) PortModels of the VizNodes;
-    // these inputs contain eg. `Typography Text`, `Typography Color`
-    
-    let vns: [NodeModel] = state.nodeModels.filter { $0.nodeType == .vizNode }
-    log("generateMiniview: vns: \(vns)")
-    
-    
-//    let baseVn: NodeModel = vns.first { isBasePreviewElement(pe: $0.previewElement!) }!
-    
-    let baseVn: NodeModel = vns.first { (nm: NodeModel) -> Bool in
-        log("baseVn: nm.previewElement: \(nm.previewElement)")
-        return isBasePreviewElement(pe: nm.previewElement!)
-    }!
-    
-    let modifierVn: NodeModel = vns.first { (nm: NodeModel) -> Bool in
-        log("modifierVn: nm.previewElement: \(nm.previewElement)")
-        return !isBasePreviewElement(pe: nm.previewElement!)
-    }!
-        
-//        NodeModel = vns.first { !isBasePreviewElement(pe: $0.previewElement!) }!
-    
-    // ui base vs ui modifier
-    // ui base = eg Text, Image
-    // ui modifier = eg TypographyColor
-    // grab every VizNode base
-//    let miniviewBase = switch baseVn.previewElement! {
-//        case .text:
-//            return Text(baseVn.ports.first!.value)
-//        case .typographyColor:
-//            return nil
-//    }
-    
-    // retrieve the correct base UI...
-    if baseVn.previewElement! == .text {
-        
-        let display: String = getDisplayablePortValue(mpv: baseVn.ports.first!.value)
-        
-        let text = Text(display)
-            .font(.largeTitle)
-            .gesture(DragGesture(minimumDistance: 0)
-                        .onChanged { _ in
-                            log("onChanged inside generateMiniview")
-                            dispatch(TextTappedMiniviewAction())
-                            
-                        }
-                        .onEnded { _ in
-                            log("onEnded inside generateMiniview")
-                            dispatch(TextTappedMiniviewAction())
-                            
-                        }
-            )
-
-        // add any potential modifiers...
-        if modifierVn.previewElement! == .typographyColor {
-            
-            if case .color(let x) = modifierVn.ports.first!.value {
-                return AnyView(text.foregroundColor(colorFromString(x)).padding())
-//                return AnyView(text.foregroundColor(x.color).padding())
-            }
-        }
-
-        return AnyView(text.padding())
-    }
-    else {
-        let defaultView = Text("No base UI found...").padding()
-        return AnyView(defaultView)
-    }
-    
-    
-    // how do you identify the 'base' view (e.g. `Text`) vs a modifier (e.g. `TypographyColor`)?
-    // how do you know which modifiers go with which bases, and in which order?
-    // eg what if you have two different `TextLayers` in the graph, and want each to be a different color?
-
-    // some modifiers obviously only apply to Text (e.g. TypographyColor)
-    // other modifiers obviously only apply to Image
-        
-    // FOR NOW?: assume one Base (Text) and one modifier (Color)
-  
-}
-
-
-func removeEdgeAndUpdateNodes(state: AppState,
-                              newEdge: PortEdge
-//                              ,
-//                              flowValue: PortValue = .string("default...")
-//                              flowValue: PortValue
-) -> AppState {
+func removeEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge) -> AppState {
     log("removeEdgeAndUpdateNodes: edge exists; will remove it")
     
     var state = state
@@ -300,42 +182,10 @@ func removeEdgeAndUpdateNodes(state: AppState,
     })
     
     // Origami nodes' inputs do not change a connecting edge is removed
-    
-//    let toPortIdentifier: PortIdentifier = newEdge.to
-//
-//    let updatedNode: NodeModel = updateNodePortModel(state: state, port: toPortIdentifier, newValue: flowValue)
-//
-//    let updatedNodes: [NodeModel] = replace(ts: state.nodeModels, t: updatedNode)
-//
-//    state.nodeModels = updatedNodes
-//
-//    let nodeType: NodeType = getNodeTypeForPort(nodeModels: state.nodeModels, nodeId: toPortIdentifier.nodeId, portId: toPortIdentifier.portId)
-//
-//    if nodeType == .calcNode {
-//        log("removeEdgeAndUpdateNodes: will update a calcNode's output too")
-//
-//        // don't know a priori the PortIdent for the output
-//        let outputPM: PortModel = getOutputPortModel(nodeModels: state.nodeModels, nodeId: toPortIdentifier.nodeId)
-//
-//        // node model with updated output
-//        let updatedNode2: NodeModel = updateNodePortModel(
-//            state: state,
-//            port: PortIdentifier(nodeId: outputPM.nodeId, portId: outputPM.id, isInput: false),
-//            newValue: flowValue) // NO OPERATION
-//
-//        let updatedNodes2: [NodeModel] = replace(ts: state.nodeModels, t: updatedNode2)
-//
-//        state.nodeModels = updatedNodes2
-//    }
-    
-
-    
     return state
 }
 
 
-//func addEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: String, toPort: PortIdentifier) -> AppState { // ie edge does not already exist; will add it and update ports
-//func addEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: PV, toPort: PortIdentifier) -> AppState { // ie edge does not already exist; will add it and update ports
 func addEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: PortValue, toPort: PortIdentifier) -> AppState { // ie edge does not already exist; will add it and update ports
 
     log("addEdgeAndUpdateNodes: edge does not exist; will add it: newEdge: \(newEdge)")
@@ -396,17 +246,6 @@ func addEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: PortVa
         state.nodeModels = updatedNodes2
     }
     
-    
-    // since we've added an edge, we need to flow the values
-//    state = flowValues(state: state, nodes: state.nodeModels, edges: state.edges)
-//
-//    state = selfConsistency(state: state,
-//                            nodes: state.nodeModels.filter({ (n: NodeModel) -> Bool in
-//                                n.nodeType == .calcNode }))
-//    state = flowValues(state: state, nodes: state.nodeModels, edges: state.edges)
-//
-//
-//    state.activePM = nil
     return state // we added the edges and updated
 }
 
@@ -417,9 +256,9 @@ func addEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: PortVa
 func calculateValue(nm: NodeModel, op: Operation, flowValue: PortValue) -> PortValue {
     log("calculateValue called")
     
-    let ascending = { (pm1: PortModel, pm2: PortModel) -> Bool in
-        pm1.id < pm2.id
-    }
+//    let ascending = { (pm1: PortModel, pm2: PortModel) -> Bool in
+//        pm1.id < pm2.id
+//    }
     
     // this node's inputs
     let inputs = nm.ports.filter { (pm: PortModel) -> Bool in
@@ -513,25 +352,6 @@ func flowValues(state: AppState, nodes: [NodeModel], edges: [PortEdge]) -> AppSt
         state.nodeModels = updatedNodes
     }
     
-    
-    
-    // for a given edge, set edge.target.portValue = edge.origin.portValue
-    
-//    let edge: PortEdge = edges.first!
-    
-    
-//    let origin: PortIdentifier = edge.from
-//    let originPM: PortModel = getPortModel(nodeModels: nodes, nodeId: origin.nodeId, portId: origin.portId)
-//
-//
-//    let target: PortIdentifier = edge.to
-//    let targetPM: PortModel = getPortModel(nodeModels: nodes, nodeId: target.nodeId, portId: target.portId)
-//
-//    // update target to use origin's value
-//    let updatedNode: NodeModel = updateNodePortModel(state: state, port: target, newValue: originPM.value)
-//    let updatedNodes: [NodeModel] = replace(ts: state.nodeModels, t: updatedNode)
-//    state.nodeModels = updatedNodes
-    
     return state
 }
 
@@ -574,8 +394,6 @@ func selfConsistency(state: AppState, nodes: [NodeModel]) -> AppState {
         }
         
     }
-    
-    
     
     return state
 }
