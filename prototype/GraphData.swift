@@ -346,11 +346,8 @@ func dragInteractionNodeModel(id: Int, forNodeId: Int) -> NodeModel {
     let output: PortModel = PortModel(id: 1, nodeId: id,
                                       portType: .output,
                                       label: "Interaction",
-//                                      value: PortValue.bool(false),
-//                                      defaultValue: PortValue.bool(false)
                                       value: PortValue.position(CGSize.zero),
                                       defaultValue: PortValue.position(CGSize.zero)
-//                                      value: .int(<#T##Int#>)
     )
     
     return NodeModel(id: id, nodeType: NodeType.valNode, ports: [output],

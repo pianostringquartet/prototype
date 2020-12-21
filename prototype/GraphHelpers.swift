@@ -127,7 +127,7 @@ func flowValues(state: AppState, nodes: [NodeModel], edges: [PortEdge]) -> AppSt
         
         
         // update target to use origin's value
-        let updatedNode: NodeModel = updateNodePortModel(state: state, port: target, newValue: originPM.value)
+        let updatedNode: NodeModel = updateNodePortAndPreviewModel(state: state, port: target, newValue: originPM.value)
         let updatedNodes: [NodeModel] = replace(ts: state.nodeModels, t: updatedNode)
         
         state.nodeModels = updatedNodes
@@ -167,7 +167,7 @@ func selfConsistency(state: AppState, nodes: [NodeModel]) -> AppState {
             // `inputs[0].value` is just some simple default value
             let newOutputValue: PortValue = calculateValue(nm: node, op: node.operation!, flowValue: inputs[0].value)
             
-            let updatedNode2: NodeModel = updateNodePortModel(
+            let updatedNode2: NodeModel = updateNodePortAndPreviewModel(
                 state: state,
                 port: PortIdentifier(nodeId: output.nodeId, portId: output.id, isInput: false),
                 newValue: newOutputValue)

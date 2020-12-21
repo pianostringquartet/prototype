@@ -13,8 +13,8 @@ import ReSwift
 //
 //// update a node's previous model
 //func updatePreviewModel() -> NodeModel {
-//    
-//    
+//
+//
 //}
 
 
@@ -192,23 +192,6 @@ func buildPreview(state: AppState, vns: [NodeModel], dispatch: @escaping Dispatc
 //                                     preview: base.previewModel!,
 //                                     dispatch: dispatch)
 
-            
-            // what if i hardcoded both layers?:
-//            let base: NodeModel = bases.first!
-//            viewFromBasePreviewModel(nodes: state.nodeModels,
-//                                     node: base,
-//                                     preview: base.previewModel!,
-//                                     dispatch: dispatch)
-//
-//            let base2: NodeModel = bases[1]
-//            viewFromBasePreviewModel(nodes: state.nodeModels,
-//                                     node: base2,
-//                                     preview: base2.previewModel!,
-//                                     dispatch: dispatch)
-
-
-            
-            
             
             
             // HARDCODED: for demo purposes

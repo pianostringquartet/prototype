@@ -59,7 +59,7 @@ func handleTextTappedMiniviewAction(state: AppState, textTapped: TextTappedMiniv
         let newValue: PortValue = .bool(toggleBool(x))
         
         log("handleTextTappedMiniviewAction newValue: \(newValue)")
-        let updatedNode: NodeModel = updateNodePortModel(state: state, port: pi, newValue: newValue)
+        let updatedNode: NodeModel = updateNodePortAndPreviewModel(state: state, port: pi, newValue: newValue)
         let updatedNodes: [NodeModel] = replace(ts: state.nodeModels, t: updatedNode)
         state.nodeModels = updatedNodes
         state = recalculateGraph(state: state)
@@ -124,7 +124,7 @@ func handleTextMovedMiniviewAction(state: AppState, textMoved: TextMovedMiniview
     if case .position(let x) = pm.value {
         let newValue: PortValue = .position(textMoved.position)
         
-        let updatedNode2: NodeModel = updateNodePortModel(state: state, port: pi, newValue: newValue)
+        let updatedNode2: NodeModel = updateNodePortAndPreviewModel(state: state, port: pi, newValue: newValue)
         let updatedNodes2: [NodeModel] = replace(ts: state.nodeModels, t: updatedNode2)
         state.nodeModels = updatedNodes2
     }

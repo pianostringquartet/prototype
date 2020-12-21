@@ -153,7 +153,7 @@ func addEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: PortVa
     // update the state to use the new node model
     
     // later?: look up the value in state rather than taking it from the action
-    let updatedNode: NodeModel = updateNodePortModel(state: state, port: toPort, newValue: flowValue)
+    let updatedNode: NodeModel = updateNodePortAndPreviewModel(state: state, port: toPort, newValue: flowValue)
     
     let updatedNodes: [NodeModel] = replace(ts: state.nodeModels, t: updatedNode)
     
@@ -185,7 +185,7 @@ func addEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: PortVa
         let outputPM: PortModel = getOutputPortModel(nodeModels: state.nodeModels, nodeId: toPort.nodeId)
         
         // node model with updated output
-        let updatedNode2: NodeModel = updateNodePortModel(
+        let updatedNode2: NodeModel = updateNodePortAndPreviewModel(
             state: state,
             port: PortIdentifier(nodeId: outputPM.nodeId, portId: outputPM.id, isInput: false),
             newValue: calculatedValue)
