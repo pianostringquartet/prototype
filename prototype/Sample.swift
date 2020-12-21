@@ -60,11 +60,11 @@ let valNode = stringValNode(id: valNodeId, value: "hello")
 // TWO interactions nodes
 //let valNode2 = pressInteractionNodeModel(id: valNodeId2, forNodeId: vizNodeId)
 
-let valNode2 = dragInteractionNodeModel(id: valNodeId2, forNodeId: vizNodeId)
+let valNode2 = dragInteractionNodeModel(id: valNodeId2, forNodeId: vizNodeId, forPreviewModelId: previewModelId)
 
-//let valNode3 = pressInteractionNodeModel(id: valNodeId3)
+let valNode3 = pressInteractionNodeModel(id: valNodeId3, forNodeId: vizNodeId2, forPreviewModelId: previewModelId2)
 
-let valNode3 = dragInteractionNodeModel(id: valNodeId3, forNodeId: vizNodeId2)
+//let valNode3 = dragInteractionNodeModel(id: valNodeId3, forNodeId: vizNodeId2)
 
 
 let calcNode = concatNodeModel(id: calcNodeId)
@@ -117,7 +117,7 @@ let hwState = AppState(nodeModels: [
     valNode,
                                     valNode2,
                                     valNode3,
-//                                    calcNode2,
+                                    calcNode2,
 //                                    calcNode3,
                                     vizNode,
     

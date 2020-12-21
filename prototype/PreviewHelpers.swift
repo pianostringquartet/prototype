@@ -209,6 +209,7 @@ func buildPreview(state: AppState, vns: [NodeModel], dispatch: @escaping Dispatc
 func viewFromBasePreviewModel(nodes: [NodeModel], // all nodes from state
                               node: NodeModel, // ie the base node ie the viz layer node
                               preview: PreviewModel,
+//                              interaction: PreviewInteraction,
                               dispatch: @escaping Dispatch) -> AnyView {
 
     log("viewFromBasePreviewModel called; node.id: \(node.id)")
@@ -217,10 +218,15 @@ func viewFromBasePreviewModel(nodes: [NodeModel], // all nodes from state
     let ports: [PortModel] = node.ports.sorted(by: ascending)
     
     // HARDCODED .drag
+    // MUST BE ABLE TO GET the real kind of interaction
     let interaction: InteractionModel = getInteractionNode(
         nodes: nodes,
-        vizNodeId: node.id,
-        previewInteraction: .drag).interactionModel!
+        vizNodeId: node.id //,
+//        previewInteraction: .drag).interactionModel!
+//        previewInteraction: interaction
+    ).interactionModel!
+    
+    
     
     switch preview.previewElement {
         
@@ -232,7 +238,8 @@ func viewFromBasePreviewModel(nodes: [NodeModel], // all nodes from state
             
             var color: Color = Color.black
             if case .color(let x) = ports[1].value {
-                color = colorFromString(x)
+//                color = colorFromString(x)
+                color = x
             }
             
             

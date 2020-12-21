@@ -43,10 +43,13 @@ func handleTextTappedMiniviewAction(state: AppState, textTapped: TextTappedMiniv
     
     var state = state
         
+    
+    // CANNOT ASSUME that the interaction 
     let interactionNode: NodeModel = getInteractionNode(nodes: state.nodeModels,
-                                                        vizNodeId: textTapped.nodeId,
+                                                        vizNodeId: textTapped.nodeId //,
                                                         // `press`, since this is text TAPPED
-                                                        previewInteraction: PreviewInteraction.press)
+//                                                        previewInteraction: PreviewInteraction.press
+    )
     
     // still HARDCODED the portId -- assumes that `press` val nodes only have single port...
     let pi: PortIdentifier = PortIdentifier(nodeId: interactionNode.id, portId: 1, isInput: false)
@@ -109,9 +112,11 @@ func handleTextMovedMiniviewAction(state: AppState, textMoved: TextMovedMiniview
     
     /// ASSUMES looking for `.drag` interaction val node
     var interactionNode: NodeModel = getInteractionNode(nodes: state.nodeModels,
-                                                        vizNodeId: textLayerId,
+                                                        vizNodeId: textLayerId
+                                                        //,
                                                         // `drag`, since this is text DRAGGED
-                                                        previewInteraction: PreviewInteraction.drag)
+//                                                        previewInteraction: PreviewInteraction.drag
+    )
     
     // still HARDCODED the portId -- assumes that `drag` val nodes only have single port...
     let pi: PortIdentifier = PortIdentifier(nodeId: interactionNode.id, portId: 1, isInput: false)

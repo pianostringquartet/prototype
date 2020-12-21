@@ -84,8 +84,8 @@ enum PortValue: Equatable, Codable {
     
     case string(String)
     case bool(Bool)
-    case color(String)
-//    case color(Color)
+//    case color(String)
+    case color(Color)
     case int(Int)
 //    case cgSize(CGSize)
     case position(CGSize)
@@ -124,7 +124,10 @@ enum PortValue: Equatable, Codable {
         } else if let value = try? values.decode(Int.self, forKey: .int) {
             self = .int(value)
             return
-        } else if let value = try? values.decode(String.self, forKey: .color) {
+//        } else if let value = try? values.decode(String.self, forKey: .color) {
+//            self = .color(value)
+//            return
+        } else if let value = try? values.decode(Color.self, forKey: .color) {
             self = .color(value)
             return
         } else if let value = try? values.decode(CGSize.self, forKey: .position) {
@@ -320,7 +323,9 @@ func boolValNode(id: Int, value: Bool, label: String = "output: Bool") -> NodeMo
 
 // need valNode for "Interaction" (only outputs)
 //func pressInteractionNodeModel(id: Int) -> NodeModel {
-func pressInteractionNodeModel(id: Int, forNodeId: Int) -> NodeModel {
+func pressInteractionNodeModel(id: Int, forNodeId: Int,
+//                               interactionId: Int,
+                               forPreviewModelId: Int) -> NodeModel {
     
     
     let output: PortModel = PortModel(id: 1, nodeId: id, portType: .output, label: "Interaction", value: PortValue.bool(false), defaultValue: PortValue.bool(false))
@@ -329,9 +334,10 @@ func pressInteractionNodeModel(id: Int, forNodeId: Int) -> NodeModel {
                      nodeType: NodeType.valNode,
                      ports: [output],
 //                     previewInteraction: PreviewInteraction.press
-                     interactionModel: InteractionModel(id: 1, // in
+                     interactionModel: InteractionModel(id: 1, // interactionId,
                                                         nodeId: id,
                                                         forNodeId: forNodeId,
+                                                        forPreviewModelId: forPreviewModelId,
                                                         previewInteraction: PreviewInteraction.press)
     )
 }
@@ -340,7 +346,9 @@ func pressInteractionNodeModel(id: Int, forNodeId: Int) -> NodeModel {
 
 // in Origami Studio, how do you actually get a TextLayer to have a specific position?
 // Adam's example has a uiLayer with a position input; can add that to TextLayer etc.
-func dragInteractionNodeModel(id: Int, forNodeId: Int) -> NodeModel {
+func dragInteractionNodeModel(id: Int, forNodeId: Int,
+//                              interactionId: Int,
+                              forPreviewModelId: Int) -> NodeModel {
     
     // these values will actually need to be Positions
     let output: PortModel = PortModel(id: 1, nodeId: id,
@@ -351,9 +359,10 @@ func dragInteractionNodeModel(id: Int, forNodeId: Int) -> NodeModel {
     )
     
     return NodeModel(id: id, nodeType: NodeType.valNode, ports: [output],
-                     interactionModel: InteractionModel(id: 1, // in
+                     interactionModel: InteractionModel(id: 1, // interactionId,
                                                         nodeId: id,
                                                         forNodeId: forNodeId,
+                                                        forPreviewModelId: forPreviewModelId,
                                                         previewInteraction: PreviewInteraction.drag))
 }
 
@@ -376,7 +385,12 @@ func isTextLayerVizNode(node: NodeModel) -> Bool {
     return node.nodeType == .vizNode && node.previewModel!.previewElement == .text
 }
 
-func textLayerVizNode(nodeId: Int, previewModelId: Int, value: String = "", label: String = "TextLayer", colorValue: String = falseColorString, position: CGSize = CGSize.zero) -> NodeModel {
+func textLayerVizNode(nodeId: Int, previewModelId: Int,
+//                      interactionId: Int?,
+                      value: String = "", label: String = "TextLayer",
+//                      colorValue: String = falseColorString,
+                      colorValue: Color = falseColor,
+                      position: CGSize = CGSize.zero) -> NodeModel {
     
     let textInput = PortModel(id: 1, nodeId: nodeId, portType: PortType.input, label: label, value: .string(value), defaultValue: .string(value))
     
@@ -386,7 +400,10 @@ func textLayerVizNode(nodeId: Int, previewModelId: Int, value: String = "", labe
 
     let previewModel = PreviewModel(id: previewModelId,
                                     nodeId: nodeId,
-                                    previewElement: PreviewElement.text)
+                                    previewElement: PreviewElement.text
+//                                    ,
+//                                    interactionId: interactionId
+    )
     
     return NodeModel(id: nodeId, nodeType: NodeType.vizNode, ports: [textInput, colorInput, positionInput], previewModel: previewModel)
 }
@@ -394,12 +411,12 @@ func textLayerVizNode(nodeId: Int, previewModelId: Int, value: String = "", labe
 
 
 // NO LONGER USED?
-func colorVizNode(id: Int, value: String, previewModel: PreviewModel, label: String) -> NodeModel {
-
-    let vizNodeInput: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: label, value: .color(value), defaultValue: .color(value))
-
-    return NodeModel(id: id, nodeType: NodeType.vizNode, ports: [vizNodeInput], previewModel: previewModel)
-}
+//func colorVizNode(id: Int, value: String, previewModel: PreviewModel, label: String) -> NodeModel {
+//
+//    let vizNodeInput: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: label, value: .color(value), defaultValue: .color(value))
+//
+//    return NodeModel(id: id, nodeType: NodeType.vizNode, ports: [vizNodeInput], previewModel: previewModel)
+//}
 
 
 
@@ -436,9 +453,13 @@ func optionPickerNodeModel(id: Int) -> NodeModel {
     let operation = Operation.optionPicker
     
     let input: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: "Bool", value: PortValue.bool(false), defaultValue: PortValue.bool(false))
-    let input2: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.input, label: "Color", value: .color(trueColorString), defaultValue: .color(trueColorString))
-    let input3: PortModel = PortModel(id: 3, nodeId: id, portType: PortType.input, label: "Color", value: .color(falseColorString), defaultValue: .color(falseColorString))
-    let output: PortModel = PortModel(id: 4, nodeId: id, portType: PortType.output, label: "Color", value: .color(falseColorString), defaultValue: .color(falseColorString))
+//    let input2: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.input, label: "Color", value: .color(trueColorString), defaultValue: .color(trueColorString))
+//    let input3: PortModel = PortModel(id: 3, nodeId: id, portType: PortType.input, label: "Color", value: .color(falseColorString), defaultValue: .color(falseColorString))
+//    let output: PortModel = PortModel(id: 4, nodeId: id, portType: PortType.output, label: "Color", value: .color(falseColorString), defaultValue: .color(falseColorString))
+    
+    let input2: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.input, label: "Color", value: .color(trueColor), defaultValue: .color(trueColor))
+    let input3: PortModel = PortModel(id: 3, nodeId: id, portType: PortType.input, label: "Color", value: .color(falseColor), defaultValue: .color(falseColor))
+    let output: PortModel = PortModel(id: 4, nodeId: id, portType: PortType.output, label: "Color", value: .color(falseColor), defaultValue: .color(falseColor))
         
     return NodeModel(id: id, nodeType: NodeType.calcNode, ports: [input, input2, input3, output], operation: operation)
 

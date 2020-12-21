@@ -299,11 +299,12 @@ func fillColor(hasEdge: Bool, thisPM: PortModel, activePM: PortModel?) -> Color 
     }
     else if case .color(let x) = thisPM.value {
 //        return x.color
-        switch x {
-            case greenColorString: return Color.green
-            case purpleColorString: return Color.purple
-            default: return defaultColor // temporary...
-        }
+//        switch x {
+//            case greenColorString: return Color.green
+//            case purpleColorString: return Color.purple
+//            default: return defaultColor // temporary...
+//        }
+        return x
             
         
     }

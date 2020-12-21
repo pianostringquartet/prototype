@@ -83,13 +83,20 @@ func getNodeTypeForPort(nodeModels: [NodeModel], nodeId: Int, portId: Int) -> No
 // given a nodeId for a viz layer,
 // return the interaction val node for that model
 // ... we're interested in a specific interaction too
-func getInteractionNode(nodes: [NodeModel], vizNodeId: Int, previewInteraction: PreviewInteraction) -> NodeModel {
+
+// ASSUMES a given viz node has a SINGLE associated val interaction node
+func getInteractionNode(nodes: [NodeModel], vizNodeId: Int
+//                        previewInteraction: PreviewInteraction
+) -> NodeModel {
     
     return nodes.first {
         $0.nodeType == .valNode
         && $0.interactionModel != nil
-        && $0.interactionModel!.previewInteraction == previewInteraction
-        && $0.interactionModel!.forNodeId == vizNodeId
+        
+            // this assumes that a given node might have more than one type of interaction?
+//            && $0.interactionModel!.previewInteraction == previewInteraction
+        
+            && $0.interactionModel!.forNodeId == vizNodeId
     }!
     
 }

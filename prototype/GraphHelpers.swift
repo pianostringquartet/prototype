@@ -67,14 +67,14 @@ func calculateValue(nm: NodeModel, op: Operation, flowValue: PortValue) -> PortV
             switch inputs[0].value {
                 case .bool(let x):
 //                    return .string(x == true ? "Green" : "Purple")
-                    return .color(x == true ? trueColorString : falseColorString)
+//                    return .color(x == true ? trueColorString : falseColorString)
+                    return .color(x == true ? trueColor : falseColor)
 //                    return .color(x == true ? trueColor2 : falseColor2)
                 default:
                     log(".optionPicker default...")
 //                    return .string("Purple")
-//                    return .color(falseColor)
-//                    return .color(falseColor2)
-                    return .color(falseColorString)
+                    return .color(falseColor)
+//                    return .color(falseColorString)
             }
     }
 }
