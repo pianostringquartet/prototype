@@ -117,7 +117,7 @@ let hwState = AppState(nodeModels: [
     valNode,
                                     valNode2,
                                     valNode3,
-                                    calcNode2,
+//                                    calcNode2,
 //                                    calcNode3,
                                     vizNode,
     

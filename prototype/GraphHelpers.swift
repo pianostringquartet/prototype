@@ -90,14 +90,22 @@ func calculateValue(nm: NodeModel, op: Operation, flowValue: PortValue) -> PortV
 
 
 
+// need a BETTER version of this;
+// e.g. as we iterate through existing edges,
+// we can also look at the target's node and recalculate any values etc.
+
 func flowValues(state: AppState, nodes: [NodeModel], edges: [PortEdge]) -> AppState {
     log("flowValues called")
     
     var state = state
-    
+
+    // edges should be sorted, to move from left to right?
     edges.forEach { (edge: PortEdge) in
         
         log("flowValues: edge: \(edge)")
+        
+        
+        // UPDATE NODES
         
         let origin: PortIdentifier = edge.from
         let originPM: PortModel = getPortModel(nodeModels: nodes, nodeId: origin.nodeId, portId: origin.portId)
@@ -106,11 +114,29 @@ func flowValues(state: AppState, nodes: [NodeModel], edges: [PortEdge]) -> AppSt
         let target: PortIdentifier = edge.to
         let targetPM: PortModel = getPortModel(nodeModels: nodes, nodeId: target.nodeId, portId: target.portId)
         
+        
+        // retrieve the node that's being updated
+        // 1. update its port-values
+        // and 2. if it has a preview model, update the preview model
+        
+    
+        
+        // the output node, which will need to be updated
+//        let updatedNode: NodeModel = updateNodePortModel(state: state, port: target, newValue: originPM.value)
+        
+        
+        
         // update target to use origin's value
         let updatedNode: NodeModel = updateNodePortModel(state: state, port: target, newValue: originPM.value)
         let updatedNodes: [NodeModel] = replace(ts: state.nodeModels, t: updatedNode)
         
         state.nodeModels = updatedNodes
+        
+        
+        
+        // UPDATE PREVIEW MODELS on vizNodes
+        
+        
     }
     
     return state

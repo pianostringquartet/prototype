@@ -96,6 +96,7 @@ struct GraphEditorView: View {
         // TODO: set limit to how far out / in we can zoom
         
         
+        // CAREFUL: .contentShape CHANGES THE AREA THAT YOU THINK YOU CAN CLICK IN ETC.
 //        .contentShape(Rectangle()) // make container
         
 //        .scaleEffect(finalAmount + currentAmount)

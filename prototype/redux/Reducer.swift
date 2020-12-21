@@ -40,11 +40,21 @@ func reducer(action: Action, state: AppState?) -> AppState {
         
         case let textMoved as TextMovedMiniviewAction:
             state = handleTextMovedMiniviewAction(state: state, textMoved: textMoved)
+
+            
+            // we have the p
             
         default:
             break
     }
+    
+//    let nm: NodeModel = state.nodeModels.first(where: {$0.id == 7} )!
+//    let ports = nm.ports.sorted(by: ascending)
+//    log("node 7: ports[2].value: \(ports[2].value)")
+//    log("node 7: nm.previewModel!.position: \(nm.previewModel!.position)")
+    
 
+    
     // persist state to UserDefaults
     saveState(state: state)
     return state

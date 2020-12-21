@@ -134,9 +134,11 @@ func updateVizNodePreviewModel(state: AppState, node: NodeModel, previewModel: P
     return node
 }
 
+//
+//func updateNodePreviewModelPosition(state: AppState, port: PortIdentifier, previewModelId: Int, position: CGSize) -> NodeModel {
+//
+//}
 
-
-// returns a NodeModel with the port-specific PortModel.value updated to use newValue
 func updateNodePortModel(state: AppState, port: PortIdentifier, newValue: PortValue) -> NodeModel {
     log("updateNodePortModel called")
     log("port: \(port)")
@@ -149,24 +151,79 @@ func updateNodePortModel(state: AppState, port: PortIdentifier, newValue: PortVa
     // 2. then find the node's port
 
     // ie must be able to find the node
-    let oldNode: NodeModel = state.nodeModels.first(where: isDesiredNode)!
+    var oldNode: NodeModel = state.nodeModels.first(where: isDesiredNode)!
     
-    let oldPort: PortModel = getPortModel(nodeModels: state.nodeModels,
+    var oldPort: PortModel = getPortModel(nodeModels: state.nodeModels,
                                           nodeId: port.nodeId,
                                           portId: port.portId)
     
     
     // Update the old port
-    let updatedPort = oldPort.update(value: newValue)
+    var updatedPort = oldPort.update(value: newValue)
+//    oldPort.value = newValue
     
     log("updateNodePortModel: updatedPort: \(updatedPort)")
     
     let updatedPorts: [PortModel] = replace(ts: oldNode.ports, t: updatedPort)
+//    let updatedPorts: [PortModel] = replace(ts: oldNode.ports, t: oldPort)
     
+    // ports updated
     let updatedNode: NodeModel = oldNode.update(ports: updatedPorts)
+    
+//    let portsUpdatedNode: NodeModel = oldNode.update(ports: updatedPorts)
+    
+    // preview mode
+    if oldNode.nodeType == .vizNode {
+        log("we have a viz node...")
+        
+        if case .position(let x) = newValue {
+            log("... and a position value")
+//            oldNode.previewModel!.position = x
+            let updatedPM: PreviewModel = oldNode.previewModel!.updatePosition(position: x)
+            
+            let updatedNode2: NodeModel = updatedNode.update(previewModel: updatedPM)
+            return updatedNode2
+        }
+        
+    }
+    
+    
     
     return updatedNode
 }
+
+
+// returns a NodeModel with the port-specific PortModel.value updated to use newValue
+//func updateNodePortModel(state: AppState, port: PortIdentifier, newValue: PortValue) -> NodeModel {
+//    log("updateNodePortModel called")
+//    log("port: \(port)")
+//    log("newValue: \(newValue)")
+//
+//    let isDesiredNode = { (nm: NodeModel) -> Bool in nm.id == port.nodeId}
+//
+//    // Find the old port
+//    // 1. find the desired node
+//    // 2. then find the node's port
+//
+//    // ie must be able to find the node
+//    let oldNode: NodeModel = state.nodeModels.first(where: isDesiredNode)!
+//
+//    let oldPort: PortModel = getPortModel(nodeModels: state.nodeModels,
+//                                          nodeId: port.nodeId,
+//                                          portId: port.portId)
+//
+//
+//    // Update the old port
+//    let updatedPort = oldPort.update(value: newValue)
+//
+//    log("updateNodePortModel: updatedPort: \(updatedPort)")
+//
+//    let updatedPorts: [PortModel] = replace(ts: oldNode.ports, t: updatedPort)
+//
+//    let updatedNode: NodeModel = oldNode.update(ports: updatedPorts)
+//
+//    return updatedNode
+//}
 
 
 func updateNodeOutputPortModel(state: AppState,
@@ -208,9 +265,14 @@ func recalculateGraph(state: AppState) -> AppState {
     
     state = flowValues(state: state, nodes: state.nodeModels, edges: state.edges)
     
-    state = selfConsistency(state: state,
-                            nodes: state.nodeModels.filter({ (n: NodeModel) -> Bool in
-                                n.nodeType == .calcNode }))
+    // if there are no calc nodes, then skip this step
+    
+    let calcNodes = state.nodeModels.filter({ (n: NodeModel) -> Bool in
+                                                n.nodeType == .calcNode })
+    if !calcNodes.isEmpty {
+        log("there are calc nodes, so will call selfConsistency")
+        state = selfConsistency(state: state, nodes: calcNodes)
+    }
     
     // need to reflow again because selfConsistency may have changed a node's inputs and outputs
     state = flowValues(state: state, nodes: state.nodeModels, edges: state.edges)
