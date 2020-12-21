@@ -40,19 +40,19 @@ struct GraphEditorView: View {
         
         VStack {
             HStack (spacing: 50) {
-                let ascending = { (nm1: NodeModel, nm2: NodeModel) -> Bool in nm1.id < nm2.id }
+//                let ascending = { (nm1: NodeModel, nm2: NodeModel) -> Bool in nm1.id < nm2.id }
                 
                 let valNodes = state.nodeModels.filter { (n: NodeModel) -> Bool in
                     n.nodeType == NodeType.valNode
-                }.sorted(by: ascending)
+                }.sorted(by: ascendingNodes)
                 
                 let calcNodes = state.nodeModels.filter { (n: NodeModel) -> Bool in
                     n.nodeType == NodeType.calcNode
-                }.sorted(by: ascending)
+                }.sorted(by: ascendingNodes)
                 
                 let vizNodes = state.nodeModels.filter { (n: NodeModel) -> Bool in
                     n.nodeType == NodeType.vizNode
-                }.sorted(by: ascending)
+                }.sorted(by: ascendingNodes)
                 
                 // left
                 VStack {
@@ -85,14 +85,19 @@ struct GraphEditorView: View {
         }
         .padding(.trailing, 30).padding(.bottom, 30)
         .offset(x: localPosition.width, y: localPosition.height)
-        .frame(idealWidth: 500, idealHeight: 500)
+        
+        // was this causing problems? we were outside the frame?
+//        .frame(idealWidth: 500, idealHeight: 500)
         
         .overlay(FloatingWindow(content: generateMiniview(state: state, dispatch: dispatch)))
         
         
         // Pinch to zoom
         // TODO: set limit to how far out / in we can zoom
-        .contentShape(Rectangle()) // make container
+        
+        
+//        .contentShape(Rectangle()) // make container
+        
 //        .scaleEffect(finalAmount + currentAmount)
 //        .gesture(
 //            MagnificationGesture()

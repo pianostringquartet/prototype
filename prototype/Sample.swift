@@ -31,9 +31,11 @@ let falseColorString = purpleColorString
 
 // ids
 
+
+let valNodeId0 = 0
 let valNodeId = 1
 let valNodeId2 = 2
-let valNodeId3 = 3 // press-interaction node ('as a val-node')
+let valNodeId3 = 3
 
 let calcNodeId = 4
 let calcNodeId2 = 5
@@ -51,6 +53,7 @@ let previewModelId3 = 3
 
 // nodes
 
+let valNode0 = stringValNode(id: valNodeId0, value: "salut")
 let valNode = stringValNode(id: valNodeId, value: "hello")
 //let valNode2 = stringValNode(id: valNodeId2, value: "world")
 
@@ -60,6 +63,8 @@ let valNode = stringValNode(id: valNodeId, value: "hello")
 let valNode2 = dragInteractionNodeModel(id: valNodeId2, forNodeId: vizNodeId)
 
 //let valNode3 = pressInteractionNodeModel(id: valNodeId3)
+
+let valNode3 = dragInteractionNodeModel(id: valNodeId3, forNodeId: vizNodeId2)
 
 
 let calcNode = concatNodeModel(id: calcNodeId)
@@ -79,6 +84,7 @@ let calcNode3 = optionPickerNodeModel(id: calcNodeId3)
 
 
 let vizNode: NodeModel = textLayerVizNode(nodeId: vizNodeId, previewModelId: previewModelId)
+let vizNode2: NodeModel = textLayerVizNode(nodeId: vizNodeId2, previewModelId: previewModelId2)
 
 
 
@@ -106,13 +112,17 @@ let vizNode: NodeModel = textLayerVizNode(nodeId: vizNodeId, previewModelId: pre
 // REMOVED CONCAT FOR NOW
 //let hwState = AppState(nodeModels: [valNode, valNode2, valNode3, calcNode2, calcNode3, vizNode, vizNode2])
 
-let hwState = AppState(nodeModels: [valNode,
+let hwState = AppState(nodeModels: [
+    valNode0,
+    valNode,
                                     valNode2,
-//                                    valNode3,
-//                                    calcNode2,
-                                    calcNode3,
+                                    valNode3,
+                                    calcNode2,
+//                                    calcNode3,
                                     vizNode,
-//                                    vizNode2 // don't use color viz node
+    
+    vizNode2
+    
 //                                    vizNode3 // additional text layer
 ])
 

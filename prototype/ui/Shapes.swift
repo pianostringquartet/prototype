@@ -24,6 +24,7 @@ import ReSwift
 
 //let edgeColor: Color = Color(red: 122 / 255, green: 237 / 255, blue: 175 / 255)
 let edgeColor: Color = Color(red: 80 / 255, green: 250 / 255, blue: 200 / 255, opacity: 0.8)
+let isActiveColor: Color = Color.red.opacity(0.8)
 
 
 let nodeTopColor: Color = Color(red: 77 / 255, green: 77 / 255, blue: 77 / 255)
@@ -293,7 +294,8 @@ func fillColor(hasEdge: Bool, thisPM: PortModel, activePM: PortModel?) -> Color 
     // default: lowest priority
     
     if isActivePort {
-        return edgeColor // active port always looks like this...
+//        return edgeColor // active port always looks like this...
+        return isActiveColor
     }
     else if case .color(let x) = thisPM.value {
 //        return x.color
