@@ -89,6 +89,8 @@ struct GraphEditorView: View {
         // was this causing problems? we were outside the frame?
 //        .frame(idealWidth: 500, idealHeight: 500)
         
+        
+        // BETTER: make this appear in a corner
         .overlay(FloatingWindow(content: generateMiniview(state: state, dispatch: dispatch)))
         .overlay(PlusButton(dispatch: dispatch))
         

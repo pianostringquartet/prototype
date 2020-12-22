@@ -317,6 +317,17 @@ func boolValNode(id: Int, value: Bool, label: String = "output: Bool") -> NodeMo
 }
 
 
+func colorValNode(id: Int, value: Color, label: String = "output: Color") -> NodeModel {
+    
+    let valNodeOutput: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.output,
+                                             label: label,
+                                             value: .color(value),
+                                             defaultValue: .color(value))
+
+    return NodeModel(id: id, nodeType: NodeType.valNode, ports: [valNodeOutput])
+}
+
+
 /* ----------------------------------------------------------------
  Helpers: val interaction node types
  ---------------------------------------------------------------- */

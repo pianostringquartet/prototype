@@ -22,9 +22,21 @@ struct NodeDeletedAction: Action {
 }
 
 struct NodeCreatedAction: Action {
+//    let nodeType: NodeType
+    
+    // MUST HAVE ONE OF THESE AT LEAST
+    
+    // if uppercase or concat or optionPicker...
+    var operation: Operation? = nil
+    
+    var portValue: PortValue? = nil
+    
+    
 //    let id: Int // the node deleted
     
-//    let nodeType: NodeType
+    
+    
+//    let
 }
 
 
@@ -65,11 +77,40 @@ func handleNodeCreatedAction(state: AppState, action: NodeCreatedAction) -> AppS
     
     
     //
-    var newNodeId: Int = nextNodeId(nodes: state.nodeModels)
+    let newNodeId: Int = nextNodeId(nodes: state.nodeModels)
     
+    let defaultNewNode: NodeModel = stringValNode(id: newNodeId, value: "new node...")
     
     // HARDCODE the node to be added
-    let newNode: NodeModel = stringValNode(id: newNodeId, value: "ciao")
+//    let newNode: NodeModel = stringValNode(id: newNodeId, value: "ciao")
+    var newNode: NodeModel
+    
+    if action.operation != nil {
+        switch action.operation {
+            case .concat:
+                newNode = concatNodeModel(id: newNodeId)
+            default:
+                log("on some other case...")
+                newNode = defaultNewNode
+        }
+    }
+    else if action.portValue != nil {
+        switch action.portValue! {
+            case .string(let x):
+                newNode = stringValNode(id: newNodeId, value: x)
+            case .color(let x):
+                newNode = colorValNode(id: newNodeId, value: x)
+            default:
+                log("some other port value cases...")
+                newNode = defaultNewNode
+        }
+    }
+    else {
+        log("no matches at all?")
+        newNode = defaultNewNode
+    }
+    
+    
     
     state.nodeModels.append(newNode)
     

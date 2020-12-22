@@ -110,47 +110,70 @@ func line(from: CGPoint, to: CGPoint) -> some View {
 
 
 struct PlusButton: View {
+    
     // dragging
     @State private var localPosition: CGSize = CGSize.zero
     @State private var localPreviousPosition: CGSize = CGSize.zero
  
-    let radius: CGFloat = 30
+    @State private var showPopover: Bool = false // not persisted
+    
+    let radius: CGFloat = 80 // 30
     
     let dispatch: Dispatch
     
     var body: some View {
         Circle().stroke(Color.black)
-        .background(Image(systemName: "plus"))
-        .offset(x: localPosition.width, y: localPosition.height)
+        
+//        .offset(x: localPosition.width, y: localPosition.height)
+        
+        .overlay(LinearGradient(gradient: Gradient(colors: [Color.white, Color.green]),
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+            ))
+        
+        .overlay(Image(systemName: "plus"))
+        .clipShape(Circle())
         .frame(width: CGFloat(radius), height: CGFloat(radius))
+            
+            // added:
+            .popover(isPresented: $showPopover, arrowEdge: .bottom) {
+                 VStack (spacing: 20) {
+//                         Text("Node ID: \(node.nodeId)")
+                    
+//                         Text("Node Serial: \(info)")
+                     Button("valNode: 'ciao'") {
+                        dispatch(NodeCreatedAction(portValue: .string("ciao")))
+                     }
+                    Button("valNode: 'hola'") {
+                        dispatch(NodeCreatedAction(portValue: .string("hola")))
+                    }
+                    Button("valNode: Color Blue") {
+                        dispatch(NodeCreatedAction(portValue: .color(Color.blue)))
+                    }
+                    Button("calcNode: string concat") {
+                        dispatch(NodeCreatedAction(operation: .concat))
+                    }
+//                    Button("calcNode: string concat") {
+//                       dispatch(NodeCreatedAction())
+//                    }
+                    
+                 }.padding()
+             }
+            
         .onTapGesture(count: 1, perform: {
                 log("Plus button clicked")
-                dispatch(NodeCreatedAction())
+//                playSound(sound: "positive_ping", type: "mp3")
+//                dispatch(NodeCreatedAction())
+                self.showPopover.toggle()
             })
-            .gesture(DragGesture()
+            
+        .offset(x: localPosition.width, y: localPosition.height)
+        .gesture(DragGesture()
                             .onChanged {
                                 self.localPosition = updatePosition(value: $0, position: self.localPreviousPosition)
-                                
-//                                if !node.isAnchored {
-//                                    dispatch(NodeMovedAction(graphId: node.graphId, position: self.localPosition, node: node))
-//                                }
                             }
-                            .onEnded { (value: DragGesture.Value) in
+                            .onEnded { _ in
                                 self.localPreviousPosition = self.localPosition
-//                                if node.isAnchored {
-//                                    if movedEnough(width: value.translation.width, height: value.translation.height) {
-//                                        self.localPreviousPosition = self.localPosition // not even needed here?
-////                                        playSound(sound: "positive_ping", type: "mp3")
-//                                        dispatch(NodeCommittedAction(graphId: node.graphId, position: self.localPosition, node: node))
-//                                    }
-//                                    else {
-//                                        withAnimation(.spring()) { self.localPosition = CGSize.zero }
-//                                    }
-//                                }
-//                                else {
-//                                    self.localPreviousPosition = self.localPosition
-//                                }
-                                
                             })
     }
 }
