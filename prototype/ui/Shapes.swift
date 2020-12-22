@@ -17,7 +17,7 @@ import ReSwift
 // COLORS
 
 
-
+let backgroundColor: Color = Color.black
 
 
 // from Adam's prototype
@@ -46,14 +46,14 @@ let mercuryColor: Color = Color (red: 208 / 255, green: 208 / 255, blue: 208 / 2
 
 
 // grey and pink scheme
-//let valNodeColor: Color = nodeBottomColor
-//let calcNodeColor: Color = nodeBottomColor
-//let vizNodeColor: Color = pinkNodeBottomColor
+let valNodeColor: Color = nodeBottomColor
+let calcNodeColor: Color = nodeBottomColor
+let vizNodeColor: Color = pinkNodeBottomColor
 
-let colorOpacity: Double = 0.6 // 0.8
-let valNodeColor: Color = mercuryColor.opacity(colorOpacity)
-let calcNodeColor: Color = bananaColor.opacity(colorOpacity)
-let vizNodeColor: Color = skyColor.opacity(colorOpacity)
+//let colorOpacity: Double = 1 //0.6 // 0.8
+//let valNodeColor: Color = mercuryColor.opacity(colorOpacity)
+//let calcNodeColor: Color = bananaColor.opacity(colorOpacity)
+//let vizNodeColor: Color = skyColor.opacity(colorOpacity)
 
 
 //let valNodeColor: Color = Color.gray.opacity(colorOpacity)

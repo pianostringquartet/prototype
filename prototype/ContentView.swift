@@ -38,62 +38,122 @@ struct GraphEditorView: View {
     var body: some View {
         log("GraphEditorView body called")
         
-        VStack {
-            HStack (spacing: 50) {
-//                let ascending = { (nm1: NodeModel, nm2: NodeModel) -> Bool in nm1.id < nm2.id }
-                
-                let valNodes = state.nodeModels.filter { (n: NodeModel) -> Bool in
-                    n.nodeType == NodeType.valNode
-                }.sorted(by: ascendingNodes)
-                
-                let calcNodes = state.nodeModels.filter { (n: NodeModel) -> Bool in
-                    n.nodeType == NodeType.calcNode
-                }.sorted(by: ascendingNodes)
-                
-                let vizNodes = state.nodeModels.filter { (n: NodeModel) -> Bool in
-                    n.nodeType == NodeType.vizNode
-                }.sorted(by: ascendingNodes)
-                
-                // left
-                VStack {
-                    ForEach(valNodes, id: \.id) { (nm: NodeModel) in
-                        NodeView(nodeModel: nm, dispatch: dispatch, state: state, title: "Val node",
-                                 color: valNodeColor)
-                    }
-                }
-                
-                // middle
-                HStack (spacing: 50) {
-                    ForEach(calcNodes, id: \.id) { (nm: NodeModel) in
-                        NodeView(nodeModel: nm, dispatch: dispatch, state: state,
-                                 title: "Calc node",
-                                 color: calcNodeColor)
+//        VStack {
+        ZStack {
+            
+//            Color.black.opacity(0.8).ignoresSafeArea()
+//            Color.black.opacity(0.8).edgesIgnoringSafeArea(.all)
+//            backgroundColor.opacity(0.9).edgesIgnoringSafeArea(.all)
+//            Spacer()
+            
+            backgroundColor.opacity(0.9)
+                .edgesIgnoringSafeArea(.all)
+                .overlay(
+                    HStack (spacing: 50) {
+        //                let ascending = { (nm1: NodeModel, nm2: NodeModel) -> Bool in nm1.id < nm2.id }
+                        
+                        // THESE need to be positioned in a ZStack,
+                        // but otherwise
+                        
+                        let valNodes = state.nodeModels.filter { (n: NodeModel) -> Bool in
+                            n.nodeType == NodeType.valNode
+                        }.sorted(by: ascendingNodes)
+                        
+                        let calcNodes = state.nodeModels.filter { (n: NodeModel) -> Bool in
+                            n.nodeType == NodeType.calcNode
+                        }.sorted(by: ascendingNodes)
+                        
+                        let vizNodes = state.nodeModels.filter { (n: NodeModel) -> Bool in
+                            n.nodeType == NodeType.vizNode
+                        }.sorted(by: ascendingNodes)
+                        
+                        // left
+                        VStack {
+                            ForEach(valNodes, id: \.id) { (nm: NodeModel) in
+                                NodeView(nodeModel: nm, dispatch: dispatch, state: state, title: "Val node",
+                                         color: valNodeColor)
+                            }
+                        }
+                        
+                        // middle
+                        HStack (spacing: 50) {
+                            ForEach(calcNodes, id: \.id) { (nm: NodeModel) in
+                                NodeView(nodeModel: nm, dispatch: dispatch, state: state,
+                                         title: "Calc node",
+                                         color: calcNodeColor)
 
-                    }
-                }
-                
-                // right
-                VStack {
-                    ForEach(vizNodes, id: \.id) { (nm: NodeModel) in
-                        NodeView(nodeModel: nm, dispatch: dispatch, state: state, title: "Viz node",
-                                 color: vizNodeColor)
-                    }
-                }
-            } // HStack
-            .padding()
+                            }
+                        }
+                        
+                        // right
+                        VStack {
+                            ForEach(vizNodes, id: \.id) { (nm: NodeModel) in
+                                NodeView(nodeModel: nm, dispatch: dispatch, state: state, title: "Viz node",
+                                         color: vizNodeColor)
+                            }
+                        }
+                    } // HStack
+        //            .
+                )
+            
+//            HStack (spacing: 50) {
+////                let ascending = { (nm1: NodeModel, nm2: NodeModel) -> Bool in nm1.id < nm2.id }
+//
+//                let valNodes = state.nodeModels.filter { (n: NodeModel) -> Bool in
+//                    n.nodeType == NodeType.valNode
+//                }.sorted(by: ascendingNodes)
+//
+//                let calcNodes = state.nodeModels.filter { (n: NodeModel) -> Bool in
+//                    n.nodeType == NodeType.calcNode
+//                }.sorted(by: ascendingNodes)
+//
+//                let vizNodes = state.nodeModels.filter { (n: NodeModel) -> Bool in
+//                    n.nodeType == NodeType.vizNode
+//                }.sorted(by: ascendingNodes)
+//
+//                // left
+//                VStack {
+//                    ForEach(valNodes, id: \.id) { (nm: NodeModel) in
+//                        NodeView(nodeModel: nm, dispatch: dispatch, state: state, title: "Val node",
+//                                 color: valNodeColor)
+//                    }
+//                }
+//
+//                // middle
+//                HStack (spacing: 50) {
+//                    ForEach(calcNodes, id: \.id) { (nm: NodeModel) in
+//                        NodeView(nodeModel: nm, dispatch: dispatch, state: state,
+//                                 title: "Calc node",
+//                                 color: calcNodeColor)
+//
+//                    }
+//                }
+//
+//                // right
+//                VStack {
+//                    ForEach(vizNodes, id: \.id) { (nm: NodeModel) in
+//                        NodeView(nodeModel: nm, dispatch: dispatch, state: state, title: "Viz node",
+//                                 color: vizNodeColor)
+//                    }
+//                }
+//            } // HStack
+////            .padding()
                         
         }
-        .padding(.trailing, 30).padding(.bottom, 30)
+//        .padding(.trailing, 30).padding(.bottom, 30)
         .offset(x: localPosition.width, y: localPosition.height)
         
         // was this causing problems? we were outside the frame?
 //        .frame(idealWidth: 500, idealHeight: 500)
         
         
-        // BETTER: make this appear in a corner
-        .overlay(FloatingWindow(content: generateMiniview(state: state, dispatch: dispatch)))
-        .overlay(PlusButton(dispatch: dispatch))
+        .overlay(FloatingWindow(content: generateMiniview(state: state, dispatch: dispatch)),
+                 alignment: .topTrailing)
+        .overlay(PlusButton(dispatch: dispatch),
+                 alignment: .bottomTrailing)
         
+        // added:
+//        .background(Color.black.opacity(0.8).edgesIgnoringSafeArea(.all))
         
         // Pinch to zoom
         // TODO: set limit to how far out / in we can zoom
@@ -116,7 +176,10 @@ struct GraphEditorView: View {
 //                }
 //        )
   
-        .backgroundPreferenceValue(PortPreferenceKey.self) { (preferences: [PortPreferenceData]) in
+        
+        // this is "background" ... can you do "overlay"?
+        .overlayPreferenceValue(PortPreferenceKey.self) { (preferences: [PortPreferenceData]) in
+//        .backgroundPreferenceValue(PortPreferenceKey.self) { (preferences: [PortPreferenceData]) in
 //            if connections.count >= 1 {
             if state.edges.count >= 1 {
                 let graphPreferences = preferences
