@@ -24,134 +24,92 @@ struct GraphEditorView: View {
     @State private var localPosition: CGSize = CGSize.zero
     @State private var localPreviousPosition: CGSize = CGSize.zero
     
-    // particular node to which we are adding/removing connections
-    @State public var connectingNode: Int? = nil // not persisted
-
+    
+//    @State private var shouldBlur: Bool = false
+    
+    
     let dispatch: Dispatch
     let state: AppState
-        
+
+    let opacity: Double = 0.75
+    
     init(dispatch: @escaping Dispatch, state: AppState) {
         self.dispatch = dispatch
         self.state = state
     }
 
+    // the nodes themselves
+    var graph: some View {
+        HStack (spacing: 50) {
+            
+            // THESE need to be positioned in a ZStack,
+            // but otherwise
+            
+            let valNodes = state.nodeModels.filter { (n: NodeModel) -> Bool in
+                n.nodeType == NodeType.valNode
+            }.sorted(by: ascendingNodes)
+            
+            let calcNodes = state.nodeModels.filter { (n: NodeModel) -> Bool in
+                n.nodeType == NodeType.calcNode
+            }.sorted(by: ascendingNodes)
+            
+            let vizNodes = state.nodeModels.filter { (n: NodeModel) -> Bool in
+                n.nodeType == NodeType.vizNode
+            }.sorted(by: ascendingNodes)
+            
+            // left
+            VStack {
+                ForEach(valNodes, id: \.id) { (nm: NodeModel) in
+                    NodeView(nodeModel: nm, dispatch: dispatch, state: state, title: "Val node",
+                             color: valNodeColor)
+                }
+            }
+            
+            // middle
+            HStack (spacing: 50) {
+                ForEach(calcNodes, id: \.id) { (nm: NodeModel) in
+                    NodeView(nodeModel: nm, dispatch: dispatch, state: state,
+                             title: "Calc node",
+                             color: calcNodeColor)
+
+                }
+            }
+            
+            // right
+            VStack {
+                ForEach(vizNodes, id: \.id) { (nm: NodeModel) in
+                    NodeView(nodeModel: nm, dispatch: dispatch, state: state, title: "Viz node",
+                             color: vizNodeColor)
+                }
+            }
+        } // HStack
+        
+    }
+    
+    
     var body: some View {
         log("GraphEditorView body called")
-        
-//        VStack {
+    
         ZStack {
-            
-//            Color.black.opacity(0.8).ignoresSafeArea()
-//            Color.black.opacity(0.8).edgesIgnoringSafeArea(.all)
-//            backgroundColor.opacity(0.9).edgesIgnoringSafeArea(.all)
-//            Spacer()
-            
-            backgroundColor.opacity(0.9)
+
+            backgroundColor.opacity(opacity)
                 .edgesIgnoringSafeArea(.all)
                 .overlay(
-                    HStack (spacing: 50) {
-        //                let ascending = { (nm1: NodeModel, nm2: NodeModel) -> Bool in nm1.id < nm2.id }
-                        
-                        // THESE need to be positioned in a ZStack,
-                        // but otherwise
-                        
-                        let valNodes = state.nodeModels.filter { (n: NodeModel) -> Bool in
-                            n.nodeType == NodeType.valNode
-                        }.sorted(by: ascendingNodes)
-                        
-                        let calcNodes = state.nodeModels.filter { (n: NodeModel) -> Bool in
-                            n.nodeType == NodeType.calcNode
-                        }.sorted(by: ascendingNodes)
-                        
-                        let vizNodes = state.nodeModels.filter { (n: NodeModel) -> Bool in
-                            n.nodeType == NodeType.vizNode
-                        }.sorted(by: ascendingNodes)
-                        
-                        // left
-                        VStack {
-                            ForEach(valNodes, id: \.id) { (nm: NodeModel) in
-                                NodeView(nodeModel: nm, dispatch: dispatch, state: state, title: "Val node",
-                                         color: valNodeColor)
-                            }
-                        }
-                        
-                        // middle
-                        HStack (spacing: 50) {
-                            ForEach(calcNodes, id: \.id) { (nm: NodeModel) in
-                                NodeView(nodeModel: nm, dispatch: dispatch, state: state,
-                                         title: "Calc node",
-                                         color: calcNodeColor)
-
-                            }
-                        }
-                        
-                        // right
-                        VStack {
-                            ForEach(vizNodes, id: \.id) { (nm: NodeModel) in
-                                NodeView(nodeModel: nm, dispatch: dispatch, state: state, title: "Viz node",
-                                         color: vizNodeColor)
-                            }
-                        }
-                    } // HStack
-        //            .
-                )
-            
-//            HStack (spacing: 50) {
-////                let ascending = { (nm1: NodeModel, nm2: NodeModel) -> Bool in nm1.id < nm2.id }
-//
-//                let valNodes = state.nodeModels.filter { (n: NodeModel) -> Bool in
-//                    n.nodeType == NodeType.valNode
-//                }.sorted(by: ascendingNodes)
-//
-//                let calcNodes = state.nodeModels.filter { (n: NodeModel) -> Bool in
-//                    n.nodeType == NodeType.calcNode
-//                }.sorted(by: ascendingNodes)
-//
-//                let vizNodes = state.nodeModels.filter { (n: NodeModel) -> Bool in
-//                    n.nodeType == NodeType.vizNode
-//                }.sorted(by: ascendingNodes)
-//
-//                // left
-//                VStack {
-//                    ForEach(valNodes, id: \.id) { (nm: NodeModel) in
-//                        NodeView(nodeModel: nm, dispatch: dispatch, state: state, title: "Val node",
-//                                 color: valNodeColor)
-//                    }
-//                }
-//
-//                // middle
-//                HStack (spacing: 50) {
-//                    ForEach(calcNodes, id: \.id) { (nm: NodeModel) in
-//                        NodeView(nodeModel: nm, dispatch: dispatch, state: state,
-//                                 title: "Calc node",
-//                                 color: calcNodeColor)
-//
-//                    }
-//                }
-//
-//                // right
-//                VStack {
-//                    ForEach(vizNodes, id: \.id) { (nm: NodeModel) in
-//                        NodeView(nodeModel: nm, dispatch: dispatch, state: state, title: "Viz node",
-//                                 color: vizNodeColor)
-//                    }
-//                }
-//            } // HStack
-////            .padding()
-                        
-        }
-//        .padding(.trailing, 30).padding(.bottom, 30)
+                    DrawEdges(state: state, content: graph)
+                ) // .overlay
+        } // ZStack
         .offset(x: localPosition.width, y: localPosition.height)
         
         // was this causing problems? we were outside the frame?
 //        .frame(idealWidth: 500, idealHeight: 500)
         
+//        .onTapGesture(count: 1, perform: {
+//            log("onTapGesture in ContentView called")
+//            self.shouldBlur.toggle()
+//        })
+
         
-        .overlay(FloatingWindow(content: generateMiniview(state: state, dispatch: dispatch)),
-                 alignment: .topTrailing)
-        .overlay(PlusButton(dispatch: dispatch),
-                 alignment: .bottomTrailing)
-        
+            
         // added:
 //        .background(Color.black.opacity(0.8).edgesIgnoringSafeArea(.all))
         
@@ -177,44 +135,57 @@ struct GraphEditorView: View {
 //        )
   
         
+        
+        /// HOW TO PUT THIS IS IN A SMALL SEPARATE FUNCTION
         // this is "background" ... can you do "overlay"?
-        .overlayPreferenceValue(PortPreferenceKey.self) { (preferences: [PortPreferenceData]) in
+//        .overlayPreferenceValue(PortPreferenceKey.self) { (preferences: [PortPreferenceData]) in
 //        .backgroundPreferenceValue(PortPreferenceKey.self) { (preferences: [PortPreferenceData]) in
-//            if connections.count >= 1 {
-            if state.edges.count >= 1 {
-                let graphPreferences = preferences
-                // no graphId right now
-//                    .filter( { (pref: PortPreferenceData) -> Bool in pref.graphId == graphId })
-                GeometryReader { (geometry: GeometryProxy) in
-                    ForEach(state.edges, content: { (portEdge: PortEdge) in
-                        // Find each conn node's ball pref data
-                        
-                        // find the pref data for this port (its node id and port id)
-                        let to: PortPreferenceData? = graphPreferences.first(where: { (pref: PortPreferenceData) -> Bool in
-                            pref.portId == portEdge.to.portId &&
-                                pref.nodeId == portEdge.to.nodeId
-                            
-                        })
-                        
-                        let from: PortPreferenceData? = graphPreferences.first(where: { (pref: PortPreferenceData) -> Bool in
-                            pref.portId == portEdge.from.portId &&
-                                pref.nodeId == portEdge.from.nodeId
-                        })
-                        
-                        // TODO: handle this properly;
-                        // all connections should be really existing
-                        if to != nil && from != nil {
-                            line(from: geometry[to!.center], to: geometry[from!.center])
-                        }
-                        else {
-                            log("Encountered a nil while trying to draw an edge.")
-                            log("to: \(to)")
-                            log("from: \(from)")
-                        }
-                    })
-                }
-            }
-        } // backgroundPreferenceValue
+////            if connections.count >= 1 {
+//            if state.edges.count >= 1 {
+//                let graphPreferences = preferences
+//                // no graphId right now
+////                    .filter( { (pref: PortPreferenceData) -> Bool in pref.graphId == graphId })
+//                GeometryReader { (geometry: GeometryProxy) in
+//                    ForEach(state.edges, content: { (portEdge: PortEdge) in
+//                        // Find each conn node's ball pref data
+//
+//                        // find the pref data for this port (its node id and port id)
+//                        let to: PortPreferenceData? = graphPreferences.first(where: { (pref: PortPreferenceData) -> Bool in
+//                            pref.portId == portEdge.to.portId &&
+//                                pref.nodeId == portEdge.to.nodeId
+//
+//                        })
+//
+//                        let from: PortPreferenceData? = graphPreferences.first(where: { (pref: PortPreferenceData) -> Bool in
+//                            pref.portId == portEdge.from.portId &&
+//                                pref.nodeId == portEdge.from.nodeId
+//                        })
+//
+//                        // TODO: handle this properly;
+//                        // all connections should be really existing
+//                        if to != nil && from != nil {
+//                            line(from: geometry[to!.center], to: geometry[from!.center])
+//                        }
+//                        else {
+//                            log("Encountered a nil while trying to draw an edge.")
+//                            log("to: \(to)")
+//                            log("from: \(from)")
+//                        }
+//                    })
+//                }
+//            }
+//        } // backgroundPreferenceValue
+        
+        
+        
+        .overlay(FloatingWindow(content: generateMiniview(state: state, dispatch: dispatch)).padding(),
+                 alignment: .topTrailing)
+        
+        .blur(radius: state.shouldBlur ? 5 : 0)
+        
+        // ie only the plus button is visible above the frost
+        .overlay(PlusButton(dispatch: dispatch).padding(),
+                 alignment: .bottomTrailing)
     }
 }
 

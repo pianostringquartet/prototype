@@ -42,7 +42,10 @@ func reducer(action: Action, state: AppState?) -> AppState {
         case let nodeCreated as NodeCreatedAction:
             state = handleNodeCreatedAction(state: state, action: nodeCreated)
         
-        
+        case let plusButtonTapped as PlusButtonTappedAction:
+            state = handlePlusButtonTappedAction(state: state, action: plusButtonTapped)
+            
+            
         // PREVIEW ACTIONS
         
         case let textTapped as TextTappedMiniviewAction:
@@ -60,14 +63,7 @@ func reducer(action: Action, state: AppState?) -> AppState {
         default:
             break
     }
-    
-//    let nm: NodeModel = state.nodeModels.first(where: {$0.id == 7} )!
-//    let ports = nm.ports.sorted(by: ascending)
-//    log("node 7: ports[2].value: \(ports[2].value)")
-//    log("node 7: nm.previewModel!.position: \(nm.previewModel!.position)")
-    
-
-    
+        
     // persist state to UserDefaults
     saveState(state: state)
     return state

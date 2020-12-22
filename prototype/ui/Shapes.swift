@@ -22,8 +22,9 @@ let backgroundColor: Color = Color.black
 
 // from Adam's prototype
 
-//let edgeColor: Color = Color(red: 122 / 255, green: 237 / 255, blue: 175 / 255)
-let edgeColor: Color = Color(red: 80 / 255, green: 250 / 255, blue: 200 / 255, opacity: 0.8)
+let edgeColor: Color = Color(red: 122 / 255, green: 237 / 255, blue: 175 / 255)
+//let edgeColor: Color = Color(red: 80 / 255, green: 250 / 255, blue: 200 / 255, opacity: 0.8)
+
 let isActiveColor: Color = Color.red.opacity(0.8)
 
 
@@ -70,6 +71,8 @@ let portAndEdgeWidth: CGFloat = 30
 
 
 
+
+
 /* ----------------------------------------------------------------
  UI ELEMENTS: draggable nodes, drawn edges etc.
  ---------------------------------------------------------------- */
@@ -85,24 +88,14 @@ struct Line: Shape {
 }
 
 
-
-
 func line(from: CGPoint, to: CGPoint) -> some View {
-//    Line(from: from, to: to).stroke().animation(.default)
-    
-    // teal / cyan
-//    let color: Color = Color(red: 0, green: 255, blue: 255, opacity: 0.8)
-    
     return Line(from: from, to: to)
-//        .stroke(Color.green.brightness(0.9), lineWidth: 10)
-//        .stroke(lineWidth: 10.0)
         .stroke(edgeColor,
                 style: StrokeStyle(lineWidth: portAndEdgeWidth, // 10,
                                    lineCap: .round,
                                    lineJoin: .round))
         .animation(.default)
         .zIndex(2) // added
-//        .foregroundColor(Color.green.brightness(0.9))
 }
 
 // common
@@ -136,11 +129,9 @@ struct PlusButton: View {
         .frame(width: CGFloat(radius), height: CGFloat(radius))
             
             // added:
+            // what about when dismssed?
             .popover(isPresented: $showPopover, arrowEdge: .bottom) {
                  VStack (spacing: 20) {
-//                         Text("Node ID: \(node.nodeId)")
-                    
-//                         Text("Node Serial: \(info)")
                      Button("valNode: 'ciao'") {
                         dispatch(NodeCreatedAction(portValue: .string("ciao")))
                      }
@@ -164,7 +155,13 @@ struct PlusButton: View {
                 log("Plus button clicked")
 //                playSound(sound: "positive_ping", type: "mp3")
 //                dispatch(NodeCreatedAction())
-                self.showPopover.toggle()
+        
+            log("showPopover was: \(showPopover)")
+            // ie toggle
+            dispatch(PlusButtonTappedAction(newValue: self.showPopover ? false : true))
+        
+            self.showPopover.toggle()
+            log("showPopover is now: \(showPopover)")
             })
             
         .offset(x: localPosition.width, y: localPosition.height)
@@ -432,11 +429,7 @@ struct PortView: View {
 
     var body: some View {
         let portDot = Circle()
-//            .stroke(hasEdge ? edgeColor : Color.black)
-//            .fill((hasEdge || isActivePort) ? edgeColor : Color.white.opacity(1.0))
             .fill(fillColor(hasEdge: hasEdge, thisPM: pm, activePM: state.activePM))
-//            .fill((hasEdge || isActivePort) ? edgeColor : nodeEmptyPortColor)
-//            .background(isActivePort ? edgeColor : Color.white.opacity(1.0))
             .clipShape(Circle())
 //            .frame(width: 30, height: 30)
             .frame(width: portAndEdgeWidth, height: portAndEdgeWidth)
@@ -483,6 +476,56 @@ struct PortView: View {
 func updatePosition(value: DragGesture.Value, position: CGSize) -> CGSize {
     CGSize(width: value.translation.width + position.width,
            height: value.translation.height + position.height)
+}
+
+
+//
+struct DrawEdges<ContentView: View>: View {
+
+    let state: AppState
+    
+    let content: ContentView
+    
+    var body: some View {
+        content
+            // can also use .overlayPreferenceValu where helpful
+            .backgroundPreferenceValue(PortPreferenceKey.self) { (preferences: [PortPreferenceData]) in
+            //            if connections.count >= 1 {
+                        if state.edges.count >= 1 {
+                            let graphPreferences = preferences
+                            // no graphId right now
+            //                    .filter( { (pref: PortPreferenceData) -> Bool in pref.graphId == graphId })
+                            GeometryReader { (geometry: GeometryProxy) in
+                                ForEach(state.edges, content: { (portEdge: PortEdge) in
+                                    // Find each conn node's ball pref data
+                                    
+                                    // find the pref data for this port (its node id and port id)
+                                    let to: PortPreferenceData? = graphPreferences.first(where: { (pref: PortPreferenceData) -> Bool in
+                                        pref.portId == portEdge.to.portId &&
+                                            pref.nodeId == portEdge.to.nodeId
+                                        
+                                    })
+                                    
+                                    let from: PortPreferenceData? = graphPreferences.first(where: { (pref: PortPreferenceData) -> Bool in
+                                        pref.portId == portEdge.from.portId &&
+                                            pref.nodeId == portEdge.from.nodeId
+                                    })
+                                    
+                                    // TODO: handle this properly;
+                                    // all connections should be really existing
+                                    if to != nil && from != nil {
+                                        line(from: geometry[to!.center], to: geometry[from!.center])
+                                    }
+                                    else {
+                                        log("Encountered a nil while trying to draw an edge.")
+                                        log("to: \(to)")
+                                        log("from: \(from)")
+                                    }
+                                })
+                            }
+                        }
+                    }
+    }
 }
 
 

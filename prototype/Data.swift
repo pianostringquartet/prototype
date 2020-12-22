@@ -31,8 +31,12 @@ enum Screens: String, Codable {
 
 struct AppState: StateType, Codable {
     var nodeModels: [NodeModel] = []
-    var activePM: PortModel? = nil
     var edges: [PortEdge] = []
+    
+    var activePM: PortModel? = nil
+    
+    // should we blur the background ie plusButton edit window is open
+    var shouldBlur: Bool = false
 }
 
 

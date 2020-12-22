@@ -55,6 +55,10 @@ struct PortEdgeCreated: Action {
     let toPort: Int
 }
 
+struct PlusButtonTappedAction: Action {
+    let newValue: Bool
+}
+
 
 
 /* ----------------------------------------------------------------
@@ -66,6 +70,15 @@ struct PortEdgeCreated: Action {
  Handlers: Graph actions
  ---------------------------------------------------------------- */
 
+
+func handlePlusButtonTappedAction(state: AppState, action: PlusButtonTappedAction) -> AppState {
+    var state = state
+    log("state.shouldBlur was: \(state.shouldBlur)")
+//    state.shouldBlur.toggle()
+    state.shouldBlur = action.newValue
+    log("state.shouldBlur is now: \(state.shouldBlur)")
+    return state
+}
 
 
 
@@ -110,10 +123,8 @@ func handleNodeCreatedAction(state: AppState, action: NodeCreatedAction) -> AppS
         newNode = defaultNewNode
     }
     
-    
-    
     state.nodeModels.append(newNode)
-    
+    state.shouldBlur = false
     
     return state
 }
