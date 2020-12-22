@@ -75,7 +75,27 @@ func calculateValue(nm: NodeModel, op: Operation, flowValue: PortValue) -> PortV
                 case .bool(let x):
 //                    return .string(x == true ? "Green" : "Purple")
 //                    return .color(x == true ? trueColorString : falseColorString)
-                    return .color(x == true ? trueColor : falseColor)
+                    
+//                    return .color(x == true ? trueColor : falseColor)
+                
+//                    let topColor: Color = inputs[1].value
+                    
+                    if case .color(let y) = inputs[1].value {
+                        if case .color(let y2) = inputs[2].value {
+                            return .color(x == true ? y : y2)
+                        }
+                        else {
+                            return .color(falseColor)
+                        }
+                    }
+                    else {
+                     // option picker does not have at least 2 colors
+                        return .color(Color.black)
+                    }
+                    
+//                    return .color(x == true ? trueColor : falseColor)
+                    
+                    
 //                    return .color(x == true ? trueColor2 : falseColor2)
                 default:
                     log(".optionPicker default...")
