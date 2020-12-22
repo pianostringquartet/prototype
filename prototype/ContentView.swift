@@ -60,17 +60,14 @@ struct GraphEditorView: View {
             // left
             VStack {
                 ForEach(valNodes, id: \.id) { (nm: NodeModel) in
-                    NodeView(nodeModel: nm, dispatch: dispatch, state: state, title: "Val node",
-                             color: valNodeColor)
+                    NodeView(nodeModel: nm, dispatch: dispatch, state: state, isPink: nm.interactionModel != nil)
                 }
             }
             
             // middle
             HStack (spacing: 50) {
                 ForEach(calcNodes, id: \.id) { (nm: NodeModel) in
-                    NodeView(nodeModel: nm, dispatch: dispatch, state: state,
-                             title: "Calc node",
-                             color: calcNodeColor)
+                    NodeView(nodeModel: nm, dispatch: dispatch, state: state, isPink: false)
 
                 }
             }
@@ -78,8 +75,7 @@ struct GraphEditorView: View {
             // right
             VStack {
                 ForEach(vizNodes, id: \.id) { (nm: NodeModel) in
-                    NodeView(nodeModel: nm, dispatch: dispatch, state: state, title: "Viz node",
-                             color: vizNodeColor)
+                    NodeView(nodeModel: nm, dispatch: dispatch, state: state, isPink: true)
                 }
             }
         } // HStack

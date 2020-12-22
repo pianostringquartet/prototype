@@ -85,7 +85,9 @@ func calculateValue(nm: NodeModel, op: Operation, flowValue: PortValue) -> PortV
                             return .color(x == true ? y : y2)
                         }
                         else {
-                            return .color(falseColor)
+//                            return .color(falseColor)
+                            return .color(defaultPortColor)
+                            
                         }
                     }
                     else {
@@ -100,7 +102,8 @@ func calculateValue(nm: NodeModel, op: Operation, flowValue: PortValue) -> PortV
                 default:
                     log(".optionPicker default...")
 //                    return .string("Purple")
-                    return .color(falseColor)
+//                    return .color(falseColor)
+                    return .color(defaultPortColor)
 //                    return .color(falseColorString)
             }
     }
