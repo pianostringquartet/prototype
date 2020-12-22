@@ -90,6 +90,7 @@ struct GraphEditorView: View {
 //        .frame(idealWidth: 500, idealHeight: 500)
         
         .overlay(FloatingWindow(content: generateMiniview(state: state, dispatch: dispatch)))
+        .overlay(PlusButton(dispatch: dispatch))
         
         
         // Pinch to zoom

@@ -28,10 +28,22 @@ func reducer(action: Action, state: AppState?) -> AppState {
     
     switch action {
         
+        // GRAPH ACTIONS
+        
         case let portTapped as PortTappedAction:
             state = handlePortTappedAction(state: state, action: portTapped)
 //            log("newState from PortTappedAction: \(newState)")
 //            state = newState
+        
+        
+        case let nodeDeleted as NodeDeletedAction:
+            state = handleNodeDeleted(state: state, action: nodeDeleted)
+        
+        case let nodeCreated as NodeCreatedAction:
+            state = handleNodeCreatedAction(state: state, action: nodeCreated)
+        
+        
+        // PREVIEW ACTIONS
         
         case let textTapped as TextTappedMiniviewAction:
             state = handleTextTappedMiniviewAction(state: state, textTapped: textTapped)
@@ -41,6 +53,7 @@ func reducer(action: Action, state: AppState?) -> AppState {
         case let textMoved as TextMovedMiniviewAction:
             state = handleTextMovedMiniviewAction(state: state, textMoved: textMoved)
 
+            
             
             // we have the p
             

@@ -12,6 +12,13 @@ import ReSwift
 
 // Helpers primarily for the graph in redux state
 
+func nextNodeId(nodes: [NodeModel]) -> Int {
+    return nodes.isEmpty ?
+        1 :
+        nodes.max(by: {(n1: NodeModel, n2: NodeModel) -> Bool in n1.id < n2.id})!.id + 1
+    
+}
+
 
 
 // ASSUMES: nodeType is .calcNode, and CALLED AFTER WE'VE UPDATED NODE'S INPUTS

@@ -87,7 +87,6 @@ struct Line: Shape {
 
 
 
-
 func line(from: CGPoint, to: CGPoint) -> some View {
 //    Line(from: from, to: to).stroke().animation(.default)
     
@@ -109,11 +108,64 @@ func line(from: CGPoint, to: CGPoint) -> some View {
 // common
 //typealias <#type name#> = <#type expression#>
 
+
+struct PlusButton: View {
+    // dragging
+    @State private var localPosition: CGSize = CGSize.zero
+    @State private var localPreviousPosition: CGSize = CGSize.zero
+ 
+    let radius: CGFloat = 30
+    
+    let dispatch: Dispatch
+    
+    var body: some View {
+        Circle().stroke(Color.black)
+        .background(Image(systemName: "plus"))
+        .offset(x: localPosition.width, y: localPosition.height)
+        .frame(width: CGFloat(radius), height: CGFloat(radius))
+        .onTapGesture(count: 1, perform: {
+                log("Plus button clicked")
+                dispatch(NodeCreatedAction())
+            })
+            .gesture(DragGesture()
+                            .onChanged {
+                                self.localPosition = updatePosition(value: $0, position: self.localPreviousPosition)
+                                
+//                                if !node.isAnchored {
+//                                    dispatch(NodeMovedAction(graphId: node.graphId, position: self.localPosition, node: node))
+//                                }
+                            }
+                            .onEnded { (value: DragGesture.Value) in
+                                self.localPreviousPosition = self.localPosition
+//                                if node.isAnchored {
+//                                    if movedEnough(width: value.translation.width, height: value.translation.height) {
+//                                        self.localPreviousPosition = self.localPosition // not even needed here?
+////                                        playSound(sound: "positive_ping", type: "mp3")
+//                                        dispatch(NodeCommittedAction(graphId: node.graphId, position: self.localPosition, node: node))
+//                                    }
+//                                    else {
+//                                        withAnimation(.spring()) { self.localPosition = CGSize.zero }
+//                                    }
+//                                }
+//                                else {
+//                                    self.localPreviousPosition = self.localPosition
+//                                }
+                                
+                            })
+    }
+}
+
+
+
 struct NodeView: View {
     
     // dragging
     @State private var localPosition: CGSize = CGSize.zero
     @State private var localPreviousPosition: CGSize = CGSize.zero
+    
+    
+    @State private var showPopover: Bool = false // not persisted
+    
     
     // contains the ports etc.
     let nodeModel: NodeModel
@@ -124,7 +176,6 @@ struct NodeView: View {
     // should these properties of NodeModel?
     let title: String
     let color: Color
-    
     
     let spacing: CGFloat = 20
     
@@ -148,6 +199,21 @@ struct NodeView: View {
             Text("\(nodeModel.nodeType.rawValue) \(nodeModel.id)")
                 .padding(5)
                 .background(Color.gray.opacity(0.4))
+                
+                // added
+                .popover(isPresented: $showPopover, arrowEdge: .bottom) {
+                     VStack (spacing: 20) {
+//                         Text("Node ID: \(node.nodeId)")
+                        Text("Node ID: \(nodeModel.id)")
+//                         Text("Node Serial: \(info)")
+                         Button("Delete") {
+                            log("delete button pressed...")
+                            dispatch(NodeDeletedAction(id: nodeModel.id))
+                         }
+                        
+                     }.padding()
+                 }
+            
 //                .shadow(radius: 20)
             
             nodeModel.operation != nil ?
@@ -188,10 +254,18 @@ struct NodeView: View {
             }
             
         }
+        
+        
         .padding()
 //        .background(color.opacity(0.3))
         .background(color)
         .offset(x: localPosition.width, y: localPosition.height)
+        
+        // added
+        .onTapGesture(count: 2, perform: {
+                self.showPopover.toggle()
+        })
+        
         .gesture(DragGesture()
                     .onChanged {
                         self.localPosition = updatePosition(value: $0, position: self.localPreviousPosition)

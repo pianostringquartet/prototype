@@ -80,6 +80,12 @@ func getNodeTypeForPort(nodeModels: [NodeModel], nodeId: Int, portId: Int) -> No
 }
 
 
+func isInteractionValNodeForVizNode(vizNodeId: Int, node: NodeModel) -> Bool {
+    return node.nodeType == .valNode
+        && node.interactionModel != nil
+        && node.interactionModel!.forNodeId == vizNodeId
+}
+
 // given a nodeId for a viz layer,
 // return the interaction val node for that model
 // ... we're interested in a specific interaction too

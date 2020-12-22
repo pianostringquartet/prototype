@@ -346,7 +346,8 @@ func pressInteractionNodeModel(id: Int, forNodeId: Int,
 
 // in Origami Studio, how do you actually get a TextLayer to have a specific position?
 // Adam's example has a uiLayer with a position input; can add that to TextLayer etc.
-func dragInteractionNodeModel(id: Int, forNodeId: Int,
+func dragInteractionNodeModel(id: Int,
+                              forNodeId: Int,
 //                              interactionId: Int,
                               forPreviewModelId: Int) -> NodeModel {
     
@@ -386,9 +387,7 @@ func isTextLayerVizNode(node: NodeModel) -> Bool {
 }
 
 func textLayerVizNode(nodeId: Int, previewModelId: Int,
-//                      interactionId: Int?,
                       value: String = "", label: String = "TextLayer",
-//                      colorValue: String = falseColorString,
                       colorValue: Color = falseColor,
                       position: CGSize = CGSize.zero) -> NodeModel {
     

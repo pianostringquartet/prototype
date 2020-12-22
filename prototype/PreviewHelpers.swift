@@ -217,20 +217,11 @@ func viewFromBasePreviewModel(nodes: [NodeModel], // all nodes from state
     // must be sorted consistently
     let ports: [PortModel] = node.ports.sorted(by: ascending)
     
-    // HARDCODED .drag
-    // MUST BE ABLE TO GET the real kind of interaction
-    let interaction: InteractionModel = getInteractionNode(
-        nodes: nodes,
-        vizNodeId: node.id //,
-//        previewInteraction: .drag).interactionModel!
-//        previewInteraction: interaction
-    ).interactionModel!
+    let interaction: InteractionModel = getInteractionNode(nodes: nodes, vizNodeId: node.id).interactionModel!
     
-    
-    
+
     switch preview.previewElement {
-        
-        
+                
         // TextLayer's have string input and color input
         case .text:
             log("viewFromBasePreviewModel: matched on .text")
@@ -238,10 +229,8 @@ func viewFromBasePreviewModel(nodes: [NodeModel], // all nodes from state
             
             var color: Color = Color.black
             if case .color(let x) = ports[1].value {
-//                color = colorFromString(x)
                 color = x
             }
-            
             
             let text = Text(display)
                 .font(.largeTitle)
@@ -335,7 +324,3 @@ func addTextLayerInteraction(text: AnyView, // Text,
     
 
 }
-
-
-
-

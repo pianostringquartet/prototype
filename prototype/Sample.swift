@@ -46,6 +46,9 @@ let vizNodeId2 = 8
 let vizNodeId3 = 9
 
 
+//let createdValNodeId =
+
+
 
 let previewModelId = 1
 let previewModelId2 = 2

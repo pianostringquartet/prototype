@@ -17,6 +17,17 @@ import ReSwift
  ---------------------------------------------------------------- */
 
 
+struct NodeDeletedAction: Action {
+    let id: Int // the node deleted
+}
+
+struct NodeCreatedAction: Action {
+//    let id: Int // the node deleted
+    
+//    let nodeType: NodeType
+}
+
+
 struct PortTappedAction: Action {
     let port: PortModel // contains portId, nodeId, portValue etc.
 }
@@ -42,6 +53,64 @@ struct PortEdgeCreated: Action {
 /* ----------------------------------------------------------------
  Handlers: Graph actions
  ---------------------------------------------------------------- */
+
+
+
+
+func handleNodeCreatedAction(state: AppState, action: NodeCreatedAction) -> AppState {
+    
+    log("handleNodeCreatedAction")
+    var state = state
+    
+    
+    
+    //
+    var newNodeId: Int = nextNodeId(nodes: state.nodeModels)
+    
+    
+    // HARDCODE the node to be added
+    let newNode: NodeModel = stringValNode(id: newNodeId, value: "ciao")
+    
+    state.nodeModels.append(newNode)
+    
+    
+    return state
+}
+
+
+func handleNodeDeleted(state: AppState, action: NodeDeletedAction) -> AppState {
+    log("handleNodeDeleted called")
+    
+    var state = state
+    
+    // have the id of the node deleted
+    // steps:
+    // 1. remove node itself
+    //      (if node is viznode, also remove any associated intrxn val nodes)
+    // 2. remove any edges that reference the node as origin or target
+
+    
+//    state.nodeModels.removeAll(where: { $0.id == action.id })
+    
+    // get rid of node itself
+    state.nodeModels.removeAll(where: {$0.id == action.id})
+    
+    // get rid of any interaction val nodes that are for interactions for the deleted node
+    state.nodeModels.removeAll(where: {
+                                $0.nodeType == .valNode
+                                    && $0.interactionModel != nil
+                                    && $0.interactionModel!.forNodeId == action.id
+    })
+    
+    
+    
+    state.edges.removeAll(where: { $0.from.nodeId == action.id || $0.to.nodeId == action.id})
+    
+    state = recalculateGraph(state: state)
+    
+    return state
+}
+
 
 
 // don't want to use PortModel.value, because the value could be outdated later?
