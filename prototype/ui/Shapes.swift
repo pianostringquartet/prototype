@@ -17,8 +17,13 @@ import ReSwift
 // COLORS
 
 
-let backgroundColor: Color = Color.black
+//let backgroundColor: Color = Color.black
+// imitates the grid
+let backgroundColor: Color = Color.black.opacity(0.85)
 
+let floatingWindowColor: Color = Color.white.opacity(0.9)
+
+    
 
 // from Adam's prototype
 
@@ -172,6 +177,8 @@ struct PlusButton: View {
                             .onEnded { _ in
                                 self.localPreviousPosition = self.localPosition
                             })
+        .animation(.spring(response: 0.3, dampingFraction: 0.65, blendDuration: 4))
+        .shadow(radius: 25)
     }
 }
 

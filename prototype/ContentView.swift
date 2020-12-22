@@ -31,7 +31,7 @@ struct GraphEditorView: View {
     let dispatch: Dispatch
     let state: AppState
 
-    let opacity: Double = 0.75
+//    let opacity: Double = 0.75
     
     init(dispatch: @escaping Dispatch, state: AppState) {
         self.dispatch = dispatch
@@ -91,8 +91,7 @@ struct GraphEditorView: View {
         log("GraphEditorView body called")
     
         ZStack {
-
-            backgroundColor.opacity(opacity)
+            backgroundColor
                 .edgesIgnoringSafeArea(.all)
                 .overlay(
                     DrawEdges(state: state, content: graph)
@@ -135,49 +134,7 @@ struct GraphEditorView: View {
 //        )
   
         
-        
-        /// HOW TO PUT THIS IS IN A SMALL SEPARATE FUNCTION
-        // this is "background" ... can you do "overlay"?
-//        .overlayPreferenceValue(PortPreferenceKey.self) { (preferences: [PortPreferenceData]) in
-//        .backgroundPreferenceValue(PortPreferenceKey.self) { (preferences: [PortPreferenceData]) in
-////            if connections.count >= 1 {
-//            if state.edges.count >= 1 {
-//                let graphPreferences = preferences
-//                // no graphId right now
-////                    .filter( { (pref: PortPreferenceData) -> Bool in pref.graphId == graphId })
-//                GeometryReader { (geometry: GeometryProxy) in
-//                    ForEach(state.edges, content: { (portEdge: PortEdge) in
-//                        // Find each conn node's ball pref data
-//
-//                        // find the pref data for this port (its node id and port id)
-//                        let to: PortPreferenceData? = graphPreferences.first(where: { (pref: PortPreferenceData) -> Bool in
-//                            pref.portId == portEdge.to.portId &&
-//                                pref.nodeId == portEdge.to.nodeId
-//
-//                        })
-//
-//                        let from: PortPreferenceData? = graphPreferences.first(where: { (pref: PortPreferenceData) -> Bool in
-//                            pref.portId == portEdge.from.portId &&
-//                                pref.nodeId == portEdge.from.nodeId
-//                        })
-//
-//                        // TODO: handle this properly;
-//                        // all connections should be really existing
-//                        if to != nil && from != nil {
-//                            line(from: geometry[to!.center], to: geometry[from!.center])
-//                        }
-//                        else {
-//                            log("Encountered a nil while trying to draw an edge.")
-//                            log("to: \(to)")
-//                            log("from: \(from)")
-//                        }
-//                    })
-//                }
-//            }
-//        } // backgroundPreferenceValue
-        
-        
-        
+    
         .overlay(FloatingWindow(content: generateMiniview(state: state, dispatch: dispatch)).padding(),
                  alignment: .topTrailing)
         

@@ -39,7 +39,8 @@ struct FloatingWindow<ContentView: View>: View {
         // base
         RoundedRectangle(cornerRadius: 16)
 //            .fill(Color.white.opacity(0.9))
-            .fill(Color.white.opacity(0.9))
+//            .fill(Color.white.opacity(0.9))
+            .fill(floatingWindowColor)
             .overlay(RoundedRectangle(cornerRadius: 16)
                         .stroke(Color.black, lineWidth: 4))
             .overlay(content)
