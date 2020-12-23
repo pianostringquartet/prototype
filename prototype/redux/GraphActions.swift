@@ -22,21 +22,9 @@ struct NodeDeletedAction: Action {
 }
 
 struct NodeCreatedAction: Action {
-//    let nodeType: NodeType
-    
-    // MUST HAVE ONE OF THESE AT LEAST
-    
-    // if uppercase or concat or optionPicker...
+    // temporary approach
     var operation: Operation? = nil
-    
     var portValue: PortValue? = nil
-    
-    
-//    let id: Int // the node deleted
-    
-    
-    
-//    let
 }
 
 
@@ -44,10 +32,8 @@ struct PortTappedAction: Action {
     let port: PortModel // contains portId, nodeId, portValue etc.
 }
 
-// later need to update this when adding back graph stuff
+
 struct PortEdgeCreated: Action {
-//    let to: (nodeId, portId)
-//    let from: (nodeId, portId)
     let fromNode: Int
     let fromPort: Int
     
@@ -74,7 +60,6 @@ struct PlusButtonTappedAction: Action {
 func handlePlusButtonTappedAction(state: AppState, action: PlusButtonTappedAction) -> AppState {
     var state = state
     log("state.shouldBlur was: \(state.shouldBlur)")
-//    state.shouldBlur.toggle()
     state.shouldBlur = action.newValue
     log("state.shouldBlur is now: \(state.shouldBlur)")
     return state
@@ -83,19 +68,14 @@ func handlePlusButtonTappedAction(state: AppState, action: PlusButtonTappedActio
 
 
 func handleNodeCreatedAction(state: AppState, action: NodeCreatedAction) -> AppState {
-    
     log("handleNodeCreatedAction")
     var state = state
     
     
-    
-    //
     let newNodeId: Int = nextNodeId(nodes: state.nodeModels)
     
     let defaultNewNode: NodeModel = stringValNode(id: newNodeId, value: "new node...")
     
-    // HARDCODE the node to be added
-//    let newNode: NodeModel = stringValNode(id: newNodeId, value: "ciao")
     var newNode: NodeModel
     
     if action.operation != nil {
@@ -201,7 +181,6 @@ func handlePortTappedAction(state: AppState, action: PortTappedAction) -> AppSta
     // will add or remove an edge
     else {
         log("will add or remove edge")
-        // DO NOT want to capture old Port Values
         
         let fromPort: PortIdentifier = PortIdentifier(nodeId: state.activePM!.nodeId,
                                                       portId: state.activePM!.id,
@@ -289,18 +268,13 @@ func addEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: PortVa
     // UPDATING THE OUTPUT
     if nodeType == .calcNode {
         log("will update a calcNode's output too")
-        
-        // later?: customize operation etc.
-//        let operation = { (s: String) -> String in s.uppercased() }
-        
+                
         let calculatedValue = calculateValue(
             nm: updatedNode, // should contain updated inputs...
             op: updatedNode.operation!, // REQUIRED
             flowValue: flowValue)
-        // let calculatedValue = operation(flowValue)
         
         log("will use calculatedValue: \(calculatedValue)")
-        
         
         // don't know a priori the PortIdent for the output
         let outputPM: PortModel = getOutputPortModel(nodeModels: state.nodeModels, nodeId: toPort.nodeId)
@@ -310,7 +284,6 @@ func addEdgeAndUpdateNodes(state: AppState, newEdge: PortEdge, flowValue: PortVa
             state: state,
             port: PortIdentifier(nodeId: outputPM.nodeId, portId: outputPM.id, isInput: false),
             newValue: calculatedValue)
-//            newValue: operation(flowValue))
         
         let updatedNodes2: [NodeModel] = replace(ts: state.nodeModels, t: updatedNode2)
         

@@ -35,7 +35,7 @@ struct AppState: StateType, Codable {
     
     var activePM: PortModel? = nil
     
-    // should we blur the background ie plusButton edit window is open
+    // should we blur the background ie plusButton edit window is open?
     var shouldBlur: Bool = false
 }
 

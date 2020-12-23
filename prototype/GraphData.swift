@@ -25,7 +25,6 @@ func isValNode(nm: NodeModel) -> Bool {
 }
 
 func isValInteractionNode(nm: NodeModel) -> Bool {
-//    return nm.nodeType == .valNode && nm.previewInteraction != nil
     return nm.nodeType == .valNode && nm.interactionModel != nil
 }
 
@@ -34,7 +33,6 @@ func isCalcNode(nm: NodeModel) -> Bool {
 }
 
 func isVizNode(nm: NodeModel) -> Bool {
-//    return nm.nodeType == .vizNode && nm.previewElement != nil
     return nm.nodeType == .vizNode && nm.previewModel != nil
 }
 
@@ -52,14 +50,11 @@ struct NodeModel: Identifiable, Codable {
     // ... if need to keep track of specifically-embodied PreviewElement,
     // can use the PreviewElement struct with the id instead?
     
-//    var previewElement: PreviewElement? = nil // only for viz-nodes
     var previewModel: PreviewModel? = nil
     
-//    var previewInteraction: PreviewInteraction? = nil // only for interaction val-nodes
     var interactionModel: InteractionModel? = nil // only for interaction val-nodes
     
     func update(id: Int? = nil, nodeType: NodeType? = nil, ports: [PortModel]? = nil, operation: Operation? = nil,
-//                previewElement: PreviewElement? = nil,
                 previewModel: PreviewModel? = nil,
                 interactionModel: InteractionModel? = nil
     ) -> NodeModel {
@@ -67,7 +62,6 @@ struct NodeModel: Identifiable, Codable {
                          nodeType: nodeType ?? self.nodeType,
                          ports: ports ?? self.ports,
                          operation: operation ?? self.operation,
-//                         previewElement: previewElement ?? self.previewElement,
                          previewModel: previewModel ?? self.previewModel,
                          interactionModel: interactionModel ?? self.interactionModel
         )
@@ -403,31 +397,16 @@ func textLayerVizNode(nodeId: Int, previewModelId: Int,
                       position: CGSize = CGSize.zero) -> NodeModel {
     
     let textInput = PortModel(id: 1, nodeId: nodeId, portType: PortType.input, label: label, value: .string(value), defaultValue: .string(value))
-    
     let colorInput = PortModel(id: 2, nodeId: nodeId, portType: PortType.input, label: label, value: .color(colorValue), defaultValue: .color(colorValue))
-    
     let positionInput = PortModel(id: 3, nodeId: nodeId, portType: PortType.input, label: label, value: .position(position), defaultValue: .position(position))
 
     let previewModel = PreviewModel(id: previewModelId,
                                     nodeId: nodeId,
                                     previewElement: PreviewElement.text
-//                                    ,
-//                                    interactionId: interactionId
     )
     
     return NodeModel(id: nodeId, nodeType: NodeType.vizNode, ports: [textInput, colorInput, positionInput], previewModel: previewModel)
 }
-
-
-
-// NO LONGER USED?
-//func colorVizNode(id: Int, value: String, previewModel: PreviewModel, label: String) -> NodeModel {
-//
-//    let vizNodeInput: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: label, value: .color(value), defaultValue: .color(value))
-//
-//    return NodeModel(id: id, nodeType: NodeType.vizNode, ports: [vizNodeInput], previewModel: previewModel)
-//}
-
 
 
 /* ----------------------------------------------------------------
@@ -435,11 +414,9 @@ func textLayerVizNode(nodeId: Int, previewModelId: Int,
  ---------------------------------------------------------------- */
 
 func uppercaseNodeModel(id: Int) -> NodeModel {
-    
     let operation: Operation = Operation.uppercase
     
     let input: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: "input: String", value: .string(""), defaultValue: .string(""))
-
     let output: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.output, label: "output: String", value: .string(""), defaultValue: .string(""))
     
     return NodeModel(id: id, nodeType: .calcNode, ports: [input, output], operation: operation)
@@ -456,22 +433,14 @@ func concatNodeModel(id: Int) -> NodeModel {
     return NodeModel(id: id, nodeType: NodeType.calcNode, ports: [input, input2, output], operation: operation)
 }
 
-// need calcNode for Option picker
 func optionPickerNodeModel(id: Int) -> NodeModel {
-    
-    // binaryOption picker; receives bool / 1-or-0
     let operation = Operation.optionPicker
     
     let input: PortModel = PortModel(id: 1, nodeId: id, portType: PortType.input, label: "Bool", value: PortValue.bool(false), defaultValue: PortValue.bool(false))
-//    let input2: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.input, label: "Color", value: .color(trueColorString), defaultValue: .color(trueColorString))
-//    let input3: PortModel = PortModel(id: 3, nodeId: id, portType: PortType.input, label: "Color", value: .color(falseColorString), defaultValue: .color(falseColorString))
-//    let output: PortModel = PortModel(id: 4, nodeId: id, portType: PortType.output, label: "Color", value: .color(falseColorString), defaultValue: .color(falseColorString))
-    
     let input2: PortModel = PortModel(id: 2, nodeId: id, portType: PortType.input, label: "Color", value: .color(trueColor), defaultValue: .color(trueColor))
     let input3: PortModel = PortModel(id: 3, nodeId: id, portType: PortType.input, label: "Color", value: .color(falseColor), defaultValue: .color(falseColor))
     let output: PortModel = PortModel(id: 4, nodeId: id, portType: PortType.output, label: "Color", value: .color(falseColor), defaultValue: .color(falseColor))
         
     return NodeModel(id: id, nodeType: NodeType.calcNode, ports: [input, input2, input3, output], operation: operation)
-
 }
 

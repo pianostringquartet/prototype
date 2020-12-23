@@ -14,6 +14,7 @@ import ReSwift
  Sample colors
  ---------------------------------------------------------------- */
 
+
 let trueColor = Color.green
 let greenColorString = "green"
 let trueColorString = greenColorString
@@ -110,23 +111,18 @@ let vizNode2: NodeModel = textLayerVizNode(nodeId: vizNodeId2, previewModelId: p
 
 
 
-// state
-
-// REMOVED CONCAT FOR NOW
-//let hwState = AppState(nodeModels: [valNode, valNode2, valNode3, calcNode2, calcNode3, vizNode, vizNode2])
-
 let hwState = AppState(nodeModels: [
     valNode0,
     valNode,
-                                    valNode2,
-                                    valNode3,
-                                    calcNode2,
-//                                    calcNode3,
-                                    vizNode,
+    valNode2,
+    valNode3,
+    calcNode2,
+    //                                    calcNode3,
+    vizNode,
     
     vizNode2
     
-//                                    vizNode3 // additional text layer
+    //                                    vizNode3 // additional text layer
 ])
 
 

@@ -24,27 +24,17 @@ struct GraphEditorView: View {
     @State private var localPosition: CGSize = CGSize.zero
     @State private var localPreviousPosition: CGSize = CGSize.zero
     
-    
-//    @State private var shouldBlur: Bool = false
-    
-    
     let dispatch: Dispatch
     let state: AppState
-
-//    let opacity: Double = 0.75
     
     init(dispatch: @escaping Dispatch, state: AppState) {
         self.dispatch = dispatch
         self.state = state
     }
 
-    // the nodes themselves
+    // the nodes themselves // NEEDS TO BE ZSTACK
     var graph: some View {
         HStack (spacing: 50) {
-            
-            // THESE need to be positioned in a ZStack,
-            // but otherwise
-            
             let valNodes = state.nodeModels.filter { (n: NodeModel) -> Bool in
                 n.nodeType == NodeType.valNode
             }.sorted(by: ascendingNodes)
@@ -97,20 +87,9 @@ struct GraphEditorView: View {
         
         // was this causing problems? we were outside the frame?
 //        .frame(idealWidth: 500, idealHeight: 500)
-        
-//        .onTapGesture(count: 1, perform: {
-//            log("onTapGesture in ContentView called")
-//            self.shouldBlur.toggle()
-//        })
-
-        
-            
-        // added:
-//        .background(Color.black.opacity(0.8).edgesIgnoringSafeArea(.all))
-        
+    
         // Pinch to zoom
         // TODO: set limit to how far out / in we can zoom
-        
         
         // CAREFUL: .contentShape CHANGES THE AREA THAT YOU THINK YOU CAN CLICK IN ETC.
 //        .contentShape(Rectangle()) // make container
@@ -129,13 +108,9 @@ struct GraphEditorView: View {
 //                }
 //        )
   
-        
-    
         .overlay(FloatingWindow(content: generateMiniview(state: state, dispatch: dispatch)).padding(),
                  alignment: .topTrailing)
-        
         .blur(radius: state.shouldBlur ? 5 : 0)
-        
         // ie only the plus button is visible above the frost
         .overlay(PlusButton(dispatch: dispatch).padding(),
                  alignment: .bottomTrailing)
@@ -156,8 +131,7 @@ let mainStore = Store<AppState>(
 
 
 struct ContentView: View {
-//    @ObservedObject private var state = ObservableState(store: mainStore)
-    
+//    @ObservedObject private var state = ObservableState(store: mainStore)    
     @ObservedObject private var state = ObservableState(store: sampleStore) // dev etc.
 
     var body: some View {

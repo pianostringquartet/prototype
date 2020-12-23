@@ -20,7 +20,6 @@ func nextNodeId(nodes: [NodeModel]) -> Int {
 }
 
 
-
 // ASSUMES: nodeType is .calcNode, and CALLED AFTER WE'VE UPDATED NODE'S INPUTS
 func calculateValue(nm: NodeModel, op: Operation, flowValue: PortValue) -> PortValue {
     log("calculateValue called")
@@ -30,13 +29,11 @@ func calculateValue(nm: NodeModel, op: Operation, flowValue: PortValue) -> PortV
         pm.portType == .input
     }.sorted(by: ascending)
     
-    // the specific operation tells you how many inputs to look for
     
     switch op {
         case .identity:
             return flowValue
         
-        // TODO: should be a reduce option; can take arbitrarily many inputs
         case .concat:
             log("matched on .concat")
             
@@ -66,63 +63,30 @@ func calculateValue(nm: NodeModel, op: Operation, flowValue: PortValue) -> PortV
             
 
         // .optionPickers need to be generalized --
-        // e.g. for Ints, Colors, Strings, etc. -- not just any
-        // optionPicker should be of type MPV (PortValue)
+        // e.g. for Ints, Colors, Strings, etc.
         case .optionPicker:
             log("matched on .optionPicker")
-//            return MPV.StringMPV("Purple")
             switch inputs[0].value {
                 case .bool(let x):
-//                    return .string(x == true ? "Green" : "Purple")
-//                    return .color(x == true ? trueColorString : falseColorString)
-                    
-//                    return .color(x == true ? trueColor : falseColor)
-                
-//                    let topColor: Color = inputs[1].value
-                    
                     if case .color(let y) = inputs[1].value {
                         if case .color(let y2) = inputs[2].value {
                             return .color(x == true ? y : y2)
                         }
                         else {
-//                            return .color(falseColor)
                             return .color(defaultPortColor)
-                            
                         }
                     }
                     else {
                      // option picker does not have at least 2 colors
                         return .color(Color.black)
                     }
-                    
-//                    return .color(x == true ? trueColor : falseColor)
-                    
-                    
-//                    return .color(x == true ? trueColor2 : falseColor2)
                 default:
-                    log(".optionPicker default...")
-//                    return .string("Purple")
-//                    return .color(falseColor)
                     return .color(defaultPortColor)
-//                    return .color(falseColorString)
             }
     }
 }
 
-//
 
-// make the values 'flow' across the graph
-// Origami does this whenever an output changes (though currently you and origami change `output` at different times
-
-
-// don't update ALL data, just the edges after the startPoint
-// probably a better implementation?
-
-
-
-// need a BETTER version of this;
-// e.g. as we iterate through existing edges,
-// we can also look at the target's node and recalculate any values etc.
 
 func flowValues(state: AppState, nodes: [NodeModel], edges: [PortEdge]) -> AppState {
     log("flowValues called")
@@ -135,7 +99,7 @@ func flowValues(state: AppState, nodes: [NodeModel], edges: [PortEdge]) -> AppSt
         log("flowValues: edge: \(edge)")
         
         
-        // UPDATE NODES
+        // UPDATE PORT MODELS on nodes
         
         let origin: PortIdentifier = edge.from
         let originPM: PortModel = getPortModel(nodeModels: nodes, nodeId: origin.nodeId, portId: origin.portId)
@@ -149,24 +113,11 @@ func flowValues(state: AppState, nodes: [NodeModel], edges: [PortEdge]) -> AppSt
         // 1. update its port-values
         // and 2. if it has a preview model, update the preview model
         
-    
-        
-        // the output node, which will need to be updated
-//        let updatedNode: NodeModel = updateNodePortModel(state: state, port: target, newValue: originPM.value)
-        
-        
-        
         // update target to use origin's value
         let updatedNode: NodeModel = updateNodePortAndPreviewModel(state: state, port: target, newValue: originPM.value)
         let updatedNodes: [NodeModel] = replace(ts: state.nodeModels, t: updatedNode)
         
         state.nodeModels = updatedNodes
-        
-        
-        
-        // UPDATE PREVIEW MODELS on vizNodes
-        
-        
     }
     
     return state

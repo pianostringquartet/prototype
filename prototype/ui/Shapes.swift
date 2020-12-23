@@ -16,9 +16,7 @@ import ReSwift
 
 // COLORS
 
-
-//let backgroundColor: Color = Color.black
-// imitates the grid
+// imitates grid
 let backgroundColor: Color = Color.black.opacity(0.85)
 
 let floatingWindowColor: Color = Color.white.opacity(0.9)
@@ -26,59 +24,31 @@ let floatingWindowColor: Color = Color.white.opacity(0.9)
 // for text on nodes
 let textColor: Color = Color.white.opacity(0.8)
     
-
 let defaultPortColor: Color = textColor
+
+let isActiveColor: Color = Color.red.opacity(0.8)
 
 
 // from Adam's prototype
 
 let edgeColor: Color = Color(red: 122 / 255, green: 237 / 255, blue: 175 / 255)
-//let edgeColor: Color = Color(red: 80 / 255, green: 250 / 255, blue: 200 / 255, opacity: 0.8)
-
-let isActiveColor: Color = Color.red.opacity(0.6)
-
 
 let nodeTopColor: Color = Color(red: 77 / 255, green: 77 / 255, blue: 77 / 255)
 let nodeBottomColor: Color = Color(red: 52 / 255, green: 52 / 255, blue: 52 / 255)
-//
-//let nodeEmptyPortColor: Color = Color(red: 183 / 255, green: 183 / 255, blue: 183 / 255)
 
 let pinkNodeTopColor: Color = Color (red: 231 / 255, green: 54 / 255, blue: 161 / 255)
 let pinkNodeBottomColor: Color = Color (red: 198 / 255, green: 0 / 255, blue: 114 / 255)
 let pinkTagColor: Color = Color (red: 100 / 255, green: 0 / 255, blue: 60 / 255)
 
 
-
-let skyColor: Color = Color (red: 91 / 255, green: 179 / 255, blue: 230 / 255)
-let bananaColor: Color = Color (red: 231 / 255, green: 233 / 255, blue: 87 / 255)
-let mercuryColor: Color = Color (red: 208 / 255, green: 208 / 255, blue: 208 / 255)
-
-
-
-
-// grey and pink scheme
 let valNodeColor: Color = nodeBottomColor
 let calcNodeColor: Color = nodeBottomColor
 let vizNodeColor: Color = pinkNodeBottomColor
-
-//let colorOpacity: Double = 1 //0.6 // 0.8
-//let valNodeColor: Color = mercuryColor.opacity(colorOpacity)
-//let calcNodeColor: Color = bananaColor.opacity(colorOpacity)
-//let vizNodeColor: Color = skyColor.opacity(colorOpacity)
-
-
-//let valNodeColor: Color = Color.gray.opacity(colorOpacity)
-//let calcNodeColor: Color = Color.yellow.opacity(colorOpacity)
-//let vizNodeColor: Color = Color.blue.opacity(colorOpacity)
-
-
 
 
 // MEASUREMENTS
 
 let portAndEdgeWidth: CGFloat = 30
-
-
 
 
 
@@ -101,15 +71,12 @@ struct Line: Shape {
 func line(from: CGPoint, to: CGPoint) -> some View {
     return Line(from: from, to: to)
         .stroke(edgeColor,
-                style: StrokeStyle(lineWidth: portAndEdgeWidth, // 10,
+                style: StrokeStyle(lineWidth: portAndEdgeWidth,
                                    lineCap: .round,
                                    lineJoin: .round))
         .animation(.default)
-        .zIndex(2) // added
+//        .zIndex(2)
 }
-
-// common
-//typealias <#type name#> = <#type expression#>
 
 
 struct PlusButton: View {
@@ -120,52 +87,36 @@ struct PlusButton: View {
  
     @State private var showPopover: Bool = false // not persisted
     
-    let radius: CGFloat = 80 // 30
+    let radius: CGFloat = 80
     
     let dispatch: Dispatch
     
     var body: some View {
         Circle().stroke(Color.black)
-        
-//        .offset(x: localPosition.width, y: localPosition.height)
-        
         .overlay(LinearGradient(gradient: Gradient(colors: [Color.white, Color.green]),
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-            ))
-        
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing))
         .overlay(Image(systemName: "plus"))
         .clipShape(Circle())
         .frame(width: CGFloat(radius), height: CGFloat(radius))
-            
-            // added:
-            // what about when dismssed?
-            .popover(isPresented: $showPopover, arrowEdge: .bottom) {
-                 VStack (spacing: 20) {
-                     Button("valNode: 'ciao'") {
-                        dispatch(NodeCreatedAction(portValue: .string("ciao")))
-                     }
-                    Button("valNode: 'hola'") {
-                        dispatch(NodeCreatedAction(portValue: .string("hola")))
-                    }
-                    Button("valNode: Color Blue") {
-                        dispatch(NodeCreatedAction(portValue: .color(Color.blue)))
-                    }
-                    Button("calcNode: string concat") {
-                        dispatch(NodeCreatedAction(operation: .concat))
-                    }
-//                    Button("calcNode: string concat") {
-//                       dispatch(NodeCreatedAction())
-//                    }
-                    
-                 }.padding()
-             }
-            
+        // what about click-to-dismiss?
+        .popover(isPresented: $showPopover, arrowEdge: .bottom) {
+            VStack (spacing: 20) {
+                Button("valNode: 'ciao'") {
+                    dispatch(NodeCreatedAction(portValue: .string("ciao")))
+                }
+                Button("valNode: 'hola'") {
+                    dispatch(NodeCreatedAction(portValue: .string("hola")))
+                }
+                Button("valNode: Color Blue") {
+                    dispatch(NodeCreatedAction(portValue: .color(Color.blue)))
+                }
+                Button("calcNode: string concat") {
+                    dispatch(NodeCreatedAction(operation: .concat))
+                }
+            }.padding()
+        }
         .onTapGesture(count: 1, perform: {
-                log("Plus button clicked")
-//                playSound(sound: "positive_ping", type: "mp3")
-//                dispatch(NodeCreatedAction())
-        
             log("showPopover was: \(showPopover)")
             // ie toggle
             dispatch(PlusButtonTappedAction(newValue: self.showPopover ? false : true))
@@ -193,7 +144,6 @@ func nodeTitle(_ node: NodeModel) -> String {
         case .calcNode:
             return node.operation!.rawValue
         case .valNode:
-//            return "Value"
             return node.interactionModel != nil
                 ? "\(node.interactionModel!.previewInteraction) for \(node.interactionModel!.forNodeId)"
                 : "Value"
@@ -209,9 +159,7 @@ struct NodeView: View {
     @State private var localPosition: CGSize = CGSize.zero
     @State private var localPreviousPosition: CGSize = CGSize.zero
     
-    
     @State private var showPopover: Bool = false // not persisted
-    
     
     // contains the ports etc.
     let nodeModel: NodeModel
@@ -219,13 +167,9 @@ struct NodeView: View {
     let dispatch: Dispatch
     let state: AppState // convenience for now?
     
-    // should these properties of NodeModel?
-//    let title: String
-//    let color: Color
+    let isPink: Bool
     
     let spacing: CGFloat = 20
-    
-    let isPink: Bool
     
     var bottomSection: some View {
         
@@ -235,7 +179,6 @@ struct NodeView: View {
         let outputs: [PortModel] = nodeModel.ports.filter { $0.portType == PortType.output }
             .sorted(by: ascending)
         
-//        return Group {
         return ZStack {
             switch nodeModel.nodeType {
                 case .valNode:
@@ -254,7 +197,6 @@ struct NodeView: View {
     var body: some View {
 
         VStack {
-         // top
             Text("\(nodeTitle(nodeModel)) (\(nodeModel.id))")
                 .foregroundColor(textColor)
                 .frame(maxWidth: .infinity, maxHeight: 40)
@@ -268,23 +210,15 @@ struct NodeView: View {
                          }
                      }.padding()
                  }
-                
-                        
+            
             bottomSection
-//                .frame(maxWidth: .infinity, maxHeight: .infinity)
-//                .frame(maxWidth: .infinity, minHeight: 100)
-                .frame(maxWidth: .infinity, minHeight: 60)
+                .frame(maxWidth: .infinity, minHeight: 60) // .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background(isPink ? pinkNodeBottomColor : nodeBottomColor)
                     
         } // Vstack
-        
-        // make the entire vstack have a pink / gray background
         .background(isPink ? pinkNodeBottomColor : nodeBottomColor)
-        
         .clipShape(RoundedRectangle(cornerRadius: 16))
-//        .frame(width: 300, height: 250)
-        
-        .frame(maxWidth: 200)
+        .frame(maxWidth: 200) // .frame(width: 300, height: 250)
         .offset(x: localPosition.width, y: localPosition.height)
         .onTapGesture(count: 2, perform: {
                 self.showPopover.toggle()
@@ -367,13 +301,9 @@ struct SinglePortTypeView: View {
                          isInput: isInput,
                          hasEdge: hasEdge(edges: state.edges, pm: port, isInput: isInput))
             }
-        }
+        }.padding(spacing)
     }
 }
-
-
-let commonSpacing: CGFloat = 10
-
 
 // fill port's color
 func fillColor(hasEdge: Bool, thisPM: PortModel, activePM: PortModel?) -> Color {
@@ -403,77 +333,6 @@ func fillColor(hasEdge: Bool, thisPM: PortModel, activePM: PortModel?) -> Color 
     }
 }
 
-struct NodeView2: View {
-    
-        
-    // val interaction nodes need to be pink as well
-//    let color: Color // for val vs calc etc.
-    
-    // better?:
-    let isPink: Bool
-    
-    
-    var body: some View {
-        
-        VStack {
-            Text("node title")
-//                .padding()
-//                .frame(maxWidth: .infinity, maxHeight: .infinity)
-//                .padding()
-                .foregroundColor(textColor)
-                .frame(maxWidth: .infinity, maxHeight: 60)
-                .background(isPink ? pinkNodeTopColor : nodeTopColor)
-                
-            
-//            Text("ports here")
-////                .padding()
-                
-            VStack(spacing: 5) {
-                Text("port 1")
-//                Text("port 2")
-//                Text("port 3")
-//                Text("port 4")
-//                Text("port 5")
-            }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(isPink ? pinkNodeBottomColor : nodeBottomColor)
-        }
-//        .frame(minWidth: 200, maxWidth: 400, minHeight: 200, maxHeight: 400)
-        .frame(width: 300, height: 250)
-//        .frame(idealWidth: 200, maxWidth: 300, idealHeight: 250, maxHeight: 350)
-//        .background(isPink ? pinkNodeBottomColor : nodeBottomColor)
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        
-        
-//
-//        RoundedRectangle(cornerRadius: 16)
-//            // fill the bottom
-//            .fill(isPink ? pinkNodeBottomColor : nodeBottomColor)
-////            .overlay(
-////
-////                VStack {
-////                    Text("node title").padding().background(Color.blue)
-////                    Text("ports here").padding().background(Color.red)
-////                }
-////            )
-//
-//            // top
-//            .overlay(Text("node title").padding(.all).background(Color.blue),
-//                     alignment: .top)
-//
-//            // bottom
-//            .overlay(Text("ports here").padding().background(Color.red),
-//                     alignment: .bottom)
-//
-//            .frame(width: 200, height: 200)
-
-        
-        
-        
-    
-    }
-}
-
 
 struct PortView: View {
 
@@ -486,17 +345,12 @@ struct PortView: View {
     
     // is this specific port CURRENTLY either the origin or the target for an edge?
     let hasEdge: Bool
-
-//    let isOptionPicker: Bool
     
-    
-
     var body: some View {
         
         let portDot = Circle()
             .fill(fillColor(hasEdge: hasEdge, thisPM: pm, activePM: state.activePM))
             .clipShape(Circle())
-//            .frame(width: 30, height: 30)
             .frame(width: portAndEdgeWidth, height: portAndEdgeWidth)
             .anchorPreference(key: PortPreferenceKey.self,
                               value: .center,
@@ -506,24 +360,13 @@ struct PortView: View {
                                                     nodeId: pm.nodeId,
                                                     portId: pm.id)] })
 
-            .onTapGesture(count: 1, perform: {
-                log("PortView tap called: Node \(pm.nodeId), Port \(pm.id), Value: \(pm.value)")
-                log("PortView tap called: current pm is: \(state.activePM)")
-                
-                dispatch(PortTappedAction(port: pm))
-            })
+            .onTapGesture(count: 1, perform: { dispatch(PortTappedAction(port: pm)) })
                 
         let displayablePortValue: String = getDisplayablePortValue(mpv: pm.value)
         
-//        let portValue = Text(displayablePortValue).foregroundColor(textColor)
         let portValue = Text("(\(pm.id)) \(displayablePortValue)").foregroundColor(textColor)
         
         VStack {
-//            Text("Port \(pm.id)")
-//                .foregroundColor(textColor)
-//            // for debug, really
-            
-            
             if isInput == true {
                 HStack {
                     portDot
@@ -599,8 +442,7 @@ struct DrawEdges<ContentView: View>: View {
 
 struct Shapes_Previews: PreviewProvider {
     static var previews: some View {
-//        Text("Hello, World!")
-        NodeView2(isPink: true)
+        Text("Hello, World!")
     }
 }
 

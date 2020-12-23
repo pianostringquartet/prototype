@@ -37,19 +37,14 @@ struct TextMovedMiniviewAction: Action {
  ---------------------------------------------------------------- */
 
 func handleTextTappedMiniviewAction(state: AppState, textTapped: TextTappedMiniviewAction) -> AppState {
-    
     log("handleTextTappedMiniviewAction called")
     log("textTapped.nodeId: \(textTapped.nodeId)")
     
     var state = state
-        
     
     // CANNOT ASSUME that the interaction 
     let interactionNode: NodeModel = getInteractionNode(nodes: state.nodeModels,
-                                                        vizNodeId: textTapped.nodeId //,
-                                                        // `press`, since this is text TAPPED
-//                                                        previewInteraction: PreviewInteraction.press
-    )
+                                                        vizNodeId: textTapped.nodeId)
     
     // still HARDCODED the portId -- assumes that `press` val nodes only have single port...
     let pi: PortIdentifier = PortIdentifier(nodeId: interactionNode.id, portId: 1, isInput: false)
@@ -111,12 +106,7 @@ func handleTextMovedMiniviewAction(state: AppState, textMoved: TextMovedMiniview
     // updated the position etc., but now have to also update the interaction val-node
     
     /// ASSUMES looking for `.drag` interaction val node
-    var interactionNode: NodeModel = getInteractionNode(nodes: state.nodeModels,
-                                                        vizNodeId: textLayerId
-                                                        //,
-                                                        // `drag`, since this is text DRAGGED
-//                                                        previewInteraction: PreviewInteraction.drag
-    )
+    let interactionNode: NodeModel = getInteractionNode(nodes: state.nodeModels, vizNodeId: textLayerId)
     
     // still HARDCODED the portId -- assumes that `drag` val nodes only have single port...
     let pi: PortIdentifier = PortIdentifier(nodeId: interactionNode.id, portId: 1, isInput: false)
@@ -126,7 +116,7 @@ func handleTextMovedMiniviewAction(state: AppState, textMoved: TextMovedMiniview
     
     // UPDATE INTERACTION VAL-NODE'S POSITION PORT
     
-    if case .position(let x) = pm.value {
+    if case .position = pm.value {
         let newValue: PortValue = .position(textMoved.position)
         
         let updatedNode2: NodeModel = updateNodePortAndPreviewModel(state: state, port: pi, newValue: newValue)
@@ -134,10 +124,8 @@ func handleTextMovedMiniviewAction(state: AppState, textMoved: TextMovedMiniview
         state.nodeModels = updatedNodes2
     }
     
-    
     // finally, recalculate the graph
     state = recalculateGraph(state: state)
-    
     
     return state
 }

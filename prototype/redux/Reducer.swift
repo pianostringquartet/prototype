@@ -32,10 +32,7 @@ func reducer(action: Action, state: AppState?) -> AppState {
         
         case let portTapped as PortTappedAction:
             state = handlePortTappedAction(state: state, action: portTapped)
-//            log("newState from PortTappedAction: \(newState)")
-//            state = newState
-        
-        
+
         case let nodeDeleted as NodeDeletedAction:
             state = handleNodeDeleted(state: state, action: nodeDeleted)
         
@@ -50,16 +47,10 @@ func reducer(action: Action, state: AppState?) -> AppState {
         
         case let textTapped as TextTappedMiniviewAction:
             state = handleTextTappedMiniviewAction(state: state, textTapped: textTapped)
-//            log("newState from TextTappedMiniviewAction: \(newState)")
-//            state = newState
         
         case let textMoved as TextMovedMiniviewAction:
             state = handleTextMovedMiniviewAction(state: state, textMoved: textMoved)
 
-            
-            
-            // we have the p
-            
         default:
             break
     }
